@@ -14,13 +14,14 @@ wheels/
 .pytest_cache/
 .ipynb_checkpoints/
 
-# Local data, checkpoints, logs
-data/
-checkpoints/
-runs/
-wandb/
-mlruns/
-lightning_logs/
+# Local data, checkpoints, logs (anchored to repo root so they don't
+# match similarly named subpackages, e.g. majorana_acp/data/).
+/data/
+/checkpoints/
+/runs/
+/wandb/
+/mlruns/
+/lightning_logs/
 
 # OS / editor
 .DS_Store
