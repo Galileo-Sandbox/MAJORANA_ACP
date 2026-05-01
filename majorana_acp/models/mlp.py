@@ -59,6 +59,27 @@ class MLP(nn.Module):
         layers.append(nn.Linear(prev_dim, 1))
         self.network = nn.Sequential(*layers)
 
+        self._init_weights()
+
+    def _init_weights(self) -> None:
+        """Kaiming-He on hidden ReLU layers, Xavier on the classifier head.
+
+        PyTorch's default Linear init is Kaiming-uniform with a=sqrt(5),
+        which is roughly Xavier — fine for tanh/sigmoid but underscaled
+        for ReLU. Explicit Kaiming-normal pre-activation by 2x and
+        keeps the post-ReLU variance roughly stationary, which matters
+        more for narrow-and-deep stacks than wide-and-shallow ones but
+        costs nothing here.
+        """
+        # The final Linear is the classifier head (logit -> BCE), not a
+        # ReLU pre-activation, so it gets Xavier instead of Kaiming.
+        linears = [m for m in self.network if isinstance(m, nn.Linear)]
+        for m in linears[:-1]:
+            nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
+            nn.init.zeros_(m.bias)
+        nn.init.xavier_uniform_(linears[-1].weight)
+        nn.init.zeros_(linears[-1].bias)
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Accept (B, L) or (B, 1, L); flatten to (B, L).
         if x.ndim == 3:
