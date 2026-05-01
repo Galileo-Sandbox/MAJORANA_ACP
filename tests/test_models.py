@@ -7,6 +7,7 @@ import torch
 from torch import nn
 
 from majorana_acp.models import build_model, list_models, register_model
+from majorana_acp.models.mlp import MLP
 from majorana_acp.models.simple_cnn import SimpleCNN
 
 # --- Registry --------------------------------------------------------
@@ -119,3 +120,74 @@ def test_simple_cnn_rejects_bad_dropout() -> None:
 def test_simple_cnn_rejects_empty_channels() -> None:
     with pytest.raises(ValueError):
         SimpleCNN(channels=[])
+
+
+# --- MLP -------------------------------------------------------------
+
+
+def test_mlp_is_registered() -> None:
+    assert "mlp" in list_models()
+
+
+def test_build_model_mlp_returns_nn_module() -> None:
+    model = build_model("mlp", input_dim=128, hidden_dims=[16, 8])
+    assert isinstance(model, MLP)
+
+
+def test_mlp_forward_shape_2d_input() -> None:
+    model = MLP()
+    x = torch.randn(4, 3800)
+    out = model(x)
+    assert out.shape == (4,)
+    assert out.dtype == torch.float32
+
+
+def test_mlp_forward_shape_3d_input() -> None:
+    """(B, 1, L) input is flattened to (B, L)."""
+    model = MLP()
+    x = torch.randn(4, 1, 3800)
+    out = model(x)
+    assert out.shape == (4,)
+
+
+def test_mlp_outputs_logits_not_probabilities() -> None:
+    torch.manual_seed(0)
+    model = MLP()
+    x = torch.randn(64, 3800) * 5
+    out = model(x)
+    assert (out < 0).any() or (out > 1).any(), (
+        "MLP output looks like a probability, expected raw logits"
+    )
+
+
+def test_mlp_gradient_flows() -> None:
+    model = MLP(input_dim=64, hidden_dims=[16, 8], dropout=0.0)
+    x = torch.randn(2, 64)
+    target = torch.tensor([0.0, 1.0])
+    loss = nn.functional.binary_cross_entropy_with_logits(model(x), target)
+    loss.backward()
+    grads = [p.grad is not None and p.grad.abs().sum() > 0 for p in model.parameters()]
+    assert all(grads)
+
+
+def test_mlp_input_size_mismatch_raises() -> None:
+    model = MLP(input_dim=3800)
+    with pytest.raises(ValueError):
+        model(torch.randn(2, 100))  # wrong input length
+
+
+def test_mlp_rejects_bad_input_dim() -> None:
+    with pytest.raises(ValueError):
+        MLP(input_dim=0)
+
+
+def test_mlp_rejects_empty_hidden_dims() -> None:
+    with pytest.raises(ValueError):
+        MLP(hidden_dims=[])
+
+
+def test_mlp_rejects_bad_dropout() -> None:
+    with pytest.raises(ValueError):
+        MLP(dropout=1.0)
+    with pytest.raises(ValueError):
+        MLP(dropout=-0.1)

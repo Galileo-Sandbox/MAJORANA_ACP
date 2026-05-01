@@ -6,7 +6,10 @@ discoverable via ``build_model(name)``.
 """
 
 # Concrete model modules — imported for their @register_model side effect.
-from majorana_acp.models import simple_cnn  # noqa: F401
+from majorana_acp.models import (
+    mlp,  # noqa: F401
+    simple_cnn,  # noqa: F401
+)
 from majorana_acp.models.registry import build_model, list_models, register_model
 
 __all__ = ["build_model", "list_models", "register_model"]
