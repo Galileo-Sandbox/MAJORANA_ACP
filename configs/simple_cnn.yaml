@@ -1,0 +1,38 @@
+# Reference experiment: SimpleCNN baseline for psd_label_low_avse.
+# Run from project root:
+#   python -m majorana_acp.cli.train configs/simple_cnn.yaml
+name: simple_cnn_baseline
+
+data:
+  data_dir: /home/klz/Data/MAJORANA
+  train_file_indices: all
+  test_file_indices: all
+  target_label: psd_label_low_avse
+  batch_size: 256
+  num_workers: 4
+  baseline_samples: 500
+
+model:
+  name: simple_cnn
+  params:
+    channels: [16, 32, 64]
+    kernel_size: 5
+    dropout: 0.2
+
+optim:
+  optimizer: adamw
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+
+loss:
+  type: weighted_bce
+  pos_weight: auto
+  balanced_sampler: false
+
+train:
+  epochs: 10
+  seed: 0
+  out_dir: runs/simple_cnn_baseline
+  log_every_n_steps: 50
+  device: auto
+  amp: true
