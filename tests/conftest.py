@@ -84,5 +84,12 @@ def tiny_train_dir(tmp_path: Path) -> Path:
             seed=i,
         )
         offset += n
-    _write_synthetic_hdf5(tmp_path / "MJD_Test_0.hdf5", n_events=2, seed=99)
+    # Test file: 16 events with mixed labels so eval / ROC-AUC tests have
+    # both classes present. Pass rate ~0.6 to nudge a non-degenerate split.
+    _write_synthetic_hdf5(
+        tmp_path / "MJD_Test_0.hdf5",
+        n_events=16,
+        low_avse_pass_rate=0.6,
+        seed=99,
+    )
     return tmp_path
