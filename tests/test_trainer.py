@@ -218,6 +218,25 @@ def test_train_with_balanced_sampler(tiny_train_dir: Path, tmp_path: Path) -> No
     train(cfg)
 
 
+def test_train_with_partial_train_portion(tiny_train_dir: Path, tmp_path: Path) -> None:
+    """train_portion < 1.0 should still complete and produce a checkpoint."""
+    cfg = _smoke_config(tiny_train_dir, tmp_path / "run")
+    cfg = cfg.model_copy(update={"data": cfg.data.model_copy(update={"train_portion": 0.5})})
+    out_dir = train(cfg)
+    assert (out_dir / "epoch_001.pt").is_file()
+
+
+def test_train_partial_portion_with_balanced_sampler(tiny_train_dir: Path, tmp_path: Path) -> None:
+    """train_portion + balanced_sampler should compose."""
+    cfg = _smoke_config(
+        tiny_train_dir,
+        tmp_path / "run",
+        loss=LossConfig(type="bce", balanced_sampler=True),
+    )
+    cfg = cfg.model_copy(update={"data": cfg.data.model_copy(update={"train_portion": 0.5})})
+    train(cfg)
+
+
 def test_train_with_focal_loss(tiny_train_dir: Path, tmp_path: Path) -> None:
     cfg = _smoke_config(
         tiny_train_dir,

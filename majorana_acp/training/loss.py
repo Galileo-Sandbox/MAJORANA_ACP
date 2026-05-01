@@ -66,8 +66,16 @@ def compute_pos_weight(files: list[Path], target_label: str) -> float:
     return n_neg / n_pos
 
 
-def build_balanced_sampler(files: list[Path], target_label: str) -> WeightedRandomSampler:
-    """Sampler that draws each class with equal expected frequency."""
+def build_balanced_sampler(
+    files: list[Path],
+    target_label: str,
+    num_samples: int | None = None,
+) -> WeightedRandomSampler:
+    """Sampler that draws each class with equal expected frequency.
+
+    ``num_samples`` defaults to the dataset size; pass a smaller value to
+    sub-sample (e.g., to honor ``train_portion``).
+    """
     labels = _read_labels(files, target_label)
     n_pos = int(labels.sum())
     n_neg = int((~labels).sum())
@@ -79,7 +87,7 @@ def build_balanced_sampler(files: list[Path], target_label: str) -> WeightedRand
     weights = np.where(labels, 1.0 / n_pos, 1.0 / n_neg)
     return WeightedRandomSampler(
         weights=torch.from_numpy(weights).double(),
-        num_samples=len(weights),
+        num_samples=num_samples if num_samples is not None else len(weights),
         replacement=True,
     )
 

@@ -59,6 +59,16 @@ class DataConfig(_Frozen):
         gt=0,
         description="Leading samples averaged for baseline subtraction.",
     )
+    train_portion: float = Field(
+        default=1.0,
+        gt=0.0,
+        le=1.0,
+        description=(
+            "Fraction of the training set to draw per epoch (without "
+            "replacement, reshuffled each epoch). Use < 1.0 to scan all "
+            "files but spend less time per epoch."
+        ),
+    )
 
     @field_validator("data_dir")
     @classmethod

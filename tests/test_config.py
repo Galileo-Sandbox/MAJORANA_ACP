@@ -80,6 +80,21 @@ def test_data_config_rejects_unknown_target_label(tmp_path: Path) -> None:
         DataConfig(data_dir=tmp_path, target_label="not_a_label")
 
 
+def test_data_config_train_portion_default(tmp_path: Path) -> None:
+    cfg = DataConfig(data_dir=tmp_path)
+    assert cfg.train_portion == 1.0
+
+
+def test_data_config_rejects_zero_train_portion(tmp_path: Path) -> None:
+    with pytest.raises(ValidationError):
+        DataConfig(data_dir=tmp_path, train_portion=0.0)
+
+
+def test_data_config_rejects_train_portion_above_one(tmp_path: Path) -> None:
+    with pytest.raises(ValidationError):
+        DataConfig(data_dir=tmp_path, train_portion=1.5)
+
+
 # --- ModelConfig -----------------------------------------------------
 
 

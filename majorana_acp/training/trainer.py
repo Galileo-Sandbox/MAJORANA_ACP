@@ -35,7 +35,7 @@ import numpy as np
 import torch
 from sklearn import metrics as skm
 from torch import nn, optim
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, RandomSampler, WeightedRandomSampler
 
 from majorana_acp.data import (
     DatasetConfig,
@@ -147,10 +147,13 @@ def train(cfg: ExperimentConfig) -> Path:
         )
         logger.info("train set: %d events", len(train_ds))
 
-        sampler = None
-        if cfg.loss.balanced_sampler:
-            logger.info("building balanced sampler")
-            sampler = build_balanced_sampler(train_files, cfg.data.target_label)
+        sampler = _build_train_sampler(
+            dataset=train_ds,
+            train_files=train_files,
+            target_label=cfg.data.target_label,
+            train_portion=cfg.data.train_portion,
+            balanced_sampler=cfg.loss.balanced_sampler,
+        )
 
         train_loader = DataLoader(
             train_ds,
@@ -337,6 +340,42 @@ def _eval_test_set(
         auc = float(skm.roc_auc_score(labels_arr.astype(bool), scores))
 
     return {"loss": avg_loss, "roc_auc": auc}
+
+
+def _build_train_sampler(
+    *,
+    dataset: MajoranaWaveformDataset,
+    train_files: list[Path],
+    target_label: str,
+    train_portion: float,
+    balanced_sampler: bool,
+) -> RandomSampler | WeightedRandomSampler | None:
+    """Build the train-side sampler, composing ``train_portion`` with the
+    optional class-balanced sampler.
+
+    Returns ``None`` for the default case (``train_portion == 1.0`` and
+    ``balanced_sampler=False``); the DataLoader then uses
+    ``shuffle=True`` directly.
+    """
+    n = len(dataset)
+    num_samples = int(n * train_portion)
+    if num_samples < 1:
+        raise ValueError(f"train_portion={train_portion} on dataset of size {n} yields 0 samples")
+
+    if balanced_sampler:
+        logger.info("building balanced sampler (num_samples=%d)", num_samples)
+        return build_balanced_sampler(train_files, target_label, num_samples=num_samples)
+
+    if train_portion < 1.0:
+        logger.info(
+            "subsampling training set: train_portion=%.3f -> %d / %d events",
+            train_portion,
+            num_samples,
+            n,
+        )
+        return RandomSampler(dataset, replacement=False, num_samples=num_samples)
+
+    return None
 
 
 # ---- Run metadata ----------------------------------------------------
