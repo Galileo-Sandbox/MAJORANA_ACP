@@ -1,21 +1,39 @@
 """End-to-end training driver.
 
 ``train(cfg)`` is the single entry point. Given a fully validated
-:class:`ExperimentConfig` it builds the dataset, model, loss, and
-optimizer, runs the training loop, and saves a per-epoch checkpoint
-plus a JSON snapshot of the config to ``cfg.train.out_dir``.
+:class:`ExperimentConfig` it builds the train + test datasets, model,
+loss, and optimizer, runs the training loop, and writes the following
+artifacts to ``cfg.train.out_dir``:
+
+* ``metadata.json``         — config snapshot + runtime info
+  (git SHA, host, versions, start/end times, completed epochs,
+  final per-epoch metrics).
+* ``training_history.json`` — per-epoch ``train_loss``, ``test_loss``,
+  ``test_roc_auc`` so loss curves can be reconstructed.
+* ``epoch_NNN.pt``          — model + optimizer checkpoint per epoch.
+* ``train.log``             — log file scoped to this run.
+
+The test set (``cfg.data.test_file_indices``) is used purely as a
+held-out monitoring set during training. Train and test files come from
+disjoint Zenodo files and are never mixed.
 """
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import random
+import socket
+import subprocess
+import sys
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
 import torch
+from sklearn import metrics as skm
 from torch import nn, optim
 from torch.utils.data import DataLoader
 
@@ -96,10 +114,27 @@ def train(cfg: ExperimentConfig) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     file_handler = _attach_file_handler(out_dir / "train.log")
+
+    # Initial metadata snapshot — written eagerly so even a crashed run
+    # leaves a partial record on disk.
+    metadata: dict = {
+        "name": cfg.name,
+        "config": cfg.model_dump(mode="json"),
+        "runtime": _collect_runtime_info(device),
+        "start_time": _utc_now_iso(),
+        "end_time": None,
+        "completed_epochs": 0,
+        "final_metrics": None,
+    }
+    _write_json(out_dir / "metadata.json", metadata)
+
+    history: list[dict] = []
+    _write_json(out_dir / "training_history.json", history)
+
     try:
         logger.info("experiment=%s  device=%s  out_dir=%s", cfg.name, device, out_dir)
 
-        # ---- Data -------------------------------------------------
+        # ---- Train data ------------------------------------------
         train_files = resolve_files(cfg.data.data_dir, "train", cfg.data.train_file_indices)
         logger.info("loaded %d training file(s)", len(train_files))
 
@@ -110,7 +145,7 @@ def train(cfg: ExperimentConfig) -> Path:
                 baseline_samples=cfg.data.baseline_samples,
             )
         )
-        logger.info("dataset size: %d events", len(train_ds))
+        logger.info("train set: %d events", len(train_ds))
 
         sampler = None
         if cfg.loss.balanced_sampler:
@@ -126,6 +161,25 @@ def train(cfg: ExperimentConfig) -> Path:
             pin_memory=(device.type == "cuda"),
             drop_last=False,
         )
+
+        # ---- Test data (held-out monitoring) ---------------------
+        test_files = resolve_files(cfg.data.data_dir, "test", cfg.data.test_file_indices)
+        test_ds = MajoranaWaveformDataset(
+            DatasetConfig(
+                files=test_files,
+                target_label=cfg.data.target_label,
+                baseline_samples=cfg.data.baseline_samples,
+            )
+        )
+        test_loader = DataLoader(
+            test_ds,
+            batch_size=cfg.data.batch_size,
+            shuffle=False,
+            num_workers=cfg.data.num_workers,
+            pin_memory=(device.type == "cuda"),
+            drop_last=False,
+        )
+        logger.info("test set: %d events (used for per-epoch monitoring)", len(test_ds))
 
         # ---- Model ------------------------------------------------
         model = build_model(cfg.model.name, **cfg.model.params).to(device)
@@ -144,14 +198,9 @@ def train(cfg: ExperimentConfig) -> Path:
         if use_amp:
             logger.info("mixed precision (AMP) enabled")
 
-        # ---- Config snapshot for reproducibility ----------------
-        (out_dir / "config.json").write_text(
-            json.dumps(cfg.model_dump(mode="json"), indent=2, default=str)
-        )
-
         # ---- Train loop ------------------------------------------
         for epoch in range(1, cfg.train.epochs + 1):
-            avg_loss = _train_one_epoch(
+            train_loss = _train_one_epoch(
                 model=model,
                 loader=train_loader,
                 loss_fn=loss_fn,
@@ -161,14 +210,39 @@ def train(cfg: ExperimentConfig) -> Path:
                 epoch=epoch,
                 log_every=cfg.train.log_every_n_steps,
             )
+
+            test_metrics = _eval_test_set(model, test_loader, loss_fn, device)
+
+            entry = {
+                "epoch": epoch,
+                "train_loss": train_loss,
+                "test_loss": test_metrics["loss"],
+                "test_roc_auc": test_metrics["roc_auc"],
+            }
+            history.append(entry)
+            _write_json(out_dir / "training_history.json", history)
+
             ckpt_path = out_dir / f"epoch_{epoch:03d}.pt"
             save_checkpoint(ckpt_path, model, optimizer, epoch, cfg)
+
+            auc_str = (
+                f"{test_metrics['roc_auc']:.4f}" if test_metrics["roc_auc"] is not None else "n/a"
+            )
             logger.info(
-                "epoch=%d  avg_loss=%.4f  checkpoint=%s",
+                "epoch=%d  train_loss=%.4f  test_loss=%.4f  test_auc=%s  ckpt=%s",
                 epoch,
-                avg_loss,
+                train_loss,
+                test_metrics["loss"],
+                auc_str,
                 ckpt_path.name,
             )
+
+            metadata["completed_epochs"] = epoch
+            metadata["final_metrics"] = entry
+            _write_json(out_dir / "metadata.json", metadata)
+
+        metadata["end_time"] = _utc_now_iso()
+        _write_json(out_dir / "metadata.json", metadata)
     finally:
         _detach_file_handler(file_handler)
 
@@ -223,15 +297,103 @@ def _train_one_epoch(
     return avg
 
 
+@torch.no_grad()
+def _eval_test_set(
+    model: nn.Module,
+    loader: DataLoader,
+    loss_fn: nn.Module,
+    device: torch.device,
+) -> dict:
+    """Return mean loss + ROC-AUC over ``loader``. Used per-epoch.
+
+    ROC-AUC is None if only one class is present in the test set.
+    """
+    model.eval()
+    loss_sum = 0.0
+    n_batches = 0
+    all_logits: list[np.ndarray] = []
+    all_labels: list[np.ndarray] = []
+
+    for batch in loader:
+        wf = batch["waveform"].to(device, non_blocking=True)
+        target = batch["label"].to(device, non_blocking=True)
+        logits = model(wf)
+        loss = loss_fn(logits, target)
+
+        loss_sum += float(loss.item())
+        n_batches += 1
+        all_logits.append(logits.detach().cpu().numpy())
+        all_labels.append(target.detach().cpu().numpy())
+
+    avg_loss = loss_sum / max(n_batches, 1)
+    logits_arr = np.concatenate(all_logits) if all_logits else np.array([], dtype=np.float32)
+    labels_arr = np.concatenate(all_labels) if all_labels else np.array([], dtype=np.float32)
+    scores = 1.0 / (1.0 + np.exp(-logits_arr))
+
+    auc: float | None = None
+    n_pos = int(labels_arr.sum())
+    n_neg = int(labels_arr.size) - n_pos
+    if n_pos > 0 and n_neg > 0:
+        auc = float(skm.roc_auc_score(labels_arr.astype(bool), scores))
+
+    return {"loss": avg_loss, "roc_auc": auc}
+
+
+# ---- Run metadata ----------------------------------------------------
+
+
+def _utc_now_iso() -> str:
+    return datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def _collect_runtime_info(device: torch.device) -> dict:
+    """Collect machine / git / library info for the metadata.json snapshot."""
+    info: dict = {
+        "hostname": socket.gethostname(),
+        "python_version": sys.version.split()[0],
+        "torch_version": torch.__version__,
+        "cuda_available": torch.cuda.is_available(),
+        "device_used": str(device),
+    }
+    if torch.cuda.is_available():
+        info["cuda_version"] = torch.version.cuda
+        with contextlib.suppress(Exception):
+            info["gpu_name"] = torch.cuda.get_device_name(0)
+    info.update(_collect_git_info())
+    return info
+
+
+def _collect_git_info() -> dict:
+    """Best-effort git SHA + dirty flag. Empty dict if not in a repo."""
+    try:
+        sha = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=2.0,
+        ).strip()
+    except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return {}
+    dirty = (
+        subprocess.call(
+            ["git", "diff", "--quiet"],
+            stderr=subprocess.DEVNULL,
+            timeout=2.0,
+        )
+        != 0
+    )
+    return {"git_sha": sha, "git_dirty": dirty}
+
+
+def _write_json(path: Path, obj: object) -> None:
+    path.write_text(json.dumps(obj, indent=2, default=str))
+
+
 # ---- Logging plumbing ------------------------------------------------
 
 
 def _attach_file_handler(logfile: Path) -> logging.FileHandler:
-    """Attach a per-run FileHandler to the ``majorana_acp`` package logger.
-
-    The handler is removed (and the file closed) when the run finishes,
-    so repeated calls to :func:`train` don't leak file descriptors.
-    """
+    """Attach a per-run FileHandler to the ``majorana_acp`` package logger."""
     package_logger = logging.getLogger("majorana_acp")
     if package_logger.level == logging.NOTSET:
         package_logger.setLevel(logging.INFO)

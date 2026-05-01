@@ -117,14 +117,63 @@ def test_train_runs_and_saves_checkpoint(tiny_train_dir: Path, tmp_path: Path) -
     assert len(ckpts) == 1
     assert ckpts[0].name == "epoch_001.pt"
 
-    config_json = out_dir / "config.json"
-    assert config_json.is_file()
-    snapshot = json.loads(config_json.read_text())
-    assert snapshot["name"] == "smoke"
-
     log_file = out_dir / "train.log"
     assert log_file.is_file()
     assert log_file.stat().st_size > 0
+
+
+def test_train_writes_metadata_json(tiny_train_dir: Path, tmp_path: Path) -> None:
+    cfg = _smoke_config(tiny_train_dir, tmp_path / "run")
+    out_dir = train(cfg)
+
+    meta_path = out_dir / "metadata.json"
+    assert meta_path.is_file()
+    meta = json.loads(meta_path.read_text())
+
+    # Required keys.
+    assert {
+        "name",
+        "config",
+        "runtime",
+        "start_time",
+        "end_time",
+        "completed_epochs",
+        "final_metrics",
+    } <= meta.keys()
+
+    assert meta["name"] == "smoke"
+    assert meta["completed_epochs"] == 1
+    assert meta["start_time"] is not None
+    assert meta["end_time"] is not None  # end_time set on successful completion
+
+    # Config snapshot is nested under "config" — model/data/loss/optim/train.
+    cfg_snapshot = meta["config"]
+    assert cfg_snapshot["model"]["name"] == "simple_cnn"
+    assert cfg_snapshot["data"]["target_label"] == "psd_label_low_avse"
+
+    # Runtime info captures the host + library versions.
+    rt = meta["runtime"]
+    assert {"hostname", "python_version", "torch_version", "cuda_available"} <= rt.keys()
+    assert isinstance(rt["cuda_available"], bool)
+
+
+def test_train_writes_training_history_json(tiny_train_dir: Path, tmp_path: Path) -> None:
+    cfg = _smoke_config(tiny_train_dir, tmp_path / "run", epochs=2)
+    out_dir = train(cfg)
+
+    history = json.loads((out_dir / "training_history.json").read_text())
+    assert isinstance(history, list)
+    assert len(history) == 2
+
+    expected_keys = {"epoch", "train_loss", "test_loss", "test_roc_auc"}
+    for entry in history:
+        assert expected_keys <= entry.keys()
+        assert isinstance(entry["epoch"], int)
+        assert isinstance(entry["train_loss"], float)
+        assert isinstance(entry["test_loss"], float)
+        # roc_auc may be None if test fixture happened to give one class.
+
+    assert [h["epoch"] for h in history] == [1, 2]
 
 
 def test_train_checkpoint_is_loadable(tiny_train_dir: Path, tmp_path: Path) -> None:
