@@ -60,8 +60,13 @@ def _write_synthetic_hdf5(
 
 @pytest.fixture
 def tiny_train_file(tmp_path: Path) -> Path:
-    """Single-file fixture: ``MJD_Train_0.hdf5`` with 8 events."""
-    return _write_synthetic_hdf5(tmp_path / "MJD_Train_0.hdf5", n_events=8)
+    """Single-file fixture: ``MJD_Train_0.hdf5`` with 8 events.
+
+    Uses a fixed seed so the synthetic ``psd_label_low_avse`` always has
+    both classes present — otherwise tests like the balanced sampler can
+    fail intermittently under Python's hash randomization.
+    """
+    return _write_synthetic_hdf5(tmp_path / "MJD_Train_0.hdf5", n_events=8, seed=0)
 
 
 @pytest.fixture
