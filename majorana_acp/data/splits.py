@@ -5,6 +5,7 @@ The Majorana data release names files ``MJD_Train_{N}.hdf5``,
 single helper that turns a list of integer indices (or the shortcut
 ``"all"``) into an ordered list of paths the Dataset can consume.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -71,9 +72,7 @@ def resolve_files(
 
     missing = [i for i in indices if i not in available]
     if missing:
-        raise FileNotFoundError(
-            f"requested {split} indices not found in {data_dir}: {missing}"
-        )
+        raise FileNotFoundError(f"requested {split} indices not found in {data_dir}: {missing}")
     return [available[i] for i in indices]
 
 

@@ -9,8 +9,10 @@ File handles are opened lazily and tracked per worker so the Dataset is
 safe to use with ``DataLoader(num_workers > 0)``: ``h5py`` file handles
 do not survive ``fork()``.
 """
+
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 from typing import Literal, TypedDict
 
@@ -35,13 +37,13 @@ class WaveformItem(TypedDict):
     ``DataLoader`` collation just stacks them along a new batch axis.
     """
 
-    waveform: torch.Tensor    # float32, shape (3800,) — preprocessed
-    label: torch.Tensor       # float32, scalar — 0.0 or 1.0
-    energy: torch.Tensor      # float32, scalar — keV
-    tp0: torch.Tensor         # int64, scalar — rising-edge sample index
-    detector: torch.Tensor    # int64, scalar
+    waveform: torch.Tensor  # float32, shape (3800,) — preprocessed
+    label: torch.Tensor  # float32, scalar — 0.0 or 1.0
+    energy: torch.Tensor  # float32, scalar — keV
+    tp0: torch.Tensor  # int64, scalar — rising-edge sample index
+    detector: torch.Tensor  # int64, scalar
     run_number: torch.Tensor  # int64, scalar
-    id: torch.Tensor          # int64, scalar — global event ID
+    id: torch.Tensor  # int64, scalar — global event ID
 
 
 class DatasetConfig(BaseModel):
@@ -108,16 +110,10 @@ class MajoranaWaveformDataset(Dataset[WaveformItem]):
         return {
             "waveform": torch.from_numpy(wf),
             "label": torch.tensor(label, dtype=torch.float32),
-            "energy": torch.tensor(
-                float(f["energy_label"][local_idx]), dtype=torch.float32
-            ),
+            "energy": torch.tensor(float(f["energy_label"][local_idx]), dtype=torch.float32),
             "tp0": torch.tensor(int(f["tp0"][local_idx]), dtype=torch.int64),
-            "detector": torch.tensor(
-                int(f["detector"][local_idx]), dtype=torch.int64
-            ),
-            "run_number": torch.tensor(
-                int(f["run_number"][local_idx]), dtype=torch.int64
-            ),
+            "detector": torch.tensor(int(f["detector"][local_idx]), dtype=torch.int64),
+            "run_number": torch.tensor(int(f["run_number"][local_idx]), dtype=torch.int64),
             "id": torch.tensor(int(f["id"][local_idx]), dtype=torch.int64),
         }
 
@@ -131,10 +127,8 @@ class MajoranaWaveformDataset(Dataset[WaveformItem]):
 
     def __del__(self) -> None:
         for h in self._handles.values():
-            try:
+            with contextlib.suppress(Exception):
                 h.close()
-            except Exception:
-                pass
 
     # -- internals -----------------------------------------------------
 
@@ -150,10 +144,8 @@ class MajoranaWaveformDataset(Dataset[WaveformItem]):
         worker_id = info.id if info is not None else -1
         if worker_id != self._handles_worker_id:
             for h in self._handles.values():
-                try:
+                with contextlib.suppress(Exception):
                     h.close()
-                except Exception:
-                    pass
             self._handles = {}
             self._handles_worker_id = worker_id
 

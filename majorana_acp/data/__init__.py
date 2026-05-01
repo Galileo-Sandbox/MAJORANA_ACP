@@ -1,4 +1,5 @@
 """Data-loading utilities for the Majorana Demonstrator HDF5 release."""
+
 from majorana_acp.data.dataset import (
     DatasetConfig,
     MajoranaWaveformDataset,
