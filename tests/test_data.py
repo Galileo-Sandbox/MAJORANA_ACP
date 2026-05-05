@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pytest
 import torch
 from pydantic import ValidationError
@@ -170,6 +171,40 @@ def test_dataset_index_out_of_range(tiny_train_file: Path) -> None:
         _ = ds[len(ds)]
     with pytest.raises(IndexError):
         _ = ds[-len(ds) - 1]
+
+
+def test_dataset_align_t90_off_keeps_full_length(tiny_train_file: Path) -> None:
+    ds = MajoranaWaveformDataset(DatasetConfig(files=[tiny_train_file]))
+    assert ds[0]["waveform"].shape == (3800,)
+
+
+def test_dataset_align_t90_default_window_is_2200(tiny_train_file: Path) -> None:
+    """Default t90_pre=200 + t90_post=2000 produces length-2200 waveforms."""
+    ds = MajoranaWaveformDataset(DatasetConfig(files=[tiny_train_file], align_t90=True))
+    assert ds[0]["waveform"].shape == (2200,)
+
+
+def test_dataset_align_t90_custom_window_shape(tiny_train_file: Path) -> None:
+    ds = MajoranaWaveformDataset(
+        DatasetConfig(files=[tiny_train_file], align_t90=True, t90_pre=100, t90_post=300)
+    )
+    assert ds[0]["waveform"].shape == (400,)
+
+
+def test_dataset_align_t90_places_crossing_at_pre(tiny_train_file: Path) -> None:
+    """The first sample crossing 0.9 in the aligned waveform should land
+    at index ``t90_pre``."""
+    pre, post = 150, 200
+    ds = MajoranaWaveformDataset(
+        DatasetConfig(files=[tiny_train_file], align_t90=True, t90_pre=pre, t90_post=post)
+    )
+    wf = ds[0]["waveform"].numpy()
+    above = np.where(wf >= 0.9)[0]
+    assert above.size > 0
+    # The synthetic fixture's rising edge is a clean step at sample 1000,
+    # so the first crossing in the original waveform is at sample 1000;
+    # after alignment, that lands exactly at index `pre`.
+    assert above[0] == pre
 
 
 def test_dataset_works_with_dataloader(tiny_train_dir: Path) -> None:

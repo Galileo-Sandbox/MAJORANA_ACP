@@ -44,12 +44,13 @@ Train an ML classifier that predicts `psd_label_low_avse` from the raw waveform 
 - **Evaluation** uses `MJD_Test_*.hdf5` files only. Train and test files are never mixed.
 - No further holdout from train files in v1 — there is no formal validation set during training. Revisit if overfitting becomes a concern.
 
-### Waveform preprocessing (v1, applied inside the Dataset)
+### Waveform preprocessing (applied inside the Dataset)
 1. Subtract baseline = mean of the **first 500 samples**.
 2. Divide by the max of the baseline-subtracted waveform (per-event peak normalization).
 3. Cast to **float32** before returning. HDF5 is float64; using that on the GPU doubles memory and halves throughput.
 
-Deferred (add behind a config flag when needed): `tp0`-based cropping, e.g., a window around the rising edge to cut input length from 3800 to ~1000 samples.
+Optional alignment (DatasetConfig flag):
+- `align_t90` (default `False`) — crop a fixed-length window around the **first sample at or above 0.9 of the normalized peak** ("90% rising-edge sample"). Window is `[t90 - t90_pre, t90 + t90_post)`, zero-padded if it extends beyond the waveform. Defaults give a 2200-sample window (`t90_pre=200`, `t90_post=2000`). Use this for models without translation invariance (e.g. MLP) so the rising-edge / decay-tail boundary lands at the same input index across events. CNNs don't need it.
 
 ### Dataset interface
 Each item is a `dict` containing at least: `waveform` (float32 tensor), `label` (target PSD label, scalar), and the auxiliary fields `energy`, `tp0`, `detector`, `run_number`, `id`. The training loop consumes only `waveform` + `label`; the eval module consumes the rest for stratified analysis (e.g., acceptance vs. energy).

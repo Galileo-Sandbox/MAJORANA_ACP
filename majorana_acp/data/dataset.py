@@ -37,7 +37,9 @@ class WaveformItem(TypedDict):
     ``DataLoader`` collation just stacks them along a new batch axis.
     """
 
-    waveform: torch.Tensor  # float32, shape (3800,) — preprocessed
+    waveform: (
+        torch.Tensor
+    )  # float32 — preprocessed; default shape (3800,), or (t90_pre + t90_post,) when align_t90=True
     label: torch.Tensor  # float32, scalar — 0.0 or 1.0
     energy: torch.Tensor  # float32, scalar — keV
     tp0: torch.Tensor  # int64, scalar — rising-edge sample index
@@ -63,6 +65,25 @@ class DatasetConfig(BaseModel):
         default=500,
         gt=0,
         description="Number of leading samples averaged for the baseline.",
+    )
+    align_t90: bool = Field(
+        default=False,
+        description=(
+            "If True, crop a fixed-length window around the 90% rising-edge "
+            "sample (after baseline subtraction and max-normalization). "
+            "Output length becomes t90_pre + t90_post. Useful for models "
+            "without translation invariance (e.g. MLP)."
+        ),
+    )
+    t90_pre: int = Field(
+        default=200,
+        gt=0,
+        description="Samples before t90 to keep when align_t90=True.",
+    )
+    t90_post: int = Field(
+        default=2000,
+        gt=0,
+        description="Samples after t90 to keep when align_t90=True.",
     )
 
     @field_validator("files")
@@ -172,4 +193,24 @@ class MajoranaWaveformDataset(Dataset[WaveformItem]):
         peak = float(wf.max())
         if peak > 0:
             wf = wf / peak
+        if self.config.align_t90:
+            wf = self._align_to_t90(wf)
         return wf.astype(np.float32, copy=False)
+
+    def _align_to_t90(self, wf: np.ndarray) -> np.ndarray:
+        """Crop ``[t90 - pre, t90 + post)`` zero-padded as needed.
+
+        ``t90`` is the first sample at or above 0.9 in the
+        max-normalized waveform — the end of the rising edge. Aligning
+        to it makes the rising-edge / decay-tail boundary land at the
+        same index across events.
+        """
+        above = np.where(wf >= 0.9)[0]
+        t90 = int(above[0]) if above.size else int(np.argmax(wf))
+        pre = self.config.t90_pre
+        post = self.config.t90_post
+
+        cropped = wf[max(0, t90 - pre) : min(len(wf), t90 + post)]
+        front_pad = max(0, pre - t90)
+        back_pad = max(0, (t90 + post) - len(wf))
+        return np.pad(cropped, (front_pad, back_pad))
