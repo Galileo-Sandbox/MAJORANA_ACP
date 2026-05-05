@@ -23,9 +23,16 @@ model:
   name: inception_time
   params:
     in_channels: 1
-    n_filters: 32
-    kernel_sizes: [10, 20, 40]
-    bottleneck_channels: 32
+    # Halved from the paper's defaults (32 -> 16) so the model is ~235k
+    # params instead of ~400k, more appropriate for our ~38k events/epoch
+    # training budget.
+    n_filters: 16
+    bottleneck_channels: 16
+    # Odd, wider-span kernels: 9 catches fine rising-edge structure,
+    # 99 extends the receptive field across the decay tail (~1 us of
+    # physical time at 10 ns/sample). Odd kernels also avoid PyTorch's
+    # asymmetric-padding warning with padding='same'.
+    kernel_sizes: [9, 39, 99]
     n_blocks: 2
     modules_per_block: 3
     use_bottleneck: true
