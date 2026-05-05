@@ -13,11 +13,14 @@ data:
   num_workers: 4
   baseline_samples: 500
   train_portion: 0.1
+  align_t90: true
+  t90_pre: 200
+  t90_post: 2000
 
 model:
   name: mlp
   params:
-    input_dim: 3800
+    input_dim: 2200
     hidden_dims: [32, 16]
     dropout: 0.2
 
