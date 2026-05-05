@@ -143,6 +143,9 @@ def train(cfg: ExperimentConfig) -> Path:
                 files=train_files,
                 target_label=cfg.data.target_label,
                 baseline_samples=cfg.data.baseline_samples,
+                align_t90=cfg.data.align_t90,
+                t90_pre=cfg.data.t90_pre,
+                t90_post=cfg.data.t90_post,
             )
         )
         logger.info("train set: %d events", len(train_ds))
@@ -172,6 +175,9 @@ def train(cfg: ExperimentConfig) -> Path:
                 files=test_files,
                 target_label=cfg.data.target_label,
                 baseline_samples=cfg.data.baseline_samples,
+                align_t90=cfg.data.align_t90,
+                t90_pre=cfg.data.t90_pre,
+                t90_post=cfg.data.t90_post,
             )
         )
         test_loader = DataLoader(

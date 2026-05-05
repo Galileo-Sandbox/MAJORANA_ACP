@@ -69,6 +69,23 @@ class DataConfig(_Frozen):
             "files but spend less time per epoch."
         ),
     )
+    align_t90: bool = Field(
+        default=False,
+        description=(
+            "If True, the Dataset crops a fixed-length window around the "
+            "90% rising-edge sample of each preprocessed waveform."
+        ),
+    )
+    t90_pre: int = Field(
+        default=200,
+        gt=0,
+        description="Samples before t90 to keep when align_t90=True.",
+    )
+    t90_post: int = Field(
+        default=2000,
+        gt=0,
+        description="Samples after t90 to keep when align_t90=True.",
+    )
 
     @field_validator("data_dir")
     @classmethod

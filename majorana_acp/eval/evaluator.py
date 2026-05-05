@@ -81,6 +81,9 @@ def evaluate(
                 files=test_files,
                 target_label=cfg.data.target_label,
                 baseline_samples=cfg.data.baseline_samples,
+                align_t90=cfg.data.align_t90,
+                t90_pre=cfg.data.t90_pre,
+                t90_post=cfg.data.t90_post,
             )
         )
         logger.info("test set size: %d events", len(test_ds))
