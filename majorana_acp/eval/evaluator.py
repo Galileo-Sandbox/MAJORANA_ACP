@@ -84,6 +84,7 @@ def evaluate(
                 align_t90=cfg.data.align_t90,
                 t90_pre=cfg.data.t90_pre,
                 t90_post=cfg.data.t90_post,
+                use_derivative_channel=cfg.data.use_derivative_channel,
             )
         )
         logger.info("test set size: %d events", len(test_ds))

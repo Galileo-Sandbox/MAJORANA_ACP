@@ -122,6 +122,26 @@ def test_simple_cnn_rejects_empty_channels() -> None:
         SimpleCNN(channels=[])
 
 
+def test_simple_cnn_supports_multi_channel_input() -> None:
+    """With in_channels=2 the model accepts (B, 2, L)."""
+    model = SimpleCNN(in_channels=2, channels=[8, 16], kernel_size=3)
+    out = model(torch.randn(4, 2, 1024))
+    assert out.shape == (4,)
+
+
+def test_simple_cnn_default_in_channels_is_one() -> None:
+    """Default in_channels=1 keeps the (B, L) input form working."""
+    model = SimpleCNN()
+    assert model.in_channels == 1
+    out = model(torch.randn(4, 3800))
+    assert out.shape == (4,)
+
+
+def test_simple_cnn_rejects_zero_in_channels() -> None:
+    with pytest.raises(ValueError):
+        SimpleCNN(in_channels=0)
+
+
 # --- MLP -------------------------------------------------------------
 
 
@@ -191,3 +211,11 @@ def test_mlp_rejects_bad_dropout() -> None:
         MLP(dropout=1.0)
     with pytest.raises(ValueError):
         MLP(dropout=-0.1)
+
+
+def test_mlp_handles_multi_channel_via_flatten() -> None:
+    """Multi-channel input flattens cleanly when input_dim = C * L."""
+    L, C = 100, 2
+    model = MLP(input_dim=C * L, hidden_dims=[16, 8], dropout=0.0)
+    out = model(torch.randn(4, C, L))
+    assert out.shape == (4,)

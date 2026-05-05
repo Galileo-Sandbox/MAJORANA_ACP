@@ -31,6 +31,7 @@ class SimpleCNN(nn.Module):
         channels: Sequence[int] = (16, 32, 64),
         kernel_size: int = 5,
         dropout: float = 0.2,
+        in_channels: int = 1,
     ) -> None:
         super().__init__()
         if not channels:
@@ -39,10 +40,13 @@ class SimpleCNN(nn.Module):
             raise ValueError(f"kernel_size must be a positive odd int, got {kernel_size}")
         if not 0.0 <= dropout < 1.0:
             raise ValueError(f"dropout must be in [0, 1), got {dropout}")
+        if in_channels < 1:
+            raise ValueError(f"in_channels must be >= 1, got {in_channels}")
 
+        self.in_channels = in_channels
         channels = list(channels)
         layers: list[nn.Module] = []
-        in_ch = 1
+        in_ch = in_channels
         for out_ch in channels:
             layers.extend(
                 [
@@ -61,7 +65,8 @@ class SimpleCNN(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Accept (B, L) or (B, 1, L); standardize to (B, 1, L).
+        # Accept (B, L) (when in_channels=1) or (B, C, L). Conv1d will
+        # complain if C != self.in_channels.
         if x.ndim == 2:
             x = x.unsqueeze(1)
         x = self.features(x)

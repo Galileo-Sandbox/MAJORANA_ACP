@@ -85,6 +85,15 @@ class DatasetConfig(BaseModel):
         gt=0,
         description="Samples after t90 to keep when align_t90=True.",
     )
+    use_derivative_channel: bool = Field(
+        default=False,
+        description=(
+            "If True, stack the first-difference of the preprocessed "
+            "waveform as a second channel. The derivative is computed "
+            "as np.diff with a leading zero so length is preserved; "
+            "output shape becomes (2, L) instead of (L,)."
+        ),
+    )
 
     @field_validator("files")
     @classmethod
@@ -195,6 +204,12 @@ class MajoranaWaveformDataset(Dataset[WaveformItem]):
             wf = wf / peak
         if self.config.align_t90:
             wf = self._align_to_t90(wf)
+        if self.config.use_derivative_channel:
+            # First-difference with a leading 0 so the derivative matches
+            # the waveform length: derivative[0] = 0,
+            # derivative[i] = wf[i] - wf[i-1] for i >= 1.
+            derivative = np.concatenate(([0.0], np.diff(wf)))
+            wf = np.stack([wf, derivative], axis=0)  # (2, L)
         return wf.astype(np.float32, copy=False)
 
     def _align_to_t90(self, wf: np.ndarray) -> np.ndarray:

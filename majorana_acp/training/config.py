@@ -86,6 +86,14 @@ class DataConfig(_Frozen):
         gt=0,
         description="Samples after t90 to keep when align_t90=True.",
     )
+    use_derivative_channel: bool = Field(
+        default=False,
+        description=(
+            "If True, stack the first-difference (np.diff with leading "
+            "zero pad) as a second channel. Output shape becomes (2, L). "
+            "MLPs need input_dim = 2 * L; SimpleCNN needs in_channels = 2."
+        ),
+    )
 
     @field_validator("data_dir")
     @classmethod

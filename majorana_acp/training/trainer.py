@@ -146,6 +146,7 @@ def train(cfg: ExperimentConfig) -> Path:
                 align_t90=cfg.data.align_t90,
                 t90_pre=cfg.data.t90_pre,
                 t90_post=cfg.data.t90_post,
+                use_derivative_channel=cfg.data.use_derivative_channel,
             )
         )
         logger.info("train set: %d events", len(train_ds))
@@ -178,6 +179,7 @@ def train(cfg: ExperimentConfig) -> Path:
                 align_t90=cfg.data.align_t90,
                 t90_pre=cfg.data.t90_pre,
                 t90_post=cfg.data.t90_post,
+                use_derivative_channel=cfg.data.use_derivative_channel,
             )
         )
         test_loader = DataLoader(

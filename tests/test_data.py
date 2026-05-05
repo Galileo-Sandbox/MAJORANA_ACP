@@ -207,6 +207,53 @@ def test_dataset_align_t90_places_crossing_at_pre(tiny_train_file: Path) -> None
     assert above[0] == pre
 
 
+def test_dataset_derivative_channel_off_keeps_1d(tiny_train_file: Path) -> None:
+    ds = MajoranaWaveformDataset(DatasetConfig(files=[tiny_train_file]))
+    assert ds[0]["waveform"].ndim == 1
+
+
+def test_dataset_derivative_channel_on_returns_2_channels(tiny_train_file: Path) -> None:
+    ds = MajoranaWaveformDataset(
+        DatasetConfig(files=[tiny_train_file], use_derivative_channel=True)
+    )
+    item = ds[0]
+    assert item["waveform"].shape == (2, 3800)
+    assert item["waveform"].dtype == torch.float32
+
+
+def test_dataset_derivative_first_sample_is_zero(tiny_train_file: Path) -> None:
+    """The leading-zero pad means the derivative's first sample is exactly 0."""
+    ds = MajoranaWaveformDataset(
+        DatasetConfig(files=[tiny_train_file], use_derivative_channel=True)
+    )
+    wf = ds[0]["waveform"].numpy()  # shape (2, L)
+    assert wf[1, 0] == 0.0
+
+
+def test_dataset_derivative_matches_diff(tiny_train_file: Path) -> None:
+    """Channel 1 should be 0 at index 0, then wf[i] - wf[i-1] for i >= 1."""
+    ds = MajoranaWaveformDataset(
+        DatasetConfig(files=[tiny_train_file], use_derivative_channel=True)
+    )
+    wf = ds[0]["waveform"].numpy()
+    expected = np.concatenate(([0.0], np.diff(wf[0]))).astype(np.float32)
+    np.testing.assert_allclose(wf[1], expected, atol=1e-6)
+
+
+def test_dataset_derivative_with_alignment(tiny_train_file: Path) -> None:
+    """Both flags compose: aligned + 2-channel output of length t90_pre + t90_post."""
+    ds = MajoranaWaveformDataset(
+        DatasetConfig(
+            files=[tiny_train_file],
+            align_t90=True,
+            t90_pre=100,
+            t90_post=300,
+            use_derivative_channel=True,
+        )
+    )
+    assert ds[0]["waveform"].shape == (2, 400)
+
+
 def test_dataset_works_with_dataloader(tiny_train_dir: Path) -> None:
     """End-to-end: default DataLoader collation stacks dict items."""
     files = resolve_files(tiny_train_dir, "train", "all")
