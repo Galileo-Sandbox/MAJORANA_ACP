@@ -16,6 +16,9 @@ data:
   t90_pre: 200
   t90_post: 2000
   use_derivative_channel: true
+  energy_range: [500, 3000]
+  sampler_strategies: [class_balanced, energy_balanced]
+  energy_bin_width_kev: 10
 
 model:
   name: simple_cnn
