@@ -8,6 +8,7 @@ from torch import nn
 
 from majorana_acp.models import build_model, list_models, register_model
 from majorana_acp.models.mlp import MLP
+from majorana_acp.models.resnet1d import ResNet1D
 from majorana_acp.models.simple_cnn import SimpleCNN
 
 # --- Registry --------------------------------------------------------
@@ -219,3 +220,79 @@ def test_mlp_handles_multi_channel_via_flatten() -> None:
     model = MLP(input_dim=C * L, hidden_dims=[16, 8], dropout=0.0)
     out = model(torch.randn(4, C, L))
     assert out.shape == (4,)
+
+
+# --- ResNet1D --------------------------------------------------------
+
+
+def test_resnet1d_is_registered() -> None:
+    assert "resnet1d" in list_models()
+
+
+def test_build_model_resnet1d_returns_nn_module() -> None:
+    model = build_model("resnet1d", base_channels=8, blocks_per_stage=[1, 1])
+    assert isinstance(model, ResNet1D)
+
+
+def test_resnet1d_forward_shape_2d_input() -> None:
+    model = ResNet1D(base_channels=8, blocks_per_stage=[1, 1])
+    out = model(torch.randn(4, 1024))
+    assert out.shape == (4,)
+    assert out.dtype == torch.float32
+
+
+def test_resnet1d_forward_shape_3d_input() -> None:
+    model = ResNet1D(base_channels=8, blocks_per_stage=[1, 1])
+    out = model(torch.randn(4, 1, 1024))
+    assert out.shape == (4,)
+
+
+def test_resnet1d_supports_multi_channel_input() -> None:
+    model = ResNet1D(in_channels=2, base_channels=8, blocks_per_stage=[1, 1])
+    out = model(torch.randn(4, 2, 1024))
+    assert out.shape == (4,)
+
+
+def test_resnet1d_outputs_logits_not_probabilities() -> None:
+    torch.manual_seed(0)
+    model = ResNet1D(base_channels=8, blocks_per_stage=[1, 1])
+    x = torch.randn(64, 1024) * 5
+    out = model(x)
+    assert (out < 0).any() or (out > 1).any()
+
+
+def test_resnet1d_gradient_flows() -> None:
+    model = ResNet1D(base_channels=8, blocks_per_stage=[1, 1], dropout=0.0)
+    x = torch.randn(2, 1024)
+    target = torch.tensor([0.0, 1.0])
+    loss = nn.functional.binary_cross_entropy_with_logits(model(x), target)
+    loss.backward()
+    grads = [p.grad is not None and p.grad.abs().sum() > 0 for p in model.parameters()]
+    assert all(grads)
+
+
+def test_resnet1d_rejects_zero_in_channels() -> None:
+    with pytest.raises(ValueError):
+        ResNet1D(in_channels=0)
+
+
+def test_resnet1d_rejects_empty_blocks_per_stage() -> None:
+    with pytest.raises(ValueError):
+        ResNet1D(blocks_per_stage=[])
+
+
+def test_resnet1d_rejects_zero_blocks() -> None:
+    with pytest.raises(ValueError):
+        ResNet1D(blocks_per_stage=[2, 0, 2])
+
+
+def test_resnet1d_rejects_even_kernel() -> None:
+    with pytest.raises(ValueError):
+        ResNet1D(kernel_size=4)
+
+
+def test_resnet1d_rejects_bad_dropout() -> None:
+    with pytest.raises(ValueError):
+        ResNet1D(dropout=1.0)
+    with pytest.raises(ValueError):
+        ResNet1D(dropout=-0.1)
