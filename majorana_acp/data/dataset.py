@@ -94,6 +94,13 @@ class DatasetConfig(BaseModel):
             "output shape becomes (2, L) instead of (L,)."
         ),
     )
+    energy_range: tuple[float, float] | None = Field(
+        default=None,
+        description=(
+            "If set to (lo, hi), the Dataset only exposes events with "
+            "lo <= energy_label < hi. Affects len(dataset) and indexing."
+        ),
+    )
 
     @field_validator("files")
     @classmethod
@@ -102,6 +109,18 @@ class DatasetConfig(BaseModel):
             if not f.is_file():
                 raise ValueError(f"HDF5 file not found: {f}")
         return files
+
+    @field_validator("energy_range")
+    @classmethod
+    def _energy_range_valid(cls, v: tuple[float, float] | None) -> tuple[float, float] | None:
+        if v is None:
+            return v
+        lo, hi = v
+        if lo < 0:
+            raise ValueError(f"energy_range lo must be >= 0, got {lo}")
+        if not lo < hi:
+            raise ValueError(f"energy_range must have lo < hi, got ({lo}, {hi})")
+        return v
 
 
 class MajoranaWaveformDataset(Dataset[WaveformItem]):
@@ -121,12 +140,18 @@ class MajoranaWaveformDataset(Dataset[WaveformItem]):
         self.config = config
         self._lengths = self._scan_lengths()
         self._cumulative = np.cumsum([0, *self._lengths])
+        # When energy_range is set, _index_map is an (N, 2) int64 array of
+        # (file_idx, local_idx) for the events that pass the filter.
+        # Otherwise None and the unfiltered cumulative-offset path is used.
+        self._index_map: np.ndarray | None = self._build_index_map()
         # File handles are opened lazily on first access and reset when
         # execution moves to a new DataLoader worker (see _ensure_handles).
         self._handles: dict[int, h5py.File] = {}
         self._handles_worker_id: int = -2  # sentinel: never opened
 
     def __len__(self) -> int:
+        if self._index_map is not None:
+            return int(self._index_map.shape[0])
         return int(self._cumulative[-1])
 
     def __getitem__(self, idx: int) -> WaveformItem:
@@ -169,6 +194,24 @@ class MajoranaWaveformDataset(Dataset[WaveformItem]):
                 lengths.append(int(f["energy_label"].shape[0]))
         return lengths
 
+    def _build_index_map(self) -> np.ndarray | None:
+        """If energy_range is set, return an (N, 2) [file_idx, local_idx]
+        index map of events that pass the filter; otherwise None.
+        """
+        if self.config.energy_range is None:
+            return None
+        lo, hi = self.config.energy_range
+        rows: list[np.ndarray] = []
+        for file_idx, path in enumerate(self.config.files):
+            with h5py.File(path, "r") as f:
+                energies = f["energy_label"][:]
+            local = np.where((energies >= lo) & (energies < hi))[0].astype(np.int64)
+            if local.size:
+                rows.append(np.column_stack((np.full(local.size, file_idx, dtype=np.int64), local)))
+        if not rows:
+            return np.empty((0, 2), dtype=np.int64)
+        return np.concatenate(rows, axis=0)
+
     def _ensure_handles_for_current_worker(self) -> None:
         info = get_worker_info()
         worker_id = info.id if info is not None else -1
@@ -190,6 +233,8 @@ class MajoranaWaveformDataset(Dataset[WaveformItem]):
             idx += n
         if not 0 <= idx < n:
             raise IndexError(idx)
+        if self._index_map is not None:
+            return int(self._index_map[idx, 0]), int(self._index_map[idx, 1])
         file_idx = int(np.searchsorted(self._cumulative, idx, side="right") - 1)
         local_idx = idx - int(self._cumulative[file_idx])
         return file_idx, local_idx

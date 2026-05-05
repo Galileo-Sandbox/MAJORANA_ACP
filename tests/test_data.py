@@ -254,6 +254,33 @@ def test_dataset_derivative_with_alignment(tiny_train_file: Path) -> None:
     assert ds[0]["waveform"].shape == (2, 400)
 
 
+def test_dataset_energy_range_filter_reduces_length(tiny_train_dir: Path) -> None:
+    """The synthetic energies are in [100, 2700) keV; filter to [500, 1500)
+    drops events outside that band.
+    """
+    files = resolve_files(tiny_train_dir, "train", "all")
+    full = MajoranaWaveformDataset(DatasetConfig(files=files))
+    filtered = MajoranaWaveformDataset(DatasetConfig(files=files, energy_range=(500.0, 1500.0)))
+    assert len(filtered) <= len(full)
+    # Every exposed event sits in the requested band.
+    for i in range(len(filtered)):
+        e = filtered[i]["energy"].item()
+        assert 500.0 <= e < 1500.0
+
+
+def test_dataset_energy_range_off_keeps_all_events(tiny_train_dir: Path) -> None:
+    files = resolve_files(tiny_train_dir, "train", "all")
+    full = MajoranaWaveformDataset(DatasetConfig(files=files))
+    assert len(full) == 5 + 7 + 3
+
+
+def test_dataset_energy_range_bad_bounds_rejected(tiny_train_file: Path) -> None:
+    with pytest.raises(ValidationError):
+        DatasetConfig(files=[tiny_train_file], energy_range=(1000.0, 500.0))
+    with pytest.raises(ValidationError):
+        DatasetConfig(files=[tiny_train_file], energy_range=(-1.0, 100.0))
+
+
 def test_dataset_works_with_dataloader(tiny_train_dir: Path) -> None:
     """End-to-end: default DataLoader collation stacks dict items."""
     files = resolve_files(tiny_train_dir, "train", "all")

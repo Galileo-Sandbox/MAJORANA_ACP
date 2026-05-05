@@ -95,6 +95,43 @@ def test_data_config_rejects_train_portion_above_one(tmp_path: Path) -> None:
         DataConfig(data_dir=tmp_path, train_portion=1.5)
 
 
+def test_data_config_default_sampler_strategies_empty(tmp_path: Path) -> None:
+    cfg = DataConfig(data_dir=tmp_path)
+    assert cfg.sampler_strategies == []
+    assert cfg.energy_range is None
+
+
+def test_data_config_accepts_sampler_strategies(tmp_path: Path) -> None:
+    cfg = DataConfig(
+        data_dir=tmp_path,
+        sampler_strategies=["class_balanced", "energy_balanced"],
+    )
+    assert cfg.sampler_strategies == ["class_balanced", "energy_balanced"]
+
+
+def test_data_config_rejects_duplicate_sampler_strategies(tmp_path: Path) -> None:
+    with pytest.raises(ValidationError):
+        DataConfig(
+            data_dir=tmp_path,
+            sampler_strategies=["class_balanced", "class_balanced"],
+        )
+
+
+def test_data_config_rejects_unknown_sampler_strategy(tmp_path: Path) -> None:
+    with pytest.raises(ValidationError):
+        DataConfig(data_dir=tmp_path, sampler_strategies=["random_walk"])
+
+
+def test_data_config_energy_range_validation(tmp_path: Path) -> None:
+    with pytest.raises(ValidationError):
+        DataConfig(data_dir=tmp_path, energy_range=(1000.0, 500.0))
+    with pytest.raises(ValidationError):
+        DataConfig(data_dir=tmp_path, energy_range=(-10.0, 100.0))
+    # Valid case
+    cfg = DataConfig(data_dir=tmp_path, energy_range=(500.0, 3000.0))
+    assert cfg.energy_range == (500.0, 3000.0)
+
+
 # --- ModelConfig -----------------------------------------------------
 
 

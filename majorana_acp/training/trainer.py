@@ -31,6 +31,7 @@ import time
 from datetime import UTC, datetime
 from pathlib import Path
 
+import h5py
 import numpy as np
 import torch
 from sklearn import metrics as skm
@@ -44,11 +45,13 @@ from majorana_acp.data import (
 )
 from majorana_acp.models import build_model
 from majorana_acp.training.config import (
+    DataConfig,
     DeviceName,
     ExperimentConfig,
     OptimConfig,
+    SamplerStrategy,
 )
-from majorana_acp.training.loss import build_balanced_sampler, build_loss
+from majorana_acp.training.loss import build_loss
 
 logger = logging.getLogger(__name__)
 
@@ -147,16 +150,15 @@ def train(cfg: ExperimentConfig) -> Path:
                 t90_pre=cfg.data.t90_pre,
                 t90_post=cfg.data.t90_post,
                 use_derivative_channel=cfg.data.use_derivative_channel,
+                energy_range=cfg.data.energy_range,
             )
         )
         logger.info("train set: %d events", len(train_ds))
 
         sampler = _build_train_sampler(
             dataset=train_ds,
-            train_files=train_files,
-            target_label=cfg.data.target_label,
-            train_portion=cfg.data.train_portion,
-            balanced_sampler=cfg.loss.balanced_sampler,
+            data_cfg=cfg.data,
+            legacy_balanced_sampler=cfg.loss.balanced_sampler,
         )
 
         train_loader = DataLoader(
@@ -180,6 +182,7 @@ def train(cfg: ExperimentConfig) -> Path:
                 t90_pre=cfg.data.t90_pre,
                 t90_post=cfg.data.t90_post,
                 use_derivative_channel=cfg.data.use_derivative_channel,
+                energy_range=cfg.data.energy_range,
             )
         )
         test_loader = DataLoader(
@@ -353,37 +356,124 @@ def _eval_test_set(
 def _build_train_sampler(
     *,
     dataset: MajoranaWaveformDataset,
-    train_files: list[Path],
-    target_label: str,
-    train_portion: float,
-    balanced_sampler: bool,
+    data_cfg: DataConfig,
+    legacy_balanced_sampler: bool,
 ) -> RandomSampler | WeightedRandomSampler | None:
-    """Build the train-side sampler, composing ``train_portion`` with the
-    optional class-balanced sampler.
+    """Build the train-side sampler.
 
-    Returns ``None`` for the default case (``train_portion == 1.0`` and
-    ``balanced_sampler=False``); the DataLoader then uses
-    ``shuffle=True`` directly.
+    Composition rules:
+    - ``data_cfg.sampler_strategies`` lists strategies whose per-event
+      weights are multiplied together. Empty list = no weighting.
+    - The legacy ``loss.balanced_sampler=True`` flag is folded in by
+      ensuring ``"class_balanced"`` is part of the effective strategy list.
+    - ``data_cfg.train_portion`` controls ``num_samples`` for the sampler.
+
+    Returns ``None`` for the trivial case (no strategies and full data),
+    a ``RandomSampler`` for sub-sampling without weighting, or a
+    ``WeightedRandomSampler`` for any weighted case.
     """
     n = len(dataset)
-    num_samples = int(n * train_portion)
+    num_samples = int(n * data_cfg.train_portion)
     if num_samples < 1:
-        raise ValueError(f"train_portion={train_portion} on dataset of size {n} yields 0 samples")
-
-    if balanced_sampler:
-        logger.info("building balanced sampler (num_samples=%d)", num_samples)
-        return build_balanced_sampler(train_files, target_label, num_samples=num_samples)
-
-    if train_portion < 1.0:
-        logger.info(
-            "subsampling training set: train_portion=%.3f -> %d / %d events",
-            train_portion,
-            num_samples,
-            n,
+        raise ValueError(
+            f"train_portion={data_cfg.train_portion} on dataset of size {n} yields 0 samples"
         )
-        return RandomSampler(dataset, replacement=False, num_samples=num_samples)
 
-    return None
+    strategies: list[SamplerStrategy] = list(data_cfg.sampler_strategies)
+    if legacy_balanced_sampler and "class_balanced" not in strategies:
+        strategies.append("class_balanced")
+
+    if not strategies:
+        if data_cfg.train_portion < 1.0:
+            logger.info(
+                "subsampling training set: train_portion=%.3f -> %d / %d events",
+                data_cfg.train_portion,
+                num_samples,
+                n,
+            )
+            return RandomSampler(dataset, replacement=False, num_samples=num_samples)
+        return None
+
+    logger.info(
+        "weighted sampler  strategies=%s  num_samples=%d / %d",
+        strategies,
+        num_samples,
+        n,
+    )
+    weights = _compute_sampler_weights(
+        dataset=dataset,
+        strategies=strategies,
+        target_label=data_cfg.target_label,
+        energy_bin_width_kev=data_cfg.energy_bin_width_kev,
+    )
+    return WeightedRandomSampler(
+        weights=torch.from_numpy(weights).double(),
+        num_samples=num_samples,
+        replacement=True,
+    )
+
+
+def _read_dataset_metadata(
+    dataset: MajoranaWaveformDataset, target_label: str
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return (labels, energies) aligned with ``dataset``'s exposed events.
+
+    Walks the same files in the same order the Dataset does, and applies
+    the same energy_range filter, so the returned arrays index 1:1 with
+    ``dataset[i]``.
+    """
+    labels_chunks: list[np.ndarray] = []
+    energies_chunks: list[np.ndarray] = []
+    energy_range = dataset.config.energy_range
+    for path in dataset.config.files:
+        with h5py.File(path, "r") as f:
+            file_labels = f[target_label][:].astype(bool)
+            file_energies = f["energy_label"][:].astype(np.float64)
+        if energy_range is not None:
+            lo, hi = energy_range
+            mask = (file_energies >= lo) & (file_energies < hi)
+            file_labels = file_labels[mask]
+            file_energies = file_energies[mask]
+        labels_chunks.append(file_labels)
+        energies_chunks.append(file_energies)
+    return np.concatenate(labels_chunks), np.concatenate(energies_chunks)
+
+
+def _compute_sampler_weights(
+    *,
+    dataset: MajoranaWaveformDataset,
+    strategies: list[SamplerStrategy],
+    target_label: str,
+    energy_bin_width_kev: int,
+) -> np.ndarray:
+    """Per-event weight vector = product of weights from each strategy."""
+    labels, energies = _read_dataset_metadata(dataset, target_label)
+    if labels.size != len(dataset):
+        raise RuntimeError(
+            f"metadata length {labels.size} does not match dataset length "
+            f"{len(dataset)} — this should never happen"
+        )
+
+    weights = np.ones(labels.size, dtype=np.float64)
+
+    if "class_balanced" in strategies:
+        n_pos = int(labels.sum())
+        n_neg = int((~labels).sum())
+        if n_pos == 0 or n_neg == 0:
+            raise ValueError(f"class_balanced needs both classes (n_pos={n_pos}, n_neg={n_neg})")
+        weights *= np.where(labels, 1.0 / n_pos, 1.0 / n_neg)
+
+    if "energy_balanced" in strategies:
+        if energies.size == 0:
+            raise ValueError("energy_balanced needs at least one event")
+        # Bin edges from 0 up through max energy, in steps of bin_width.
+        max_e = float(energies.max())
+        edges = np.arange(0.0, max_e + energy_bin_width_kev, energy_bin_width_kev)
+        bin_idx = np.clip(np.digitize(energies, edges) - 1, 0, len(edges) - 2)
+        bin_counts = np.bincount(bin_idx, minlength=len(edges) - 1).astype(np.float64)
+        weights *= 1.0 / np.maximum(bin_counts[bin_idx], 1.0)
+
+    return weights
 
 
 # ---- Run metadata ----------------------------------------------------

@@ -237,6 +237,54 @@ def test_train_partial_portion_with_balanced_sampler(tiny_train_dir: Path, tmp_p
     train(cfg)
 
 
+def test_train_with_class_balanced_sampler_strategy(tiny_train_dir: Path, tmp_path: Path) -> None:
+    """The new ``data.sampler_strategies`` path runs end-to-end."""
+    cfg = _smoke_config(tiny_train_dir, tmp_path / "run")
+    cfg = cfg.model_copy(
+        update={"data": cfg.data.model_copy(update={"sampler_strategies": ["class_balanced"]})}
+    )
+    train(cfg)
+
+
+def test_train_with_energy_balanced_sampler_strategy(tiny_train_dir: Path, tmp_path: Path) -> None:
+    cfg = _smoke_config(tiny_train_dir, tmp_path / "run")
+    cfg = cfg.model_copy(
+        update={
+            "data": cfg.data.model_copy(
+                update={
+                    "sampler_strategies": ["energy_balanced"],
+                    "energy_bin_width_kev": 500,
+                }
+            )
+        }
+    )
+    train(cfg)
+
+
+def test_train_with_combined_sampler_strategies(tiny_train_dir: Path, tmp_path: Path) -> None:
+    cfg = _smoke_config(tiny_train_dir, tmp_path / "run")
+    cfg = cfg.model_copy(
+        update={
+            "data": cfg.data.model_copy(
+                update={
+                    "sampler_strategies": ["class_balanced", "energy_balanced"],
+                    "energy_bin_width_kev": 500,
+                }
+            )
+        }
+    )
+    train(cfg)
+
+
+def test_train_with_energy_range_filter(tiny_train_dir: Path, tmp_path: Path) -> None:
+    """``data.energy_range`` filters both train and test sets."""
+    cfg = _smoke_config(tiny_train_dir, tmp_path / "run")
+    cfg = cfg.model_copy(
+        update={"data": cfg.data.model_copy(update={"energy_range": (500.0, 2700.0)})}
+    )
+    train(cfg)
+
+
 def test_train_with_focal_loss(tiny_train_dir: Path, tmp_path: Path) -> None:
     cfg = _smoke_config(
         tiny_train_dir,

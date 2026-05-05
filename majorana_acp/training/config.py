@@ -24,6 +24,7 @@ from majorana_acp.data import FileIndices, PSDLabel
 OptimizerName = Literal["adam", "adamw", "sgd"]
 LossType = Literal["bce", "weighted_bce", "focal"]
 DeviceName = Literal["auto", "cuda", "cpu"]
+SamplerStrategy = Literal["class_balanced", "energy_balanced"]
 
 
 class _Frozen(BaseModel):
@@ -94,6 +95,45 @@ class DataConfig(_Frozen):
             "MLPs need input_dim = 2 * L; SimpleCNN needs in_channels = 2."
         ),
     )
+    energy_range: tuple[float, float] | None = Field(
+        default=None,
+        description=(
+            "If set, both train and test datasets are filtered to lo <= energy_label < hi (in keV)."
+        ),
+    )
+    sampler_strategies: list[SamplerStrategy] = Field(
+        default_factory=list,
+        description=(
+            "Composable sampler strategies applied to the training set. "
+            "Each strategy contributes a multiplicative weight per event; "
+            "WeightedRandomSampler is then used. Empty list = vanilla "
+            "shuffle (or RandomSampler when train_portion < 1.0)."
+        ),
+    )
+    energy_bin_width_kev: int = Field(
+        default=100,
+        gt=0,
+        description=("Bin width used when 'energy_balanced' is in sampler_strategies."),
+    )
+
+    @field_validator("energy_range")
+    @classmethod
+    def _energy_range_valid(cls, v: tuple[float, float] | None) -> tuple[float, float] | None:
+        if v is None:
+            return v
+        lo, hi = v
+        if lo < 0:
+            raise ValueError(f"energy_range lo must be >= 0, got {lo}")
+        if not lo < hi:
+            raise ValueError(f"energy_range must have lo < hi, got ({lo}, {hi})")
+        return v
+
+    @field_validator("sampler_strategies")
+    @classmethod
+    def _sampler_strategies_unique(cls, v: list[SamplerStrategy]) -> list[SamplerStrategy]:
+        if len(set(v)) != len(v):
+            raise ValueError(f"sampler_strategies must be unique, got {v}")
+        return v
 
     @field_validator("data_dir")
     @classmethod
@@ -149,7 +189,10 @@ class LossConfig(_Frozen):
     focal_gamma: float = Field(default=2.0, ge=0, description="Focal loss focusing parameter.")
     balanced_sampler: bool = Field(
         default=False,
-        description="Upsample minority class via WeightedRandomSampler.",
+        description=(
+            "Legacy alias for adding 'class_balanced' to "
+            "data.sampler_strategies. Prefer the latter for new configs."
+        ),
     )
 
     @field_validator("pos_weight")

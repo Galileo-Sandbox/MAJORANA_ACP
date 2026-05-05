@@ -85,6 +85,7 @@ def evaluate(
                 t90_pre=cfg.data.t90_pre,
                 t90_post=cfg.data.t90_post,
                 use_derivative_channel=cfg.data.use_derivative_channel,
+                energy_range=cfg.data.energy_range,
             )
         )
         logger.info("test set size: %d events", len(test_ds))
