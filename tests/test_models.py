@@ -7,6 +7,7 @@ import torch
 from torch import nn
 
 from majorana_acp.models import build_model, list_models, register_model
+from majorana_acp.models.inception_time import InceptionTime
 from majorana_acp.models.mlp import MLP
 from majorana_acp.models.resnet1d import ResNet1D
 from majorana_acp.models.simple_cnn import SimpleCNN
@@ -296,3 +297,92 @@ def test_resnet1d_rejects_bad_dropout() -> None:
         ResNet1D(dropout=1.0)
     with pytest.raises(ValueError):
         ResNet1D(dropout=-0.1)
+
+
+# --- InceptionTime ---------------------------------------------------
+
+
+def test_inception_time_is_registered() -> None:
+    assert "inception_time" in list_models()
+
+
+def test_build_model_inception_time_returns_nn_module() -> None:
+    model = build_model("inception_time", n_filters=8, n_blocks=1, modules_per_block=2)
+    assert isinstance(model, InceptionTime)
+
+
+def test_inception_time_forward_shape_2d_input() -> None:
+    model = InceptionTime(n_filters=8, n_blocks=1, modules_per_block=2)
+    out = model(torch.randn(4, 1024))
+    assert out.shape == (4,)
+    assert out.dtype == torch.float32
+
+
+def test_inception_time_forward_shape_3d_input() -> None:
+    model = InceptionTime(n_filters=8, n_blocks=1, modules_per_block=2)
+    out = model(torch.randn(4, 1, 1024))
+    assert out.shape == (4,)
+
+
+def test_inception_time_supports_multi_channel_input() -> None:
+    model = InceptionTime(in_channels=2, n_filters=8, n_blocks=1, modules_per_block=2)
+    out = model(torch.randn(4, 2, 1024))
+    assert out.shape == (4,)
+
+
+def test_inception_time_preserves_temporal_length_via_same_padding() -> None:
+    """``padding='same'`` (and matching maxpool padding) keeps the
+    temporal axis the same length through the backbone."""
+    model = InceptionTime(n_filters=8, n_blocks=1, modules_per_block=2)
+    x = torch.randn(2, 1, 333)
+    feats = model.backbone(x)  # before GAP
+    assert feats.shape[-1] == x.shape[-1]
+
+
+def test_inception_time_outputs_logits_not_probabilities() -> None:
+    torch.manual_seed(0)
+    model = InceptionTime(n_filters=8, n_blocks=1, modules_per_block=2)
+    out = model(torch.randn(64, 1024) * 5)
+    assert (out < 0).any() or (out > 1).any()
+
+
+def test_inception_time_gradient_flows() -> None:
+    model = InceptionTime(n_filters=8, n_blocks=1, modules_per_block=2, dropout=0.0)
+    x = torch.randn(2, 1024)
+    target = torch.tensor([0.0, 1.0])
+    loss = nn.functional.binary_cross_entropy_with_logits(model(x), target)
+    loss.backward()
+    grads = [p.grad is not None and p.grad.abs().sum() > 0 for p in model.parameters()]
+    assert all(grads)
+
+
+def test_inception_time_rejects_zero_in_channels() -> None:
+    with pytest.raises(ValueError):
+        InceptionTime(in_channels=0)
+
+
+def test_inception_time_rejects_zero_n_filters() -> None:
+    with pytest.raises(ValueError):
+        InceptionTime(n_filters=0)
+
+
+def test_inception_time_rejects_empty_kernel_sizes() -> None:
+    with pytest.raises(ValueError):
+        InceptionTime(kernel_sizes=[])
+
+
+def test_inception_time_rejects_zero_n_blocks() -> None:
+    with pytest.raises(ValueError):
+        InceptionTime(n_blocks=0)
+
+
+def test_inception_time_rejects_zero_modules_per_block() -> None:
+    with pytest.raises(ValueError):
+        InceptionTime(modules_per_block=0)
+
+
+def test_inception_time_rejects_bad_dropout() -> None:
+    with pytest.raises(ValueError):
+        InceptionTime(dropout=1.0)
+    with pytest.raises(ValueError):
+        InceptionTime(dropout=-0.1)

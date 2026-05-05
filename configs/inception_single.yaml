@@ -1,0 +1,50 @@
+# InceptionTime, single-channel input (no derivative). Same data
+# preprocessing as configs/inception.yaml.
+name: inception_single
+
+data:
+  data_dir: /home/klz/Data/MAJORANA
+  train_file_indices: all
+  test_file_indices: all
+  target_label: psd_label_low_avse
+  batch_size: 256
+  num_workers: 4
+  baseline_samples: 500
+  train_portion: 0.1
+  align_t90: true
+  t90_pre: 200
+  t90_post: 2000
+  use_derivative_channel: false
+  energy_range: [500, 3000]
+  sampler_strategies: [class_balanced, energy_balanced]
+  energy_bin_width_kev: 10
+
+model:
+  name: inception_time
+  params:
+    in_channels: 1
+    n_filters: 32
+    kernel_sizes: [10, 20, 40]
+    bottleneck_channels: 32
+    n_blocks: 2
+    modules_per_block: 3
+    use_bottleneck: true
+    dropout: 0.2
+
+optim:
+  optimizer: adamw
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+
+loss:
+  type: weighted_bce
+  pos_weight: auto
+  balanced_sampler: false
+
+train:
+  epochs: 10
+  seed: 0
+  out_dir: runs/inception_single
+  log_every_n_steps: 50
+  device: auto
+  amp: true

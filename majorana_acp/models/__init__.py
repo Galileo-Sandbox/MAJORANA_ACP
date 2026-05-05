@@ -7,6 +7,7 @@ discoverable via ``build_model(name)``.
 
 # Concrete model modules — imported for their @register_model side effect.
 from majorana_acp.models import (
+    inception_time,  # noqa: F401
     mlp,  # noqa: F401
     resnet1d,  # noqa: F401
     simple_cnn,  # noqa: F401
