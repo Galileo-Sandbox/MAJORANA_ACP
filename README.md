@@ -89,7 +89,7 @@ The reference configs are:
 | `configs/full_data_configs/mlp_derivative.yaml` | MLP with derivative channel |
 | `configs/full_data_configs/resnet.yaml` / `resnet_single.yaml` | ResNet-1D, 2-channel and 1-channel |
 | `configs/full_data_configs/inception.yaml` / `inception_single.yaml` | InceptionTime, 2-channel and 1-channel |
-| `configs/small_data_configs/simple_cnn.yaml` / `resnet_single.yaml` | Same models on a fixed 1% slice (subset_portion=0.01, train_portion=1.0) for data-scaling studies |
+| `configs/small_data_configs/simple_cnn_small.yaml` / `resnet_single_small.yaml` | Same models on a fixed 1% slice (subset_portion=0.01, train_portion=1.0) for data-scaling studies |
 | `configs/smoke_tests/quick_smoke.yaml` | One-file, one-epoch smoke test for SimpleCNN (~12 s on the 5090) |
 | `configs/smoke_tests/quick_smoke_mlp.yaml` | Same smoke shape but with `model.name: mlp` |
 
