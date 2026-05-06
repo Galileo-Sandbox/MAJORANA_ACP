@@ -53,6 +53,10 @@ When the run uses less than the full training pool, two independent knobs contro
 
 Composition: `events_per_epoch = N_after_energy_filter × subset_portion × train_portion`. Existing configs run with `subset_portion=1.0`; older runs are equivalent.
 
+### Per-epoch test loader uses the same sampler as training
+
+When `data.sampler_strategies` is non-empty (or the legacy `loss.balanced_sampler=True` is set), the trainer's per-epoch test DataLoader gets a `WeightedRandomSampler` built from the **same** strategies as the train sampler — full coverage (`num_samples = len(test_ds)`), no `train_portion` factor. This makes the train_loss / test_loss curves directly comparable: both are computed on identically-distributed (class+energy balanced) batches, eliminating the train/test loss gap that arose from train batches being balanced while test batches were natural-distribution. The post-training `cli/evaluate` keeps natural iteration so the final metrics still reflect real-world performance on the unbalanced test set.
+
 ### Waveform preprocessing (applied inside the Dataset)
 1. Subtract baseline = mean of the **first 500 samples**.
 2. Divide by the max of the baseline-subtracted waveform (per-event peak normalization).

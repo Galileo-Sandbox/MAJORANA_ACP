@@ -189,15 +189,26 @@ def train(cfg: ExperimentConfig) -> Path:
                 subset_seed=cfg.data.subset_seed,
             )
         )
+        test_sampler = _build_test_sampler(
+            dataset=test_ds,
+            data_cfg=cfg.data,
+            legacy_balanced_sampler=cfg.loss.balanced_sampler,
+        )
         test_loader = DataLoader(
             test_ds,
             batch_size=cfg.data.batch_size,
-            shuffle=False,
+            sampler=test_sampler,
+            shuffle=(test_sampler is None) and False,
             num_workers=cfg.data.num_workers,
             pin_memory=(device.type == "cuda"),
             drop_last=False,
         )
-        logger.info("test set: %d events (used for per-epoch monitoring)", len(test_ds))
+        logger.info(
+            "test set: %d events (used for per-epoch monitoring; sampler_strategies=%s)",
+            len(test_ds),
+            list(cfg.data.sampler_strategies)
+            + (["class_balanced (legacy alias)"] if cfg.loss.balanced_sampler else []),
+        )
 
         # ---- Model ------------------------------------------------
         model = build_model(cfg.model.name, **cfg.model.params).to(device)
@@ -413,6 +424,43 @@ def _build_train_sampler(
     return WeightedRandomSampler(
         weights=torch.from_numpy(weights).double(),
         num_samples=num_samples,
+        replacement=True,
+    )
+
+
+def _build_test_sampler(
+    *,
+    dataset: MajoranaWaveformDataset,
+    data_cfg: DataConfig,
+    legacy_balanced_sampler: bool,
+) -> WeightedRandomSampler | None:
+    """Test-side counterpart to ``_build_train_sampler``.
+
+    Same composition rules and weights, but always full coverage —
+    ``num_samples = len(dataset)`` — and ignoring ``train_portion``.
+    Returns ``None`` when no strategies are active (DataLoader then
+    iterates the test set in natural order).
+
+    Used for per-epoch test monitoring so its loss / AUC come from the
+    same distribution as the training loss. The post-training
+    ``cli/evaluate`` keeps natural iteration so its metrics still
+    reflect the real, unbalanced test distribution.
+    """
+    strategies: list[SamplerStrategy] = list(data_cfg.sampler_strategies)
+    if legacy_balanced_sampler and "class_balanced" not in strategies:
+        strategies.append("class_balanced")
+    if not strategies:
+        return None
+
+    weights = _compute_sampler_weights(
+        dataset=dataset,
+        strategies=strategies,
+        target_label=data_cfg.target_label,
+        energy_bin_width_kev=data_cfg.energy_bin_width_kev,
+    )
+    return WeightedRandomSampler(
+        weights=torch.from_numpy(weights).double(),
+        num_samples=len(dataset),
         replacement=True,
     )
 
