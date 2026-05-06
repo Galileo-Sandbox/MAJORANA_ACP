@@ -1,6 +1,6 @@
 # Small-data variant of configs/full_data_configs/resnet_single.yaml.
 # Same architecture and hyperparameters; only the data slice changes:
-# subset_portion=0.01 fixes a 1% slice (~3.8k events) across all epochs;
+# subset_portion=0.05 fixes a 5% slice (~19k events) across all epochs;
 # train_portion=1.0 means each epoch consumes the full slice.
 name: resnet_single_small
 
@@ -13,7 +13,7 @@ data:
   num_workers: 4
   baseline_samples: 500
   train_portion: 1.0
-  subset_portion: 0.01
+  subset_portion: 0.05
   subset_seed: 0
   align_t90: true
   t90_pre: 200
