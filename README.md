@@ -50,8 +50,9 @@ majorana_acp/
   eval/         load checkpoint, run inference, save metrics
   cli/          train.py and evaluate.py entry points
 configs/
-  full_data_configs/  full-run experiment YAMLs (10 / 50 epoch baselines)
-  smoke_tests/        fast iteration configs (one file, one epoch)
+  full_data_configs/   full-run experiment YAMLs (50 epoch baselines)
+  small_data_configs/  same models but on a fixed 1% slice (subset_portion=0.01)
+  smoke_tests/         fast iteration configs (one file, one epoch)
 notebooks/      data_visualization.ipynb (exploration + run comparison)
 tests/          pytest suite — synthetic HDF5 fixtures, no real data needed
 runs/           per-run output directories (gitignored)
@@ -88,6 +89,7 @@ The reference configs are:
 | `configs/full_data_configs/mlp_derivative.yaml` | MLP with derivative channel |
 | `configs/full_data_configs/resnet.yaml` / `resnet_single.yaml` | ResNet-1D, 2-channel and 1-channel |
 | `configs/full_data_configs/inception.yaml` / `inception_single.yaml` | InceptionTime, 2-channel and 1-channel |
+| `configs/small_data_configs/simple_cnn.yaml` / `resnet_single.yaml` | Same models on a fixed 1% slice (subset_portion=0.01, train_portion=1.0) for data-scaling studies |
 | `configs/smoke_tests/quick_smoke.yaml` | One-file, one-epoch smoke test for SimpleCNN (~12 s on the 5090) |
 | `configs/smoke_tests/quick_smoke_mlp.yaml` | Same smoke shape but with `model.name: mlp` |
 
