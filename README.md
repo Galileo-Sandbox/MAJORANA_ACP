@@ -55,7 +55,9 @@ configs/
   smoke_tests/         fast iteration configs (one file, one epoch)
 notebooks/      data_visualization.ipynb (exploration + run comparison)
 tests/          pytest suite — synthetic HDF5 fixtures, no real data needed
-runs/           per-run output directories (gitignored)
+runs/           per-run output dirs, mirroring the configs/ subfolders
+                (gitignored). e.g. configs/full_data_configs/simple_cnn.yaml
+                writes to runs/full_data_configs/simple_cnn_baseline/
 ```
 
 A single training run writes the following to `runs/<exp-name>/`:
@@ -121,13 +123,12 @@ Output goes to `runs/<exp-name>/eval/` by default.
 
 - Sections 1–7: data exploration (HDF5 schema, energy spectrum,
   per-PSD-cut survival, sample raw / preprocessed waveforms, …).
-- Section 8: training results — auto-discovers every directory under
-  `runs/` and renders:
-  - 8.1 train + test loss curves (train in blue, test in orange,
-    runs disambiguated by linestyle)
-  - 8.2 ROC curves on the test set (one curve per run, AUC in legend)
-  - 8.3 test ROC-AUC over epochs
-  - 8.4 a comparison table sorted by final test AUC
+- Section 8: training results. The discovery cell at the top of
+  section 8 walks `runs/` recursively and exposes a `GROUPS` list
+  (e.g., `["full_data_configs"]` or `None` for all) so you can scope
+  the comparison to a subset of subfolders. All later subsections
+  (loss curves, ROC, energy-stratified rates, score / logit
+  distributions, leaderboard table) operate on the filtered set.
 
 Launch with:
 
