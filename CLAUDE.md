@@ -44,6 +44,15 @@ Train an ML classifier that predicts `psd_label_low_avse` from the raw waveform 
 - **Evaluation** uses `MJD_Test_*.hdf5` files only. Train and test files are never mixed.
 - No further holdout from train files in v1 — there is no formal validation set during training. Revisit if overfitting becomes a concern.
 
+### Two-stage data subsetting
+
+When the run uses less than the full training pool, two independent knobs control the trimming, applied in this order:
+
+1. **`data.subset_portion` (default `1.0`)** — *across all epochs* the Dataset only exposes a fraction of events. Picked once at construction using `data.subset_seed`, so the same fraction reused per run reproducibly. Useful for data-scaling studies and controlled comparisons across models.
+2. **`data.train_portion` (default `1.0`)** — *per epoch*, the trainer's `WeightedRandomSampler` draws this fraction of the (already-subsetted) Dataset. Reshuffled each epoch.
+
+Composition: `events_per_epoch = N_after_energy_filter × subset_portion × train_portion`. Existing configs run with `subset_portion=1.0`; older runs are equivalent.
+
 ### Waveform preprocessing (applied inside the Dataset)
 1. Subtract baseline = mean of the **first 500 samples**.
 2. Divide by the max of the baseline-subtracted waveform (per-event peak normalization).

@@ -281,6 +281,53 @@ def test_dataset_energy_range_bad_bounds_rejected(tiny_train_file: Path) -> None
         DatasetConfig(files=[tiny_train_file], energy_range=(-1.0, 100.0))
 
 
+def test_dataset_subset_portion_default_is_full(tiny_train_dir: Path) -> None:
+    files = resolve_files(tiny_train_dir, "train", "all")
+    full = MajoranaWaveformDataset(DatasetConfig(files=files))
+    assert len(full) == 5 + 7 + 3
+
+
+def test_dataset_subset_portion_reduces_length(tiny_train_dir: Path) -> None:
+    files = resolve_files(tiny_train_dir, "train", "all")
+    half = MajoranaWaveformDataset(DatasetConfig(files=files, subset_portion=0.5, subset_seed=0))
+    # 15 events × 0.5 → round to 8 events.
+    assert len(half) == 8
+
+
+def test_dataset_subset_is_deterministic_per_seed(tiny_train_dir: Path) -> None:
+    files = resolve_files(tiny_train_dir, "train", "all")
+    a = MajoranaWaveformDataset(DatasetConfig(files=files, subset_portion=0.5, subset_seed=42))
+    b = MajoranaWaveformDataset(DatasetConfig(files=files, subset_portion=0.5, subset_seed=42))
+    assert [a[i]["id"].item() for i in range(len(a))] == [b[i]["id"].item() for i in range(len(b))]
+
+
+def test_dataset_subset_seed_changes_subset(tiny_train_dir: Path) -> None:
+    files = resolve_files(tiny_train_dir, "train", "all")
+    a = MajoranaWaveformDataset(DatasetConfig(files=files, subset_portion=0.5, subset_seed=0))
+    b = MajoranaWaveformDataset(DatasetConfig(files=files, subset_portion=0.5, subset_seed=99))
+    ids_a = sorted(a[i]["id"].item() for i in range(len(a)))
+    ids_b = sorted(b[i]["id"].item() for i in range(len(b)))
+    # Different seeds should give different subsets (statistically very likely
+    # for n=15, target=8; could collide once in C(15, 8) ≈ 6435 trials).
+    assert ids_a != ids_b
+
+
+def test_dataset_subset_composes_with_energy_range(tiny_train_dir: Path) -> None:
+    """Subset is taken AFTER the energy_range filter."""
+    files = resolve_files(tiny_train_dir, "train", "all")
+    energy_only = MajoranaWaveformDataset(DatasetConfig(files=files, energy_range=(500.0, 2700.0)))
+    composed = MajoranaWaveformDataset(
+        DatasetConfig(
+            files=files,
+            energy_range=(500.0, 2700.0),
+            subset_portion=0.5,
+            subset_seed=0,
+        )
+    )
+    assert len(composed) <= len(energy_only)
+    assert len(composed) == max(1, round(len(energy_only) * 0.5))
+
+
 def test_dataset_works_with_dataloader(tiny_train_dir: Path) -> None:
     """End-to-end: default DataLoader collation stacks dict items."""
     files = resolve_files(tiny_train_dir, "train", "all")

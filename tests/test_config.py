@@ -122,6 +122,22 @@ def test_data_config_rejects_unknown_sampler_strategy(tmp_path: Path) -> None:
         DataConfig(data_dir=tmp_path, sampler_strategies=["random_walk"])
 
 
+def test_data_config_subset_portion_default(tmp_path: Path) -> None:
+    cfg = DataConfig(data_dir=tmp_path)
+    assert cfg.subset_portion == 1.0
+    assert cfg.subset_seed == 0
+
+
+def test_data_config_rejects_zero_subset_portion(tmp_path: Path) -> None:
+    with pytest.raises(ValidationError):
+        DataConfig(data_dir=tmp_path, subset_portion=0.0)
+
+
+def test_data_config_rejects_subset_portion_above_one(tmp_path: Path) -> None:
+    with pytest.raises(ValidationError):
+        DataConfig(data_dir=tmp_path, subset_portion=1.5)
+
+
 def test_data_config_energy_range_validation(tmp_path: Path) -> None:
     with pytest.raises(ValidationError):
         DataConfig(data_dir=tmp_path, energy_range=(1000.0, 500.0))

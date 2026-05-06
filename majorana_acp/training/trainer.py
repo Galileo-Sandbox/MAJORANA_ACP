@@ -151,6 +151,8 @@ def train(cfg: ExperimentConfig) -> Path:
                 t90_post=cfg.data.t90_post,
                 use_derivative_channel=cfg.data.use_derivative_channel,
                 energy_range=cfg.data.energy_range,
+                subset_portion=cfg.data.subset_portion,
+                subset_seed=cfg.data.subset_seed,
             )
         )
         logger.info("train set: %d events", len(train_ds))
@@ -183,6 +185,8 @@ def train(cfg: ExperimentConfig) -> Path:
                 t90_post=cfg.data.t90_post,
                 use_derivative_channel=cfg.data.use_derivative_channel,
                 energy_range=cfg.data.energy_range,
+                subset_portion=cfg.data.subset_portion,
+                subset_seed=cfg.data.subset_seed,
             )
         )
         test_loader = DataLoader(
@@ -416,27 +420,37 @@ def _build_train_sampler(
 def _read_dataset_metadata(
     dataset: MajoranaWaveformDataset, target_label: str
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Return (labels, energies) aligned with ``dataset``'s exposed events.
+    """Return (labels, energies) aligned 1:1 with ``dataset[i]``.
 
-    Walks the same files in the same order the Dataset does, and applies
-    the same energy_range filter, so the returned arrays index 1:1 with
-    ``dataset[i]``.
+    When ``dataset._index_map`` is set (energy_range filter and/or
+    subset_portion < 1.0 active), the per-file label / energy arrays are
+    indexed via the map so the output reflects exactly the events the
+    Dataset exposes — including the subset selection.
     """
-    labels_chunks: list[np.ndarray] = []
-    energies_chunks: list[np.ndarray] = []
-    energy_range = dataset.config.energy_range
-    for path in dataset.config.files:
+    if dataset._index_map is None:
+        labels_chunks: list[np.ndarray] = []
+        energies_chunks: list[np.ndarray] = []
+        for path in dataset.config.files:
+            with h5py.File(path, "r") as f:
+                labels_chunks.append(f[target_label][:].astype(bool))
+                energies_chunks.append(f["energy_label"][:].astype(np.float64))
+        return np.concatenate(labels_chunks), np.concatenate(energies_chunks)
+
+    # Indexed path: read each file once, then gather using the index map.
+    n = dataset._index_map.shape[0]
+    labels = np.empty(n, dtype=bool)
+    energies = np.empty(n, dtype=np.float64)
+    for fi, path in enumerate(dataset.config.files):
+        rows = dataset._index_map[:, 0] == fi
+        if not rows.any():
+            continue
         with h5py.File(path, "r") as f:
             file_labels = f[target_label][:].astype(bool)
             file_energies = f["energy_label"][:].astype(np.float64)
-        if energy_range is not None:
-            lo, hi = energy_range
-            mask = (file_energies >= lo) & (file_energies < hi)
-            file_labels = file_labels[mask]
-            file_energies = file_energies[mask]
-        labels_chunks.append(file_labels)
-        energies_chunks.append(file_energies)
-    return np.concatenate(labels_chunks), np.concatenate(energies_chunks)
+        local = dataset._index_map[rows, 1]
+        labels[rows] = file_labels[local]
+        energies[rows] = file_energies[local]
+    return labels, energies
 
 
 def _compute_sampler_weights(

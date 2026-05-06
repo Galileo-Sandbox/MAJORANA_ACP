@@ -86,6 +86,8 @@ def evaluate(
                 t90_post=cfg.data.t90_post,
                 use_derivative_channel=cfg.data.use_derivative_channel,
                 energy_range=cfg.data.energy_range,
+                subset_portion=cfg.data.subset_portion,
+                subset_seed=cfg.data.subset_seed,
             )
         )
         logger.info("test set size: %d events", len(test_ds))

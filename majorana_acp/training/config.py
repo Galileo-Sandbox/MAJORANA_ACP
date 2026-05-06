@@ -101,6 +101,20 @@ class DataConfig(_Frozen):
             "If set, both train and test datasets are filtered to lo <= energy_label < hi (in keV)."
         ),
     )
+    subset_portion: float = Field(
+        default=1.0,
+        gt=0.0,
+        le=1.0,
+        description=(
+            "Fraction of events (after energy_range filter) to retain "
+            "across all epochs. Picked once at Dataset construction using "
+            "subset_seed; train_portion then samples *within* that subset."
+        ),
+    )
+    subset_seed: int = Field(
+        default=0,
+        description="RNG seed for the subset_portion selection.",
+    )
     sampler_strategies: list[SamplerStrategy] = Field(
         default_factory=list,
         description=(

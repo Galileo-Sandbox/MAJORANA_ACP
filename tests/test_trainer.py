@@ -276,6 +276,16 @@ def test_train_with_combined_sampler_strategies(tiny_train_dir: Path, tmp_path: 
     train(cfg)
 
 
+def test_train_with_subset_portion(tiny_train_dir: Path, tmp_path: Path) -> None:
+    """subset_portion < 1.0 should still complete and produce a checkpoint."""
+    cfg = _smoke_config(tiny_train_dir, tmp_path / "run")
+    cfg = cfg.model_copy(
+        update={"data": cfg.data.model_copy(update={"subset_portion": 0.5, "subset_seed": 7})}
+    )
+    out_dir = train(cfg)
+    assert (out_dir / "epoch_001.pt").is_file()
+
+
 def test_train_with_energy_range_filter(tiny_train_dir: Path, tmp_path: Path) -> None:
     """``data.energy_range`` filters both train and test sets."""
     cfg = _smoke_config(tiny_train_dir, tmp_path / "run")

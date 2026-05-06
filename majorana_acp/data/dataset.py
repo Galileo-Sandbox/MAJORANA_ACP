@@ -101,6 +101,20 @@ class DatasetConfig(BaseModel):
             "lo <= energy_label < hi. Affects len(dataset) and indexing."
         ),
     )
+    subset_portion: float = Field(
+        default=1.0,
+        gt=0.0,
+        le=1.0,
+        description=(
+            "Fraction of events (after energy_range filter) to keep across "
+            "all epochs. Selected once at Dataset construction using "
+            "subset_seed, so the subset is reproducible."
+        ),
+    )
+    subset_seed: int = Field(
+        default=0,
+        description="RNG seed for deterministic subset selection.",
+    )
 
     @field_validator("files")
     @classmethod
@@ -195,22 +209,41 @@ class MajoranaWaveformDataset(Dataset[WaveformItem]):
         return lengths
 
     def _build_index_map(self) -> np.ndarray | None:
-        """If energy_range is set, return an (N, 2) [file_idx, local_idx]
-        index map of events that pass the filter; otherwise None.
+        """Return an (N, 2) ``[file_idx, local_idx]`` map of exposed events.
+
+        Built when ``energy_range`` is set or ``subset_portion < 1.0``;
+        ``None`` otherwise (the unfiltered cumulative-offset path is used).
         """
-        if self.config.energy_range is None:
+        has_energy_filter = self.config.energy_range is not None
+        has_subset = self.config.subset_portion < 1.0
+        if not has_energy_filter and not has_subset:
             return None
-        lo, hi = self.config.energy_range
+
         rows: list[np.ndarray] = []
         for file_idx, path in enumerate(self.config.files):
             with h5py.File(path, "r") as f:
                 energies = f["energy_label"][:]
-            local = np.where((energies >= lo) & (energies < hi))[0].astype(np.int64)
+            if has_energy_filter:
+                lo, hi = self.config.energy_range
+                local = np.where((energies >= lo) & (energies < hi))[0].astype(np.int64)
+            else:
+                local = np.arange(energies.size, dtype=np.int64)
             if local.size:
                 rows.append(np.column_stack((np.full(local.size, file_idx, dtype=np.int64), local)))
+
         if not rows:
             return np.empty((0, 2), dtype=np.int64)
-        return np.concatenate(rows, axis=0)
+        idx_map = np.concatenate(rows, axis=0)
+
+        if has_subset:
+            n = idx_map.shape[0]
+            target = max(1, int(round(n * self.config.subset_portion)))
+            rng = np.random.default_rng(self.config.subset_seed)
+            chosen = rng.choice(n, size=target, replace=False)
+            chosen.sort()  # preserve relative order so iteration is stable
+            idx_map = idx_map[chosen]
+
+        return idx_map
 
     def _ensure_handles_for_current_worker(self) -> None:
         info = get_worker_info()
