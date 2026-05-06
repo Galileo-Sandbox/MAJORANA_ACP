@@ -49,7 +49,9 @@ majorana_acp/
   training/     config schema, losses, trainer
   eval/         load checkpoint, run inference, save metrics
   cli/          train.py and evaluate.py entry points
-configs/        experiment YAMLs (one per run)
+configs/
+  full_data_configs/  full-run experiment YAMLs (10 / 50 epoch baselines)
+  smoke_tests/        fast iteration configs (one file, one epoch)
 notebooks/      data_visualization.ipynb (exploration + run comparison)
 tests/          pytest suite — synthetic HDF5 fixtures, no real data needed
 runs/           per-run output directories (gitignored)
@@ -72,17 +74,22 @@ A single training run writes the following to `runs/<exp-name>/`:
 Pick or write a config under `configs/`, then:
 
 ```bash
-.venv/bin/python -m majorana_acp.cli.train configs/simple_cnn.yaml
+.venv/bin/python -m majorana_acp.cli.train configs/full_data_configs/simple_cnn.yaml
 ```
 
 The reference configs are:
 
 | Config | Purpose |
 |---|---|
-| `configs/simple_cnn.yaml` | 1D CNN baseline, all 16 train files, 10 epochs, `train_portion=0.1` |
-| `configs/mlp.yaml` | MLP baseline, same data slice as above |
-| `configs/quick_smoke.yaml` | One-file, one-epoch smoke test for SimpleCNN (~12 s on the 5090) |
-| `configs/quick_smoke_mlp.yaml` | Same smoke shape but with `model.name: mlp` |
+| `configs/full_data_configs/simple_cnn.yaml` | 1D CNN baseline, all 16 train files |
+| `configs/full_data_configs/simple_cnn_derivative.yaml` | SimpleCNN with the derivative as a 2nd input channel |
+| `configs/full_data_configs/mlp.yaml` | MLP baseline (1M params) |
+| `configs/full_data_configs/mlp_v2.yaml` | Smaller MLP (122k params) |
+| `configs/full_data_configs/mlp_derivative.yaml` | MLP with derivative channel |
+| `configs/full_data_configs/resnet.yaml` / `resnet_single.yaml` | ResNet-1D, 2-channel and 1-channel |
+| `configs/full_data_configs/inception.yaml` / `inception_single.yaml` | InceptionTime, 2-channel and 1-channel |
+| `configs/smoke_tests/quick_smoke.yaml` | One-file, one-epoch smoke test for SimpleCNN (~12 s on the 5090) |
+| `configs/smoke_tests/quick_smoke_mlp.yaml` | Same smoke shape but with `model.name: mlp` |
 
 A `train_portion` of `0.1` means each epoch draws a random 10 % of the
 training events (sampled without replacement, reshuffled each epoch).
@@ -188,7 +195,7 @@ from majorana_acp.models import my_resnet  # noqa: F401
 
 ### 3. Reference it in a YAML config
 
-Copy `configs/simple_cnn.yaml`, change only the `model` block:
+Copy `configs/full_data_configs/simple_cnn.yaml`, change only the `model` block:
 
 ```yaml
 model:
