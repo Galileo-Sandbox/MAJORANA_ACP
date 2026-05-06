@@ -12,6 +12,8 @@ data:
   num_workers: 4
   baseline_samples: 500
   train_portion: 0.1
+  subset_portion: 1.0
+  subset_seed: 0
   align_t90: true
   t90_pre: 200
   t90_post: 2000
