@@ -34,7 +34,7 @@ optim:
   weight_decay: 1.0e-4
 
 loss:
-  type: weighted_bce
+  type: bce
   pos_weight: auto
   balanced_sampler: false
 
