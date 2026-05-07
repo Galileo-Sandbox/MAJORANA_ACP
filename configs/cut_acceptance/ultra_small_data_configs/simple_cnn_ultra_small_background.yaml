@@ -1,11 +1,11 @@
-# Cut-acceptance run on simple_cnn_ultra_small (1% subset). target_class=1.
-# Same as the resnet_single config except predictions_path / out_dir / name.
-name: simple_cnn_ultra_small_signal
+# Cut-acceptance run on simple_cnn_ultra_small (1% subset). target_class=0.
+# Background-rejection counterpart of the signal config.
+name: simple_cnn_ultra_small_background
 
 predictions_path: runs/ultra_small_data_configs/simple_cnn_ultra_small/eval/predictions.h5
-out_dir: results/cut_acceptance/simple_cnn_ultra_small/signal
+out_dir: results/cut_acceptance/ultra_small_data_configs/simple_cnn_ultra_small/background
 
-target_class: 1
+target_class: 0
 energy_range: [500.0, 3000.0]
 
 peak_windows:

@@ -1,9 +1,12 @@
-# Cut-acceptance run on simple_cnn_ultra_small (1% subset). target_class=0.
-# Background-rejection counterpart of the signal config.
-name: simple_cnn_ultra_small_background
+# Cut-acceptance run on resnet_single (ultra_small, 1% subset).
+# target_class=0 -> background-rejection rate β_bkg(E, T) (rejection = 1 - β_bkg).
+# Same partition_seed as the signal config so the LF/HF/holdout split is reproducible
+# across the two pipelines while staying disjoint at the event level (different
+# target_class -> different base_mask -> non-overlapping events).
+name: resnet_single_ultra_small_background
 
-predictions_path: runs/ultra_small_data_configs/simple_cnn_ultra_small/eval/predictions.h5
-out_dir: results/cut_acceptance/simple_cnn_ultra_small/background
+predictions_path: runs/ultra_small_data_configs/resnet_single_ultra_small/eval/predictions.h5
+out_dir: results/cut_acceptance/ultra_small_data_configs/resnet_single_ultra_small/background
 
 target_class: 0
 energy_range: [500.0, 3000.0]

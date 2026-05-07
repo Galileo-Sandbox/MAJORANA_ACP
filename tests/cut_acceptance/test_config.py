@@ -81,7 +81,9 @@ def test_extra_field_is_rejected() -> None:
 
 def test_real_example_yaml_loads() -> None:
     """Sanity-check the YAML committed to configs/cut_acceptance/."""
-    cfg = load_config("configs/cut_acceptance/resnet_single_ultra_small_signal.yaml")
+    cfg = load_config(
+        "configs/cut_acceptance/ultra_small_data_configs/resnet_single_ultra_small_signal.yaml"
+    )
     assert cfg.target_class == 1
     assert cfg.name == "resnet_single_ultra_small_signal"
     assert len(cfg.peak_windows) == 4

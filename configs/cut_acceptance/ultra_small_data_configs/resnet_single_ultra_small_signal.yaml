@@ -1,16 +1,15 @@
 # Cut-acceptance run on resnet_single (ultra_small, 1% subset).
-# target_class=0 -> background-rejection rate β_bkg(E, T) (rejection = 1 - β_bkg).
-# Same partition_seed as the signal config so the LF/HF/holdout split is reproducible
-# across the two pipelines while staying disjoint at the event level (different
-# target_class -> different base_mask -> non-overlapping events).
-name: resnet_single_ultra_small_background
+# target_class=1 -> signal acceptance β_signal(E, T).
+# A second config with target_class=0 will give background rejection.
+name: resnet_single_ultra_small_signal
 
 predictions_path: runs/ultra_small_data_configs/resnet_single_ultra_small/eval/predictions.h5
-out_dir: results/cut_acceptance/resnet_single_ultra_small/background
+out_dir: results/cut_acceptance/ultra_small_data_configs/resnet_single_ultra_small/signal
 
-target_class: 0
+target_class: 1
 energy_range: [500.0, 3000.0]
 
+# 4 peak windows (keV) — same set used in the binned acceptance plot in §8.4.
 peak_windows:
   - {lo: 2605.0, hi: 2620.0}
   - {lo: 2095.0, hi: 2110.0}
@@ -28,6 +27,7 @@ min_pool_size: 8
 energy_grid_step: 10.0
 threshold_grid_step: 0.02
 
+# Nested RESUM_FLEX configs — fields below mirror their pydantic models.
 encoder:
   type: mlp
   latent_dim: 64
@@ -47,7 +47,7 @@ training:
   n_events_per_trial: 128
   n_mc_samples: 4
   grad_clip: 1.0
-  eval_every: 0
+  eval_every: 0           # disable in-loop MAE check (no analytical truth on real data)
   eval_batch_size: 32
   eval_n_events: 256
   seed: 0
