@@ -33,6 +33,8 @@ model:
     modules_per_block: 3
     use_bottleneck: true
     dropout: 0.2
+    norm: group
+    num_groups: 8
 
 optim:
   optimizer: adamw

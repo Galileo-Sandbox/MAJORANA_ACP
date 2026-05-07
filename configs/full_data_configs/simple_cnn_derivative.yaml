@@ -29,6 +29,8 @@ model:
     channels: [16, 32, 64]
     kernel_size: 5
     dropout: 0.2
+    norm: group
+    num_groups: 8
 
 optim:
   optimizer: adamw

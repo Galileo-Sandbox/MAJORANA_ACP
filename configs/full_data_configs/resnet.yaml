@@ -30,6 +30,8 @@ model:
     blocks_per_stage: [2, 2, 2, 2]
     kernel_size: 3
     dropout: 0.2
+    norm: group
+    num_groups: 8
 
 optim:
   optimizer: adamw
