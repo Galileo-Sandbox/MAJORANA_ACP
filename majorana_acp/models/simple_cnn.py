@@ -6,10 +6,10 @@ Output : ``(B,)`` raw logits. No sigmoid — see CLAUDE.md / "Model output
          convention". Use ``BCEWithLogitsLoss`` for training and
          ``torch.sigmoid`` at inference for the [0, 1] score.
 
-The architecture is a stack of Conv1d → BatchNorm → ReLU → MaxPool(4)
+The architecture is a stack of Conv1d → Norm → ReLU → MaxPool(4)
 blocks followed by global average pooling and a linear head. Defaults
 give 64x temporal downsampling over three blocks, suitable for the
-3800-sample waveform.
+3800-sample waveform. ``norm`` selects BatchNorm1d or GroupNorm.
 """
 
 from __future__ import annotations
@@ -19,12 +19,13 @@ from collections.abc import Sequence
 import torch
 from torch import nn
 
+from majorana_acp.models._norm import NormType, make_norm_for_conv1d
 from majorana_acp.models.registry import register_model
 
 
 @register_model("simple_cnn")
 class SimpleCNN(nn.Module):
-    """Stacked Conv1d + BatchNorm + MaxPool, then a linear classifier head."""
+    """Stacked Conv1d + Norm + MaxPool, then a linear classifier head."""
 
     def __init__(
         self,
@@ -32,6 +33,8 @@ class SimpleCNN(nn.Module):
         kernel_size: int = 5,
         dropout: float = 0.2,
         in_channels: int = 1,
+        norm: NormType = "batch",
+        num_groups: int = 8,
     ) -> None:
         super().__init__()
         if not channels:
@@ -44,6 +47,8 @@ class SimpleCNN(nn.Module):
             raise ValueError(f"in_channels must be >= 1, got {in_channels}")
 
         self.in_channels = in_channels
+        self.norm = norm
+        self.num_groups = num_groups
         channels = list(channels)
         layers: list[nn.Module] = []
         in_ch = in_channels
@@ -51,7 +56,7 @@ class SimpleCNN(nn.Module):
             layers.extend(
                 [
                     nn.Conv1d(in_ch, out_ch, kernel_size, padding=kernel_size // 2),
-                    nn.BatchNorm1d(out_ch),
+                    make_norm_for_conv1d(out_ch, norm=norm, num_groups=num_groups),
                     nn.ReLU(inplace=True),
                     nn.MaxPool1d(kernel_size=4),
                 ]

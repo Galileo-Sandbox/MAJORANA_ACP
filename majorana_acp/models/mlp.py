@@ -7,10 +7,10 @@ Output : ``(B,)`` raw logits. No sigmoid — see CLAUDE.md / "Model output
          convention". Use ``BCEWithLogitsLoss`` for training and
          ``torch.sigmoid`` at inference for the [0, 1] score.
 
-The architecture is a stack of ``Linear → BatchNorm1d → ReLU → Dropout``
-blocks followed by a linear classifier head. Larger by default than
-SimpleCNN because the first layer's weight matrix is
-``input_dim × hidden_dims[0]``.
+The architecture is a stack of ``Linear → Norm → ReLU → Dropout``
+blocks followed by a linear classifier head. ``norm`` selects
+BatchNorm1d (default) or LayerNorm; GroupNorm is rejected because it
+is not meaningful on a flat ``(B, F)`` activation.
 """
 
 from __future__ import annotations
@@ -20,18 +20,20 @@ from collections.abc import Sequence
 import torch
 from torch import nn
 
+from majorana_acp.models._norm import NormType, make_norm_for_flat
 from majorana_acp.models.registry import register_model
 
 
 @register_model("mlp")
 class MLP(nn.Module):
-    """Stacked Linear + BatchNorm + ReLU + Dropout, then a linear head."""
+    """Stacked Linear + Norm + ReLU + Dropout, then a linear head."""
 
     def __init__(
         self,
         input_dim: int = 3800,
         hidden_dims: Sequence[int] = (256, 128, 64),
         dropout: float = 0.3,
+        norm: NormType = "batch",
     ) -> None:
         super().__init__()
         if input_dim < 1:
@@ -43,6 +45,7 @@ class MLP(nn.Module):
 
         hidden_dims = list(hidden_dims)
         self.input_dim = int(input_dim)
+        self.norm = norm
 
         layers: list[nn.Module] = []
         prev_dim = self.input_dim
@@ -50,7 +53,7 @@ class MLP(nn.Module):
             layers.extend(
                 [
                     nn.Linear(prev_dim, h),
-                    nn.BatchNorm1d(h),
+                    make_norm_for_flat(h, norm=norm),
                     nn.ReLU(inplace=True),
                     nn.Dropout(dropout),
                 ]

@@ -10,10 +10,11 @@ Each :class:`InceptionModule` looks at its input through four branches:
   - a ``MaxPool1d`` branch followed by a 1×1 conv for local
     translation-invariance.
 
-The four outputs are concatenated along the channel axis, BatchNormed,
+The four outputs are concatenated along the channel axis, normalized,
 and ReLU'd. ``padding='same'`` everywhere so the temporal length is
 preserved through the deep stack — exactly what we need for waveforms
-where the rising edge is at a fixed sample index.
+where the rising edge is at a fixed sample index. ``norm`` selects
+BatchNorm1d or GroupNorm for every normalization layer.
 
 :class:`InceptionResidualBlock` chains three modules and adds a skip
 connection from the block's input to its output (with a 1×1 conv on
@@ -33,6 +34,7 @@ from collections.abc import Sequence
 import torch
 from torch import nn
 
+from majorana_acp.models._norm import NormType, make_norm_for_conv1d
 from majorana_acp.models.registry import register_model
 
 
@@ -46,6 +48,8 @@ class InceptionModule(nn.Module):
         kernel_sizes: Sequence[int] = (10, 20, 40),
         bottleneck_channels: int = 32,
         use_bottleneck: bool = True,
+        norm: NormType = "batch",
+        num_groups: int = 8,
     ) -> None:
         super().__init__()
         if in_channels < 1:
@@ -81,7 +85,7 @@ class InceptionModule(nn.Module):
         )
 
         out_channels = (len(kernel_sizes) + 1) * n_filters
-        self.bn = nn.BatchNorm1d(out_channels)
+        self.bn = make_norm_for_conv1d(out_channels, norm=norm, num_groups=num_groups)
         self.relu = nn.ReLU(inplace=True)
         self.out_channels = out_channels
 
@@ -104,6 +108,8 @@ class InceptionResidualBlock(nn.Module):
         bottleneck_channels: int,
         use_bottleneck: bool,
         modules_per_block: int = 3,
+        norm: NormType = "batch",
+        num_groups: int = 8,
     ) -> None:
         super().__init__()
         if modules_per_block < 1:
@@ -120,16 +126,18 @@ class InceptionResidualBlock(nn.Module):
                     kernel_sizes=kernel_sizes,
                     bottleneck_channels=bottleneck_channels,
                     use_bottleneck=use_bottleneck,
+                    norm=norm,
+                    num_groups=num_groups,
                 )
             )
             ch = out_per_module
         self.inception_seq = nn.Sequential(*modules)
 
-        # Skip path: 1x1 conv + BN to match channel count if necessary.
+        # Skip path: 1x1 conv + Norm to match channel count if necessary.
         if in_channels != out_per_module:
             self.shortcut = nn.Sequential(
                 nn.Conv1d(in_channels, out_per_module, kernel_size=1, bias=False),
-                nn.BatchNorm1d(out_per_module),
+                make_norm_for_conv1d(out_per_module, norm=norm, num_groups=num_groups),
             )
         else:
             self.shortcut = nn.Identity()
@@ -159,6 +167,8 @@ class InceptionTime(nn.Module):
         modules_per_block: int = 3,
         use_bottleneck: bool = True,
         dropout: float = 0.0,
+        norm: NormType = "batch",
+        num_groups: int = 8,
     ) -> None:
         super().__init__()
         if in_channels < 1:
@@ -175,6 +185,8 @@ class InceptionTime(nn.Module):
             raise ValueError(f"dropout must be in [0, 1), got {dropout}")
 
         self.in_channels = in_channels
+        self.norm = norm
+        self.num_groups = num_groups
 
         blocks: list[nn.Module] = []
         ch = in_channels
@@ -186,6 +198,8 @@ class InceptionTime(nn.Module):
                 bottleneck_channels=bottleneck_channels,
                 use_bottleneck=use_bottleneck,
                 modules_per_block=modules_per_block,
+                norm=norm,
+                num_groups=num_groups,
             )
             blocks.append(block)
             ch = block.out_channels
@@ -203,7 +217,7 @@ class InceptionTime(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.Conv1d):
                 nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
-            elif isinstance(m, nn.BatchNorm1d):
+            elif isinstance(m, nn.BatchNorm1d | nn.GroupNorm):
                 nn.init.ones_(m.weight)
                 nn.init.zeros_(m.bias)
         # Final linear (logit) head: Xavier (no ReLU after).
