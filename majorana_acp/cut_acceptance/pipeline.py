@@ -62,7 +62,7 @@ class PipelineSummary:
     """Lightweight summary returned (and saved) by ``run_pipeline``."""
 
     name: str
-    target_class: int
+    target_class: int | str  # 0 / 1 / "all" (inclusive)
     out_dir: str
     cnp_ckpt: str
     mfgp_path: str

@@ -51,11 +51,14 @@ def test_threshold_range_must_be_ordered() -> None:
         CutAcceptanceConfig(**_kwargs(threshold_range=(1.0, 0.0)))
 
 
-def test_target_class_only_zero_or_one() -> None:
+def test_target_class_only_zero_one_or_all() -> None:
     CutAcceptanceConfig(**_kwargs(target_class=0))
     CutAcceptanceConfig(**_kwargs(target_class=1))
+    CutAcceptanceConfig(**_kwargs(target_class="all"))
     with pytest.raises(ValueError):
         CutAcceptanceConfig(**_kwargs(target_class=2))
+    with pytest.raises(ValueError):
+        CutAcceptanceConfig(**_kwargs(target_class="signal"))
 
 
 def test_yaml_roundtrip(tmp_path) -> None:

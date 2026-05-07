@@ -76,10 +76,15 @@ class CutAcceptanceConfig(_Frozen):
     # ------------------------------------------------------------------
     # Data partition
     # ------------------------------------------------------------------
-    target_class: Literal[0, 1] = Field(
+    target_class: Literal[0, 1, "all"] = Field(
         ...,
-        description="Restrict to events with this true psd_label_low_avse. "
-        "1 = signal acceptance, 0 = background rejection.",
+        description=(
+            "Restrict to events with this true psd_label_low_avse. "
+            "1 = signal acceptance (label==1), 0 = background rejection (label==0), "
+            "'all' = no label filter (inclusive pass-rate; ignores ground truth and "
+            "computes P(score >= T | E) marginalised over the natural class "
+            "composition in the test set)."
+        ),
     )
     energy_range: tuple[float, float] = Field(
         (500.0, 3000.0),

@@ -96,6 +96,56 @@ def test_filters_by_target_class() -> None:
     assert np.all(label[out.base_mask] == 0)
 
 
+def test_target_class_all_keeps_all_labels() -> None:
+    """target_class='all' must skip the label filter entirely."""
+    rng = np.random.default_rng(0)
+    n_cont, n_peak = 120, 80
+    energy = np.concatenate(
+        [
+            rng.uniform(700.0, 1500.0, size=n_cont),
+            rng.uniform(2605.0, 2620.0, size=n_peak // 2),
+            rng.uniform(1587.0, 1597.0, size=n_peak - n_peak // 2),
+        ]
+    )
+    label = rng.integers(0, 2, size=energy.size)  # mixed labels
+    perm = rng.permutation(energy.size)
+    energy, label = energy[perm], label[perm]
+
+    cfg = _cfg(target_class="all")
+    out = partition_events(energy, label, cfg)
+
+    # Every energy-window event must survive (no label filter applied).
+    e_lo, e_hi = cfg.energy_range
+    expected_in_range = ((energy >= e_lo) & (energy <= e_hi)).sum()
+    assert out.n_filtered == int(expected_in_range)
+    # Both label values are still represented.
+    surviving_labels = label[out.base_mask]
+    assert (surviving_labels == 0).any()
+    assert (surviving_labels == 1).any()
+    assert out.disjoint()
+
+
+def test_target_class_all_partition_overlaps_with_per_class_pipelines() -> None:
+    """The 'all' mode is *not* disjoint from signal / background — by design.
+
+    Each label==1 event still lives in the inclusive base_mask AND in the
+    signal pipeline's base_mask. We confirm here, so a future test that
+    accidentally asserts inclusive-vs-class disjointness fails loudly.
+    """
+    energy_sig, label_sig = _synthetic_events(n_continuum=120, n_peak=80, seed=11)
+    energy_bkg, label_bkg = _synthetic_events(n_continuum=80, n_peak=60, seed=22)
+    label_sig[:] = 1
+    label_bkg[:] = 0
+    energy = np.concatenate([energy_sig, energy_bkg])
+    label = np.concatenate([label_sig, label_bkg])
+
+    sig = partition_events(energy, label, _cfg(target_class=1, partition_seed=42))
+    inc = partition_events(energy, label, _cfg(target_class="all", partition_seed=42))
+    # Inclusive base_mask is a strict superset (label==1 events plus label==0).
+    assert inc.n_filtered > sig.n_filtered
+    assert np.all(sig.base_mask <= inc.base_mask)
+
+
 def test_partition_is_seed_reproducible() -> None:
     energy, label = _synthetic_events()
     out1 = partition_events(energy, label, _cfg(partition_seed=42))

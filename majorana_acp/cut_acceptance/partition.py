@@ -80,11 +80,17 @@ def partition_events(
         raise ValueError(f"energy / label shape mismatch: {energy.shape} vs {label.shape}")
 
     e_lo, e_hi = cfg.energy_range
-    base_mask = (energy >= e_lo) & (energy <= e_hi) & (label == cfg.target_class)
+    energy_mask = (energy >= e_lo) & (energy <= e_hi)
+    if cfg.target_class == "all":
+        # Label-agnostic: keep every event in the energy window.
+        base_mask = energy_mask
+    else:
+        base_mask = energy_mask & (label == cfg.target_class)
     n_filtered = int(base_mask.sum())
     if n_filtered == 0:
         raise ValueError(
-            f"no events survive energy_range={cfg.energy_range} and target_class={cfg.target_class}"
+            f"no events survive energy_range={cfg.energy_range} and "
+            f"target_class={cfg.target_class!r}"
         )
 
     energy_f = energy[base_mask]
