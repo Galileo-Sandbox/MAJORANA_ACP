@@ -144,6 +144,44 @@ def test_simple_cnn_rejects_zero_in_channels() -> None:
         SimpleCNN(in_channels=0)
 
 
+def test_simple_cnn_uses_batchnorm_by_default() -> None:
+    model = SimpleCNN(channels=[16, 32], kernel_size=3)
+    assert any(isinstance(m, nn.BatchNorm1d) for m in model.modules())
+    assert not any(isinstance(m, nn.GroupNorm) for m in model.modules())
+
+
+def test_simple_cnn_groupnorm_swap_replaces_all_batchnorms() -> None:
+    """norm='group' should replace every BatchNorm1d with GroupNorm."""
+    model = SimpleCNN(channels=[16, 32], kernel_size=3, norm="group", num_groups=8)
+    assert not any(isinstance(m, nn.BatchNorm1d) for m in model.modules())
+    gns = [m for m in model.modules() if isinstance(m, nn.GroupNorm)]
+    assert len(gns) == 2
+    assert all(gn.num_groups == 8 for gn in gns)
+
+
+def test_simple_cnn_groupnorm_forward_shape() -> None:
+    model = SimpleCNN(channels=[16, 32], kernel_size=3, norm="group", num_groups=8)
+    out = model(torch.randn(4, 1024))
+    assert out.shape == (4,)
+
+
+def test_simple_cnn_groupnorm_rejects_indivisible_channels() -> None:
+    """num_groups=8 cannot evenly divide 10 channels."""
+    with pytest.raises(ValueError):
+        SimpleCNN(channels=[10, 20], kernel_size=3, norm="group", num_groups=8)
+
+
+def test_simple_cnn_layernorm_rejected() -> None:
+    """LayerNorm is reserved for flat (B, F) activations, not (B, C, L)."""
+    with pytest.raises(ValueError, match="not applicable to 1D conv"):
+        SimpleCNN(channels=[16, 32], kernel_size=3, norm="layer")
+
+
+def test_simple_cnn_unknown_norm_raises() -> None:
+    with pytest.raises(ValueError):
+        SimpleCNN(channels=[16, 32], kernel_size=3, norm="instance")  # type: ignore[arg-type]
+
+
 # --- MLP -------------------------------------------------------------
 
 
@@ -223,6 +261,39 @@ def test_mlp_handles_multi_channel_via_flatten() -> None:
     assert out.shape == (4,)
 
 
+def test_mlp_uses_batchnorm_by_default() -> None:
+    model = MLP(input_dim=128, hidden_dims=[16, 8])
+    assert any(isinstance(m, nn.BatchNorm1d) for m in model.modules())
+    assert not any(isinstance(m, nn.LayerNorm) for m in model.modules())
+
+
+def test_mlp_layernorm_swap_replaces_all_batchnorms() -> None:
+    """norm='layer' should replace every BatchNorm1d with LayerNorm."""
+    model = MLP(input_dim=128, hidden_dims=[16, 8], norm="layer")
+    assert not any(isinstance(m, nn.BatchNorm1d) for m in model.modules())
+    lns = [m for m in model.modules() if isinstance(m, nn.LayerNorm)]
+    assert len(lns) == 2
+    assert lns[0].normalized_shape == (16,)
+    assert lns[1].normalized_shape == (8,)
+
+
+def test_mlp_layernorm_forward_shape() -> None:
+    model = MLP(input_dim=128, hidden_dims=[16, 8], norm="layer", dropout=0.0)
+    out = model(torch.randn(4, 128))
+    assert out.shape == (4,)
+
+
+def test_mlp_groupnorm_rejected() -> None:
+    """GroupNorm is meaningless on flat (B, F) activations — must error."""
+    with pytest.raises(ValueError, match="not applicable to flat"):
+        MLP(input_dim=128, hidden_dims=[16, 8], norm="group")
+
+
+def test_mlp_unknown_norm_raises() -> None:
+    with pytest.raises(ValueError):
+        MLP(input_dim=128, hidden_dims=[16, 8], norm="instance")  # type: ignore[arg-type]
+
+
 # --- ResNet1D --------------------------------------------------------
 
 
@@ -297,6 +368,47 @@ def test_resnet1d_rejects_bad_dropout() -> None:
         ResNet1D(dropout=1.0)
     with pytest.raises(ValueError):
         ResNet1D(dropout=-0.1)
+
+
+def test_resnet1d_uses_batchnorm_by_default() -> None:
+    model = ResNet1D(base_channels=8, blocks_per_stage=[1, 1])
+    assert any(isinstance(m, nn.BatchNorm1d) for m in model.modules())
+    assert not any(isinstance(m, nn.GroupNorm) for m in model.modules())
+
+
+def test_resnet1d_groupnorm_swap_replaces_all_batchnorms() -> None:
+    """norm='group' replaces every BatchNorm — stem + each block + each downsample."""
+    model = ResNet1D(base_channels=16, blocks_per_stage=[1, 1], norm="group", num_groups=8)
+    assert not any(isinstance(m, nn.BatchNorm1d) for m in model.modules())
+    gns = [m for m in model.modules() if isinstance(m, nn.GroupNorm)]
+    # stem(1) + 2 stages × (2 block-norms + 1 downsample for the strided 2nd stage) = 6
+    assert len(gns) == 6
+    assert all(gn.num_groups == 8 for gn in gns)
+
+
+def test_resnet1d_groupnorm_forward_shape() -> None:
+    model = ResNet1D(base_channels=8, blocks_per_stage=[1, 1], norm="group", num_groups=4)
+    out = model(torch.randn(4, 1024))
+    assert out.shape == (4,)
+
+
+def test_resnet1d_groupnorm_rejects_indivisible_channels() -> None:
+    with pytest.raises(ValueError):
+        ResNet1D(base_channels=10, blocks_per_stage=[1, 1], norm="group", num_groups=8)
+
+
+def test_resnet1d_layernorm_rejected() -> None:
+    with pytest.raises(ValueError, match="not applicable to 1D conv"):
+        ResNet1D(base_channels=8, blocks_per_stage=[1, 1], norm="layer")
+
+
+def test_resnet1d_groupnorm_init_weights_set() -> None:
+    """GroupNorm weights should be 1, biases 0 after _init_weights."""
+    model = ResNet1D(base_channels=8, blocks_per_stage=[1, 1], norm="group", num_groups=4)
+    for m in model.modules():
+        if isinstance(m, nn.GroupNorm):
+            assert torch.all(m.weight == 1.0)
+            assert torch.all(m.bias == 0.0)
 
 
 # --- InceptionTime ---------------------------------------------------
@@ -386,3 +498,43 @@ def test_inception_time_rejects_bad_dropout() -> None:
         InceptionTime(dropout=1.0)
     with pytest.raises(ValueError):
         InceptionTime(dropout=-0.1)
+
+
+def test_inception_time_uses_batchnorm_by_default() -> None:
+    model = InceptionTime(n_filters=8, n_blocks=1, modules_per_block=2)
+    assert any(isinstance(m, nn.BatchNorm1d) for m in model.modules())
+    assert not any(isinstance(m, nn.GroupNorm) for m in model.modules())
+
+
+def test_inception_time_groupnorm_swap_replaces_all_batchnorms() -> None:
+    """norm='group' should replace every BatchNorm — module BN + shortcut BN."""
+    model = InceptionTime(n_filters=8, n_blocks=1, modules_per_block=2, norm="group", num_groups=4)
+    assert not any(isinstance(m, nn.BatchNorm1d) for m in model.modules())
+    gns = [m for m in model.modules() if isinstance(m, nn.GroupNorm)]
+    assert all(gn.num_groups == 4 for gn in gns)
+    # 2 modules × 1 BN each = 2, plus 1 shortcut BN (in_channels != out) = 3.
+    assert len(gns) == 3
+
+
+def test_inception_time_groupnorm_forward_shape() -> None:
+    model = InceptionTime(n_filters=8, n_blocks=1, modules_per_block=2, norm="group", num_groups=4)
+    out = model(torch.randn(4, 1024))
+    assert out.shape == (4,)
+
+
+def test_inception_time_layernorm_rejected() -> None:
+    with pytest.raises(ValueError, match="not applicable to 1D conv"):
+        InceptionTime(n_filters=8, n_blocks=1, modules_per_block=2, norm="layer")
+
+
+def test_inception_time_groupnorm_rejects_indivisible_channels() -> None:
+    """4 kernels × 7 filters = 28 channels — not divisible by 8."""
+    with pytest.raises(ValueError):
+        InceptionTime(
+            n_filters=7,
+            kernel_sizes=[3, 5, 7],
+            n_blocks=1,
+            modules_per_block=1,
+            norm="group",
+            num_groups=8,
+        )
