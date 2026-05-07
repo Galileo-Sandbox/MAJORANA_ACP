@@ -63,3 +63,12 @@ ignore = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
+markers = [
+    "slow: tests that take more than ~1s (CNP training, MFGP fits, …)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:paramz.*",
+    "ignore::DeprecationWarning:GPy.*",
+    "ignore::SyntaxWarning:GPy.*",
+    "ignore::SyntaxWarning:paramz.*",
+]

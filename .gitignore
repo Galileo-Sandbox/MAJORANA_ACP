@@ -22,6 +22,7 @@ wheels/
 /wandb/
 /mlruns/
 /lightning_logs/
+results/
 
 # OS / editor
 .DS_Store
