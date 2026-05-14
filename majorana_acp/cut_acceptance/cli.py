@@ -55,6 +55,12 @@ def main() -> int:
         summary.pearson_r_at_T_star,
         summary.cnp_final_train_loss,
     )
+    log.info(
+        "  coverage: 1σ=%.3f  2σ=%.3f  3σ=%.3f  (Gaussian targets 0.683/0.954/0.997)",
+        summary.coverage_1sigma,
+        summary.coverage_2sigma,
+        summary.coverage_3sigma,
+    )
     return 0
 
 

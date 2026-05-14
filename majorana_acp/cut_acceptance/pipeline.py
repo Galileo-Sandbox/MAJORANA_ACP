@@ -28,6 +28,7 @@ from pathlib import Path
 import h5py
 import numpy as np
 import torch
+import torch.nn.functional as F
 from core import build_cnp, save_checkpoint, train_cnp
 from schemas.data_models import InputMode, StandardBatch
 from sklearn.metrics import roc_curve
@@ -50,6 +51,12 @@ class PipelineSummary:
     youden_T_star: float
     mean_offset_at_T_star: float
     pearson_r_at_T_star: float
+    # Coverage at T*: fraction of validation bins whose empirical pass rate
+    # falls within ±1σ / ±2σ / ±3σ of the CNP's MC-sampled β distribution.
+    # Targets for a well-calibrated Gaussian: 0.683 / 0.954 / 0.997.
+    coverage_1sigma: float
+    coverage_2sigma: float
+    coverage_3sigma: float
 
     def to_json(self, path: Path | str) -> None:
         Path(path).write_text(json.dumps(asdict(self), indent=2))
@@ -87,27 +94,33 @@ def _cnp_predict_grid(
     theta_query: np.ndarray,
     e_grid: np.ndarray,
     t_grid: np.ndarray,
+    *,
     seed: int = 0,
-) -> np.ndarray:
+    n_mc_samples: int = 400,
+) -> tuple[np.ndarray, np.ndarray]:
     """Run the CNP across the (E_bin × T) mesh.
 
     Each query point gets a context drawn from the *same* bin's pool
     (so the CNP is being asked the same kind of question it saw during
-    training). β at a fixed E is then T-dependent purely through the
-    CNP — exactly the property we want to inspect.
+    training). Returns ``(beta_mean, beta_std)`` where ``beta_std`` is
+    the standard deviation of an MC sample of β at the query point —
+    the CNP's stated aleatoric uncertainty about a single event's
+    pass/fail rate at that θ.
+
+    β = sigmoid(μ + softplus(log σ) · ε), ε ~ N(0, 1).
     """
     rng = np.random.default_rng(int(seed))
     n_e = e_grid.size
     n_t = t_grid.size
     n_ctx = cfg.n_per_trial
-    beta = np.full((n_e, n_t), np.nan, dtype=np.float64)
+    beta_mean = np.full((n_e, n_t), np.nan, dtype=np.float64)
+    beta_std = np.full((n_e, n_t), np.nan, dtype=np.float64)
 
     for i, _e_center in enumerate(e_grid):
         ev = sampler._index.bin_events[i]
         if ev.size == 0:  # shouldn't happen because BinnedSampler filtered
             continue
         ctx_scores = sampler._index.score[ev]
-        # Build context labels per threshold (vectorised over T).
         for j, T in enumerate(t_grid):
             picks = rng.integers(0, ctx_scores.size, size=n_ctx)
             ctx_labels = (ctx_scores[picks] >= T).astype(np.int8)[None, :]
@@ -122,8 +135,19 @@ def _cnp_predict_grid(
                 labels=ctx_labels.copy(),
             )
             with torch.no_grad():
-                beta[i, j] = float(cnp.predict_beta(ctx_batch, tgt_batch).cpu().numpy().mean())
-    return beta
+                out = cnp(ctx_batch, tgt_batch)
+                sigma = F.softplus(out.log_sigma)  # [1, N_ctx]
+                eps = torch.randn(n_mc_samples, *out.mu_logit.shape)
+                # β samples: [M, 1, N_ctx] — average per-event β within the
+                # trial gives one trial-level β per MC draw; std across the
+                # M draws is the CNP's stated uncertainty.
+                beta_samples = torch.sigmoid(
+                    out.mu_logit.unsqueeze(0) + sigma.unsqueeze(0) * eps
+                ).cpu().numpy()
+                beta_per_draw = beta_samples.mean(axis=2).squeeze(-1)  # [M]
+                beta_mean[i, j] = float(beta_per_draw.mean())
+                beta_std[i, j] = float(beta_per_draw.std())
+    return beta_mean, beta_std
 
 
 def _empirical_binned(
@@ -245,20 +269,25 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
 
     # 4. CNP prediction grid + 1-D slice at T*.
     theta_query, e_grid, t_grid = _build_eval_grid(cfg, sampler.bin_centers)
-    beta_grid = _cnp_predict_grid(cnp, sampler, cfg, theta_query, e_grid, t_grid, seed=seed)
+    beta_grid, beta_std_grid = _cnp_predict_grid(
+        cnp, sampler, cfg, theta_query, e_grid, t_grid, seed=seed
+    )
     j_star = int(np.argmin(np.abs(t_grid - T_star)))
     beta_at_T_star = beta_grid[:, j_star]
+    beta_std_at_T_star = beta_std_grid[:, j_star]
 
     np.savez(
         out_dir / "cnp_predictions.npz",
         energy_grid=e_grid,
         threshold_grid=t_grid,
         beta_grid=beta_grid,
+        beta_std_grid=beta_std_grid,
         beta_at_T_star=beta_at_T_star,
+        beta_std_at_T_star=beta_std_at_T_star,
         T_star=T_star,
     )
 
-    # Headline metrics (mean offset + Pearson r at T*).
+    # Headline metrics (mean offset, Pearson r, and coverage at T*).
     valid = ~np.isnan(rate) & ~np.isnan(beta_at_T_star)
     if valid.any():
         mean_off = float(np.mean(rate[valid] - beta_at_T_star[valid]))
@@ -267,9 +296,19 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             if valid.sum() > 1
             else float("nan")
         )
+        # Coverage: fraction of validation bins where empirical lies inside
+        # CNP's ±kσ band. Floor σ at 1e-9 to avoid divide-by-zero when the
+        # CNP is super-confident (the residual will dominate anyway).
+        resid = np.abs(rate[valid] - beta_at_T_star[valid])
+        sigma_safe = np.maximum(beta_std_at_T_star[valid], 1e-9)
+        z = resid / sigma_safe
+        cov1 = float(np.mean(z <= 1.0))
+        cov2 = float(np.mean(z <= 2.0))
+        cov3 = float(np.mean(z <= 3.0))
     else:
         mean_off = float("nan")
         pearson_r = float("nan")
+        cov1 = cov2 = cov3 = float("nan")
 
     summary = PipelineSummary(
         name=cfg.name,
@@ -284,6 +323,9 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
         youden_T_star=T_star,
         mean_offset_at_T_star=mean_off,
         pearson_r_at_T_star=pearson_r,
+        coverage_1sigma=cov1,
+        coverage_2sigma=cov2,
+        coverage_3sigma=cov3,
     )
     summary.to_json(out_dir / "run_summary.json")
     return summary

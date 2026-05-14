@@ -112,11 +112,21 @@ def test_run_pipeline_end_to_end(tmp_path: Path) -> None:
     assert parsed["name"] == summary.name
     assert parsed["n_bins_used"] == summary.n_bins_used
 
-    # cnp_predictions.npz has matching grid + slice.
+    # cnp_predictions.npz has matching grid + slice + uncertainty.
     preds = np.load(out / "cnp_predictions.npz")
-    assert preds["beta_grid"].shape == (preds["energy_grid"].size, preds["threshold_grid"].size)
+    grid_shape = (preds["energy_grid"].size, preds["threshold_grid"].size)
+    assert preds["beta_grid"].shape == grid_shape
+    assert preds["beta_std_grid"].shape == grid_shape
     assert preds["beta_at_T_star"].shape == preds["energy_grid"].shape
+    assert preds["beta_std_at_T_star"].shape == preds["energy_grid"].shape
     assert np.all(np.isfinite(preds["beta_grid"]))
+    # CNP std is non-negative and bounded by 0.5 (β ∈ [0,1] sigma can't exceed that).
+    assert np.all(preds["beta_std_grid"] >= 0.0)
+    assert np.all(preds["beta_std_grid"] <= 0.5)
+
+    # Coverage values are fractions in [0, 1].
+    for v in (summary.coverage_1sigma, summary.coverage_2sigma, summary.coverage_3sigma):
+        assert 0.0 <= v <= 1.0
 
     # validation_binned.npz has same E grid; bins below min_events_per_bin are NaN.
     val_arr = np.load(out / "validation_binned.npz")
