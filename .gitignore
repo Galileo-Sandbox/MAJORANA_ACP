@@ -19,6 +19,7 @@ wheels/
 /data/
 /checkpoints/
 /runs/
+/analysis/
 /wandb/
 /mlruns/
 /lightning_logs/
@@ -28,3 +29,6 @@ results/
 .DS_Store
 .vscode/
 .idea/
+
+# Local Claude Code state (settings.local.json, scheduled_tasks.lock).
+/.claude/
