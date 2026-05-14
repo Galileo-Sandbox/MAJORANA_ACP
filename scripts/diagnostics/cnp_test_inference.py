@@ -242,6 +242,13 @@ def _cnp_infer_global(
     ctx_e_norm_all = (ctx_energies - e_lo) / (e_hi - e_lo)
     ctx_x_all = (ctx_scores >= T).astype(np.int8)
 
+    # NOTE: context sampling is **natural density**, not bin-stratified
+    # (despite training using bin-stratified). The asymmetry is intentional:
+    # training balance forces the model to learn β(E) at sparse energies as
+    # well as dense ones; at inference, an energy region with more events
+    # genuinely carries more information about β there, and we let the
+    # encoder's representation reflect that. Do not "fix" this to match
+    # training without thinking through the information-flow implications.
     samples = np.empty((n_mc, n_q), dtype=np.float64)
     cnp.train()  # enable dropout
     try:
