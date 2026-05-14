@@ -523,27 +523,23 @@ def plot_coverage(
     res: InferenceResult,
     out_path: Path,
 ) -> None:
-    """Save the canonical 1×2 calibration figure (pulls + ideal N(0, 1)).
+    """Save the canonical calibration figure: combined-σ pulls vs N(0, 1).
 
-    Left:  pulls using ``σ_CNP`` alone — the model's MC-Dropout band.
-    Right: pulls using ``σ_combined = √(σ_CNP² + σ_emp²)`` — including
-    binomial scatter on the empirical estimate.
+    Uses ``σ_combined = √(σ_CNP² + σ_emp²)`` — the only flavor with a
+    meaningful Gaussian-target interpretation. The σ_CNP-only pulls
+    are over-wide by construction (binomial scatter isn't included)
+    and don't carry calibration information, so we don't draw them.
     """
-    z_cnp, z_comb = pull_arrays(res)
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.4))
+    _, z_comb = pull_arrays(res)
+    fig, ax = plt.subplots(figsize=(6.5, 4.4))
     plot_pulls(
-        axes[0], z_cnp,
-        title=f"pulls / σ_CNP   (cov₁σ = {res.coverage_cnp['1sigma']:.2f})",
-    )
-    plot_pulls(
-        axes[1], z_comb,
+        ax, z_comb,
         title=f"pulls / σ_combined   (cov₁σ = {res.coverage_combined['1sigma']:.2f})",
     )
     fig.suptitle(
         f"{cfg.name}   ·   bin = {cfg.energy_bin_width:.0f} keV   ·   "
-        f"target_class = {cfg.target_class!r}   ·   "
-        f"calibration target: μ = 0, σ = 1",
-        fontsize=11,
+        f"target_class = {cfg.target_class!r}",
+        fontsize=10,
     )
     fig.tight_layout()
     out_path.parent.mkdir(parents=True, exist_ok=True)
