@@ -163,6 +163,7 @@ def run(cfg_path: Path, out_dir: Path) -> dict:
 
     preds = np.load(art / "cnp_predictions.npz")
     beta_E = preds["beta_at_T_star"]
+    beta_std_E = preds["beta_std_at_T_star"] if "beta_std_at_T_star" in preds.files else None
 
     # ----- metrics ----- #
     valid = ~np.isnan(A_emp) & ~np.isnan(beta_E)
@@ -175,6 +176,25 @@ def run(cfg_path: Path, out_dir: Path) -> dict:
     var_emp = float(np.var(A_emp[valid])) if valid.any() else float("nan")
     lvr = var_pred / var_emp if var_emp > 0 else float("nan")
     mean_off = float(np.mean(A_emp[valid] - beta_E[valid])) if valid.any() else float("nan")
+
+    # Coverage of empirical inside CNP's ±kσ band — two flavors:
+    #   * cnp_only:  |β_emp − β_pred| < k · σ_CNP   (model's stated band)
+    #   * combined:  |β_emp − β_pred| < k · √(σ_CNP² + σ_emp²)
+    # Combined accounts for the binomial noise on the *empirical* side
+    # too — it answers "do the two bands overlap?" rather than "does the
+    # empirical fall inside the model's confidence interval?". CNP-only
+    # is the stricter of the two.
+    cov_cnp = {"1sigma": float("nan"), "2sigma": float("nan"), "3sigma": float("nan")}
+    cov_comb = {"1sigma": float("nan"), "2sigma": float("nan"), "3sigma": float("nan")}
+    if beta_std_E is not None and valid.any():
+        resid = np.abs(A_emp[valid] - beta_E[valid])
+        sigma_cnp = np.maximum(beta_std_E[valid], 1e-9)
+        sigma_emp = np.maximum(A_err[valid], 1e-9)
+        z_cnp = resid / sigma_cnp
+        z_comb = resid / np.sqrt(sigma_cnp**2 + sigma_emp**2)
+        cov_cnp = {f"{k}sigma": float(np.mean(z_cnp <= k)) for k in (1, 2, 3)}
+        cov_comb = {f"{k}sigma": float(np.mean(z_comb <= k)) for k in (1, 2, 3)}
+    coverage = {"cnp_only": cov_cnp, "combined": cov_comb}
 
     # Range Recovery Ratio per slab.  Pick slabs that exist in the cfg's
     # energy range; ±50 keV for continuum, ±25 keV for peak windows.
@@ -230,6 +250,14 @@ def run(cfg_path: Path, out_dir: Path) -> dict:
         fmt="o", ms=4, capsize=2, color="steelblue",
         label=f"empirical A(E)  (binomial err, N_total={int(m.sum())})",
     )
+    if beta_std_E is not None:
+        mu_clip = np.clip(beta_E, 0.0, 1.0)
+        ax.fill_between(
+            bin_centers,
+            np.clip(mu_clip - beta_std_E, 0.0, 1.0),
+            np.clip(mu_clip + beta_std_E, 0.0, 1.0),
+            color="firebrick", alpha=0.20, label="CNP ±1σ",
+        )
     ax.plot(bin_centers, beta_E, color="firebrick", lw=1.7, label="CNP β(E)")
     for label_, e_pk in PEAK_ANNOTATIONS:
         if e_lo <= e_pk <= e_hi:
@@ -245,7 +273,8 @@ def run(cfg_path: Path, out_dir: Path) -> dict:
         f"{cfg.name}   (bin = {cfg.energy_bin_width:.0f} keV, "
         f"target_class={cfg.target_class!r})\n"
         f"Pearson r = {pearson_r:.3f}    LVR = {lvr:.2f}    "
-        f"mean offset (binned − CNP) = {mean_off:+.3f}",
+        f"offset = {mean_off:+.3f}    "
+        f"cov₁σ CNP={cov_cnp['1sigma']:.2f}  comb={cov_comb['1sigma']:.2f}",
         fontsize=10,
     )
     fig.tight_layout()
@@ -293,7 +322,21 @@ def run(cfg_path: Path, out_dir: Path) -> dict:
     lines.append(f"    |β(0.05) − A(0.05)| = {epb_low:.4f}")
     lines.append(f"    |β(0.95) − A(0.95)| = {epb_high:.4f}")
     lines.append("")
-    lines.append(f"[5] Peak sensitivity (at T* = {T_star:.4f})")
+    lines.append(
+        "[5] Coverage at T*  (Gaussian targets: 1σ=0.683  2σ=0.954  3σ=0.997)"
+    )
+    lines.append(
+        f"    cnp_only :   1σ={cov_cnp['1sigma']:.3f}   2σ={cov_cnp['2sigma']:.3f}   "
+        f"3σ={cov_cnp['3sigma']:.3f}      "
+        "(|β_emp − β_pred| < k · σ_CNP)"
+    )
+    lines.append(
+        f"    combined :   1σ={cov_comb['1sigma']:.3f}   2σ={cov_comb['2sigma']:.3f}   "
+        f"3σ={cov_comb['3sigma']:.3f}      "
+        "(|β_emp − β_pred| < k · √(σ_CNP² + σ_emp²))"
+    )
+    lines.append("")
+    lines.append(f"[6] Peak sensitivity (at T* = {T_star:.4f})")
     for d in peak_drops:
         lines.append(
             f"    {d['label']:18s} (E={d['energy']:.0f} keV, N={d['n']})  "
@@ -319,6 +362,7 @@ def run(cfg_path: Path, out_dir: Path) -> dict:
         lvr=lvr,
         epb_low=epb_low,
         epb_high=epb_high,
+        coverage=coverage,
         rrr_per_slab=rrr_rows,
         peak_drops=peak_drops,
     )
