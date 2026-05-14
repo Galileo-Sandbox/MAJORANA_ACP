@@ -154,11 +154,15 @@ def run(cfg_path: Path, out_dir: Path) -> dict:
     v_e = v_e_full[m]
     v_s = v_s_full[m]
 
-    # Load the pipeline's saved arrays.
+    # Load the pipeline's saved arrays. validation_binned.npz now carries
+    # Wilson rate_lo / rate_hi (asymmetric); we use the half-width as a
+    # symmetric σ_emp proxy when computing the combined-σ coverage.
     val_arr = np.load(art / "validation_binned.npz")
     bin_centers = val_arr["bin_centers"]
     A_emp = val_arr["rate"]
-    A_err = val_arr["rate_err"]
+    rate_lo = val_arr["rate_lo"]
+    rate_hi = val_arr["rate_hi"]
+    A_err = 0.5 * (rate_hi - rate_lo)
     T_star = float(val_arr["T_star"])
 
     preds = np.load(art / "cnp_predictions.npz")
@@ -245,10 +249,13 @@ def run(cfg_path: Path, out_dir: Path) -> dict:
 
     # ----- plot ----- #
     fig, ax = plt.subplots(figsize=(11, 4.8))
+    # Asymmetric Wilson errorbars: yerr=[rate-lo, hi-rate].
+    yerr_lo = np.where(np.isnan(A_emp), 0.0, A_emp - rate_lo)
+    yerr_hi = np.where(np.isnan(A_emp), 0.0, rate_hi - A_emp)
     ax.errorbar(
-        bin_centers, A_emp, yerr=A_err,
+        bin_centers, A_emp, yerr=[yerr_lo, yerr_hi],
         fmt="o", ms=4, capsize=2, color="steelblue",
-        label=f"empirical A(E)  (binomial err, N_total={int(m.sum())})",
+        label=f"empirical A(E)  (Wilson 1σ, N_total={int(m.sum())})",
     )
     if beta_std_E is not None:
         mu_clip = np.clip(beta_E, 0.0, 1.0)
