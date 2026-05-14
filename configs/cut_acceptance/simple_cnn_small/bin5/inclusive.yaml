@@ -1,0 +1,42 @@
+# Binned-CNP cut-acceptance run on simple_cnn_small.
+# Resolution: 5 keV bins across [500, 3000] keV.
+# Trained on train-split predictions, validated on test-split.
+name: simple_cnn_small_bin5_inclusive
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+out_dir: results/cut_acceptance/simple_cnn_small/bin5/inclusive
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 5.0
+threshold_range: [0.0, 1.0]
+
+n_per_trial: 32
+min_events_per_bin: 4
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.0
+
+cnp:
+  n_context_min: 8
+  n_context_max: 24
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 6000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 32
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
