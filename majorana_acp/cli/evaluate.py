@@ -37,12 +37,25 @@ def main(argv: list[str] | None = None) -> int:
         "--out",
         type=Path,
         default=None,
-        help="Output directory (default: <checkpoint-parent>/eval).",
+        help=(
+            "Output directory (default: <checkpoint-parent>/eval for "
+            "--split test, or <checkpoint-parent>/eval_train for --split train)."
+        ),
+    )
+    parser.add_argument(
+        "--split",
+        choices=("train", "test"),
+        default="test",
+        help=(
+            "Which Majorana split to score. Use 'train' to produce a "
+            "predictions.h5 over training files (e.g. for cut_acceptance "
+            "CNP training); 'test' (default) keeps the historical behaviour."
+        ),
     )
     args = parser.parse_args(argv)
 
     _setup_console_logging()
-    evaluate(args.checkpoint, out_dir=args.out)
+    evaluate(args.checkpoint, out_dir=args.out, split=args.split)
     return 0
 
 

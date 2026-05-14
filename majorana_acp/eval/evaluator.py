@@ -43,24 +43,36 @@ logger = logging.getLogger(__name__)
 def evaluate(
     checkpoint: Path | str,
     out_dir: Path | str | None = None,
+    *,
+    split: str = "test",
 ) -> Path:
     """Run evaluation end-to-end and return the output directory.
 
     Args:
         checkpoint: Path to a ``.pt`` file or to a run directory
             (the latest ``epoch_*.pt`` inside it is used).
-        out_dir: Where to write outputs. Defaults to ``<ckpt-parent>/eval``.
+        out_dir: Where to write outputs. Defaults to
+            ``<ckpt-parent>/eval`` (test) or ``<ckpt-parent>/eval_train``
+            (train).
+        split: Which Majorana split to score — ``"test"`` (default,
+            matches the historical behaviour) or ``"train"`` for
+            generating CNP-training data without re-evaluating on the
+            real test set.
 
     Returns:
         The output directory (a ``pathlib.Path``).
     """
+    if split not in ("train", "test"):
+        raise ValueError(f"split must be 'train' or 'test', got {split!r}")
+
     ckpt_path = _resolve_checkpoint_path(Path(checkpoint))
-    out_dir = Path(out_dir) if out_dir is not None else ckpt_path.parent / "eval"
+    default_out_name = "eval" if split == "test" else "eval_train"
+    out_dir = Path(out_dir) if out_dir is not None else ckpt_path.parent / default_out_name
     out_dir.mkdir(parents=True, exist_ok=True)
 
     file_handler = _attach_file_handler(out_dir / "eval.log")
     try:
-        logger.info("checkpoint=%s  out_dir=%s", ckpt_path, out_dir)
+        logger.info("checkpoint=%s  out_dir=%s  split=%s", ckpt_path, out_dir, split)
 
         model, cfg, ckpt_meta = load_checkpoint(ckpt_path)
         device = resolve_device(cfg.train.device)
@@ -72,13 +84,16 @@ def evaluate(
             device,
         )
 
-        # ---- Build test dataset using the saved config ---------
-        test_files = resolve_files(cfg.data.data_dir, "test", cfg.data.test_file_indices)
-        logger.info("loaded %d test file(s)", len(test_files))
+        # ---- Build dataset for the requested split ----------------
+        indices = (
+            cfg.data.train_file_indices if split == "train" else cfg.data.test_file_indices
+        )
+        files = resolve_files(cfg.data.data_dir, split, indices)
+        logger.info("loaded %d %s file(s)", len(files), split)
 
         test_ds = MajoranaWaveformDataset(
             DatasetConfig(
-                files=test_files,
+                files=files,
                 target_label=cfg.data.target_label,
                 baseline_samples=cfg.data.baseline_samples,
                 align_t90=cfg.data.align_t90,
@@ -90,7 +105,7 @@ def evaluate(
                 subset_seed=cfg.data.subset_seed,
             )
         )
-        logger.info("test set size: %d events", len(test_ds))
+        logger.info("%s set size: %d events", split, len(test_ds))
 
         loader = DataLoader(
             test_ds,
