@@ -56,10 +56,17 @@ def main() -> int:
         summary.cnp_final_train_loss,
     )
     log.info(
-        "  coverage: 1σ=%.3f  2σ=%.3f  3σ=%.3f  (Gaussian targets 0.683/0.954/0.997)",
-        summary.coverage_1sigma,
-        summary.coverage_2sigma,
-        summary.coverage_3sigma,
+        "  coverage CNP-only:  1σ=%.3f  2σ=%.3f  3σ=%.3f",
+        summary.coverage_cnp_1sigma,
+        summary.coverage_cnp_2sigma,
+        summary.coverage_cnp_3sigma,
+    )
+    log.info(
+        "  coverage combined:  1σ=%.3f  2σ=%.3f  3σ=%.3f  "
+        "(Gaussian targets 0.683/0.954/0.997)",
+        summary.coverage_combined_1sigma,
+        summary.coverage_combined_2sigma,
+        summary.coverage_combined_3sigma,
     )
     return 0
 

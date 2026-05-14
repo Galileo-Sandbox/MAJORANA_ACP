@@ -129,6 +129,21 @@ class CutAcceptanceConfig(_Frozen):
     )
 
     # ------------------------------------------------------------------
+    # Inference-time MC Dropout. Requires encoder.dropout > 0 in the
+    # nested EncoderConfig — otherwise every forward pass is identical
+    # and the "uncertainty" collapses to context-resampling noise alone.
+    # ------------------------------------------------------------------
+    mc_dropout_samples: int = Field(
+        50,
+        ge=1,
+        description=(
+            "Number of forward passes with dropout active when evaluating "
+            "the CNP on the (E_bin × T) grid. The sample mean is the β "
+            "estimate; the sample std is σ_CNP."
+        ),
+    )
+
+    # ------------------------------------------------------------------
     # Validators
     # ------------------------------------------------------------------
     @field_validator("energy_range", "threshold_range")

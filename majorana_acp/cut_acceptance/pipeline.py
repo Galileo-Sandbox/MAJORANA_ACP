@@ -52,14 +52,49 @@ class PipelineSummary:
     mean_offset_at_T_star: float
     pearson_r_at_T_star: float
     # Coverage at T*: fraction of validation bins whose empirical pass rate
-    # falls within ±1σ / ±2σ / ±3σ of the CNP's MC-sampled β distribution.
-    # Targets for a well-calibrated Gaussian: 0.683 / 0.954 / 0.997.
-    coverage_1sigma: float
-    coverage_2sigma: float
-    coverage_3sigma: float
+    # lies within ±1σ / ±2σ / ±3σ. Two flavors:
+    #   * cnp_only:  σ = σ_CNP (MC-Dropout sample std on β).
+    #   * combined:  σ = √(σ_CNP² + σ_emp²) where σ_emp is the symmetric
+    #                Wilson-interval half-width on the binned empirical.
+    # Gaussian targets: 0.683 / 0.954 / 0.997.
+    coverage_cnp_1sigma: float
+    coverage_cnp_2sigma: float
+    coverage_cnp_3sigma: float
+    coverage_combined_1sigma: float
+    coverage_combined_2sigma: float
+    coverage_combined_3sigma: float
 
     def to_json(self, path: Path | str) -> None:
         Path(path).write_text(json.dumps(asdict(self), indent=2))
+
+
+# ---------------------------------------------------------------------------
+# Wilson score interval (1σ) for a binomial proportion.
+# ---------------------------------------------------------------------------
+
+
+def wilson_interval(
+    k: np.ndarray, n: np.ndarray, *, z: float = 1.0
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return (lower, upper) Wilson score interval at level ``z``.
+
+    Handles ``k=0``, ``k=n`` and small ``n`` correctly — the naive
+    ``√(p(1-p)/n)`` errorbar collapses to 0 in those cases and is
+    symmetric where it shouldn't be. Returns NaN bounds where ``n=0``.
+    Inputs broadcast; outputs follow numpy broadcasting rules.
+    """
+    k = np.asarray(k, dtype=np.float64)
+    n = np.asarray(n, dtype=np.float64)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        p = np.where(n > 0, k / n, np.nan)
+        denom = 1.0 + (z * z) / n
+        center = (p + (z * z) / (2.0 * n)) / denom
+        half = (z * np.sqrt(p * (1.0 - p) / n + (z * z) / (4.0 * n * n))) / denom
+    lo = np.clip(center - half, 0.0, 1.0)
+    hi = np.clip(center + half, 0.0, 1.0)
+    lo = np.where(n > 0, lo, np.nan)
+    hi = np.where(n > 0, hi, np.nan)
+    return lo, hi
 
 
 # ---------------------------------------------------------------------------
@@ -96,19 +131,28 @@ def _cnp_predict_grid(
     t_grid: np.ndarray,
     *,
     seed: int = 0,
-    n_mc_samples: int = 400,
+    n_mc_samples: int | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Run the CNP across the (E_bin × T) mesh.
+    """Run the CNP across the (E_bin × T) mesh with **MC Dropout**.
 
-    Each query point gets a context drawn from the *same* bin's pool
-    (so the CNP is being asked the same kind of question it saw during
-    training). Returns ``(beta_mean, beta_std)`` where ``beta_std`` is
-    the standard deviation of an MC sample of β at the query point —
-    the CNP's stated aleatoric uncertainty about a single event's
-    pass/fail rate at that θ.
+    For each (E_bin_center, T) query we run ``n_mc_samples`` forward
+    passes with dropout *active* (``cnp.train()``), each pass using a
+    freshly-resampled context drawn from the bin's pool. The returned
+    ``(beta_mean, beta_std)`` are the sample mean and std of the
+    deterministic ``β = sigmoid(μ_logit)`` across those passes.
 
-    β = sigmoid(μ + softplus(log σ) · ε), ε ~ N(0, 1).
+    This captures three sources of variance jointly:
+        * model uncertainty exposed by dropout masks (epistemic)
+        * context randomness (which subset of the bin we look at)
+        * implicit aleatoric noise (the CNP's log_σ head — but here
+          we use deterministic σ-free β per pass; the dropout +
+          context resampling are what produce the spread).
+
+    Requires the CNP to have been trained with non-zero dropout —
+    otherwise every pass is identical except for context resampling.
     """
+    if n_mc_samples is None:
+        n_mc_samples = cfg.mc_dropout_samples
     rng = np.random.default_rng(int(seed))
     n_e = e_grid.size
     n_t = t_grid.size
@@ -116,37 +160,37 @@ def _cnp_predict_grid(
     beta_mean = np.full((n_e, n_t), np.nan, dtype=np.float64)
     beta_std = np.full((n_e, n_t), np.nan, dtype=np.float64)
 
-    for i, _e_center in enumerate(e_grid):
-        ev = sampler._index.bin_events[i]
-        if ev.size == 0:  # shouldn't happen because BinnedSampler filtered
-            continue
-        ctx_scores = sampler._index.score[ev]
-        for j, T in enumerate(t_grid):
-            picks = rng.integers(0, ctx_scores.size, size=n_ctx)
-            ctx_labels = (ctx_scores[picks] >= T).astype(np.int8)[None, :]
-            row_query = theta_query[i * n_t + j][None, :]
-            ctx_batch = StandardBatch(
-                mode=InputMode.DESIGN_ONLY, theta=row_query, phi=None, labels=ctx_labels
-            )
-            tgt_batch = StandardBatch(
-                mode=InputMode.DESIGN_ONLY,
-                theta=row_query,
-                phi=None,
-                labels=ctx_labels.copy(),
-            )
-            with torch.no_grad():
-                out = cnp(ctx_batch, tgt_batch)
-                sigma = F.softplus(out.log_sigma)  # [1, N_ctx]
-                eps = torch.randn(n_mc_samples, *out.mu_logit.shape)
-                # β samples: [M, 1, N_ctx] — average per-event β within the
-                # trial gives one trial-level β per MC draw; std across the
-                # M draws is the CNP's stated uncertainty.
-                beta_samples = torch.sigmoid(
-                    out.mu_logit.unsqueeze(0) + sigma.unsqueeze(0) * eps
-                ).cpu().numpy()
-                beta_per_draw = beta_samples.mean(axis=2).squeeze(-1)  # [M]
-                beta_mean[i, j] = float(beta_per_draw.mean())
-                beta_std[i, j] = float(beta_per_draw.std())
+    # MC Dropout: enable dropout layers during inference.
+    cnp.train()
+    try:
+        for i in range(n_e):
+            ev = sampler._index.bin_events[i]
+            if ev.size == 0:
+                continue
+            ctx_scores = sampler._index.score[ev]
+            for j, T in enumerate(t_grid):
+                row_query = theta_query[i * n_t + j][None, :]
+                samples = np.empty(n_mc_samples, dtype=np.float64)
+                with torch.no_grad():
+                    for m in range(n_mc_samples):
+                        # Resample context for each pass to also average
+                        # over context randomness.
+                        picks = rng.integers(0, ctx_scores.size, size=n_ctx)
+                        ctx_labels = (ctx_scores[picks] >= T).astype(np.int8)[None, :]
+                        ctx_batch = StandardBatch(
+                            mode=InputMode.DESIGN_ONLY,
+                            theta=row_query, phi=None, labels=ctx_labels,
+                        )
+                        tgt_batch = StandardBatch(
+                            mode=InputMode.DESIGN_ONLY,
+                            theta=row_query, phi=None, labels=ctx_labels.copy(),
+                        )
+                        beta = cnp.predict_beta(ctx_batch, tgt_batch).cpu().numpy()
+                        samples[m] = float(beta.mean())
+                beta_mean[i, j] = float(samples.mean())
+                beta_std[i, j] = float(samples.std(ddof=1))
+    finally:
+        cnp.eval()
     return beta_mean, beta_std
 
 
@@ -157,25 +201,26 @@ def _empirical_binned(
     bin_centers: np.ndarray,
     bin_width: float,
     min_events: int,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Validation: per-bin pass rate at threshold T, with binomial 1σ.
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Validation: per-bin pass rate at threshold T, with **Wilson** 1σ.
 
-    ``bin_centers`` is the *training-pool* bin grid; we apply the same
-    grid to the validation data so the empirical and CNP curves are
-    directly comparable. Bins with fewer than ``min_events`` validation
-    events are returned as NaN.
+    Returns ``(rate, rate_lo, rate_hi, counts)`` where ``rate_lo``,
+    ``rate_hi`` are the 1σ Wilson score interval bounds (asymmetric
+    near p=0, p=1, well-behaved at small N — unlike the naive
+    √(p(1-p)/n) errorbar that collapses to 0 at the extremes). Bins
+    with fewer than ``min_events`` validation events are NaN.
     """
     half = 0.5 * bin_width
     edges = np.concatenate([bin_centers - half, [bin_centers[-1] + half]])
     total, _ = np.histogram(energy, bins=edges)
     pcnt, _ = np.histogram(energy[score >= T], bins=edges)
     rate = np.divide(pcnt, total, out=np.full(total.shape, np.nan), where=total > 0)
-    err = np.where(total > 0, np.sqrt(rate * (1 - rate) / np.maximum(total, 1)), 0.0)
-    # NaN-mask bins below the minimum count.
+    rate_lo, rate_hi = wilson_interval(pcnt, total, z=1.0)
     sparse = total < min_events
     rate[sparse] = np.nan
-    err[sparse] = np.nan
-    return rate, err, total.astype(np.int64)
+    rate_lo[sparse] = np.nan
+    rate_hi[sparse] = np.nan
+    return rate, rate_lo, rate_hi, total.astype(np.int64)
 
 
 def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
@@ -251,7 +296,7 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
     val_e = val_energy_full[keep]
     val_s = val_score_full[keep]
 
-    rate, err, counts = _empirical_binned(
+    rate, rate_lo, rate_hi, counts = _empirical_binned(
         val_e, val_s, T_star,
         bin_centers=sampler.bin_centers,
         bin_width=cfg.energy_bin_width,
@@ -261,7 +306,8 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
         out_dir / "validation_binned.npz",
         bin_centers=sampler.bin_centers,
         rate=rate,
-        rate_err=err,
+        rate_lo=rate_lo,
+        rate_hi=rate_hi,
         counts=counts,
         T_star=T_star,
         n_events=np.int64(val_e.size),
@@ -289,6 +335,8 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
 
     # Headline metrics (mean offset, Pearson r, and coverage at T*).
     valid = ~np.isnan(rate) & ~np.isnan(beta_at_T_star)
+    cov_cnp = [float("nan")] * 3
+    cov_comb = [float("nan")] * 3
     if valid.any():
         mean_off = float(np.mean(rate[valid] - beta_at_T_star[valid]))
         pearson_r = (
@@ -296,19 +344,21 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             if valid.sum() > 1
             else float("nan")
         )
-        # Coverage: fraction of validation bins where empirical lies inside
-        # CNP's ±kσ band. Floor σ at 1e-9 to avoid divide-by-zero when the
-        # CNP is super-confident (the residual will dominate anyway).
+        # σ_emp from Wilson: symmetric proxy = half-width of the interval.
+        sigma_emp = 0.5 * (rate_hi[valid] - rate_lo[valid])
+        sigma_cnp = beta_std_at_T_star[valid]
         resid = np.abs(rate[valid] - beta_at_T_star[valid])
-        sigma_safe = np.maximum(beta_std_at_T_star[valid], 1e-9)
-        z = resid / sigma_safe
-        cov1 = float(np.mean(z <= 1.0))
-        cov2 = float(np.mean(z <= 2.0))
-        cov3 = float(np.mean(z <= 3.0))
+        # Floor σ at 1e-9 so the divide-by-zero doesn't NaN the coverage.
+        sigma_cnp_safe = np.maximum(sigma_cnp, 1e-9)
+        sigma_total = np.sqrt(sigma_cnp**2 + sigma_emp**2)
+        sigma_total_safe = np.maximum(sigma_total, 1e-9)
+        z_cnp = resid / sigma_cnp_safe
+        z_comb = resid / sigma_total_safe
+        cov_cnp = [float(np.mean(z_cnp <= k)) for k in (1.0, 2.0, 3.0)]
+        cov_comb = [float(np.mean(z_comb <= k)) for k in (1.0, 2.0, 3.0)]
     else:
         mean_off = float("nan")
         pearson_r = float("nan")
-        cov1 = cov2 = cov3 = float("nan")
 
     summary = PipelineSummary(
         name=cfg.name,
@@ -323,9 +373,12 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
         youden_T_star=T_star,
         mean_offset_at_T_star=mean_off,
         pearson_r_at_T_star=pearson_r,
-        coverage_1sigma=cov1,
-        coverage_2sigma=cov2,
-        coverage_3sigma=cov3,
+        coverage_cnp_1sigma=cov_cnp[0],
+        coverage_cnp_2sigma=cov_cnp[1],
+        coverage_cnp_3sigma=cov_cnp[2],
+        coverage_combined_1sigma=cov_comb[0],
+        coverage_combined_2sigma=cov_comb[1],
+        coverage_combined_3sigma=cov_comb[2],
     )
     summary.to_json(out_dir / "run_summary.json")
     return summary

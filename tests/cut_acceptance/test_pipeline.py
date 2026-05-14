@@ -61,7 +61,7 @@ def _fast_cfg(
         energy_bin_width=100.0,  # 25 bins across [500, 3000]
         n_per_trial=8,
         min_events_per_bin=2,
-        encoder=EncoderConfig(type="mlp", latent_dim=8, hidden_dims=[16], dropout=0.0),
+        encoder=EncoderConfig(type="mlp", latent_dim=8, hidden_dims=[16], dropout=0.1),
         cnp=CNPConfig(
             n_context_min=2, n_context_max=4, output_activation="sigmoid", mixup_alpha=0.01
         ),
@@ -76,6 +76,7 @@ def _fast_cfg(
             seed=0,
         ),
         decoder_hidden_dims=[16, 16],
+        mc_dropout_samples=4,  # keep the test fast
     )
 
 
@@ -124,9 +125,24 @@ def test_run_pipeline_end_to_end(tmp_path: Path) -> None:
     assert np.all(preds["beta_std_grid"] >= 0.0)
     assert np.all(preds["beta_std_grid"] <= 0.5)
 
-    # Coverage values are fractions in [0, 1].
-    for v in (summary.coverage_1sigma, summary.coverage_2sigma, summary.coverage_3sigma):
+    # Coverage values are fractions in [0, 1] for both flavors.
+    for v in (
+        summary.coverage_cnp_1sigma, summary.coverage_cnp_2sigma, summary.coverage_cnp_3sigma,
+        summary.coverage_combined_1sigma, summary.coverage_combined_2sigma,
+        summary.coverage_combined_3sigma,
+    ):
         assert 0.0 <= v <= 1.0
+
+    # validation_binned.npz: Wilson rate_lo / rate_hi instead of rate_err.
+    val_arr = np.load(out / "validation_binned.npz")
+    assert "rate_lo" in val_arr.files
+    assert "rate_hi" in val_arr.files
+    valid = ~np.isnan(val_arr["rate"])
+    if valid.any():
+        # lo <= rate <= hi where valid; bounds in [0, 1].
+        assert np.all(val_arr["rate_lo"][valid] <= val_arr["rate"][valid] + 1e-9)
+        assert np.all(val_arr["rate"][valid] <= val_arr["rate_hi"][valid] + 1e-9)
+        assert np.all((val_arr["rate_lo"][valid] >= 0) & (val_arr["rate_hi"][valid] <= 1))
 
     # validation_binned.npz has same E grid; bins below min_events_per_bin are NaN.
     val_arr = np.load(out / "validation_binned.npz")
