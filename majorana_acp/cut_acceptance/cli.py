@@ -49,24 +49,9 @@ def main() -> int:
         summary.n_validation_events,
     )
     log.info(
-        "  T*=%.4f  mean_offset=%+0.3f  pearson_r=%+0.3f  cnp_final_loss=%.4f",
+        "  T*=%.4f  cnp_final_loss=%.4f  (run scripts/diagnostics/cnp_test_inference for coverage)",
         summary.youden_T_star,
-        summary.mean_offset_at_T_star,
-        summary.pearson_r_at_T_star,
         summary.cnp_final_train_loss,
-    )
-    log.info(
-        "  coverage CNP-only:  1σ=%.3f  2σ=%.3f  3σ=%.3f",
-        summary.coverage_cnp_1sigma,
-        summary.coverage_cnp_2sigma,
-        summary.coverage_cnp_3sigma,
-    )
-    log.info(
-        "  coverage combined:  1σ=%.3f  2σ=%.3f  3σ=%.3f  "
-        "(Gaussian targets 0.683/0.954/0.997)",
-        summary.coverage_combined_1sigma,
-        summary.coverage_combined_2sigma,
-        summary.coverage_combined_3sigma,
     )
     return 0
 

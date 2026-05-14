@@ -1,8 +1,9 @@
-"""End-to-end smoke test for the binned-CNP ``run_pipeline``.
+"""Smoke test for the binned-CNP ``run_pipeline``.
 
-Writes synthetic train / test predictions.h5 files, runs the full
-pipeline with shrunken hyperparameters (~10 s on CPU), and verifies
-every promised artifact exists, has the right shape, and round-trips.
+Writes synthetic train / test predictions.h5 files, runs the pipeline
+with shrunken hyperparameters (~5 s on CPU), and verifies the
+training artifacts exist and round-trip. Coverage / scoring lives in
+the diagnostic script now (tested separately).
 """
 
 from __future__ import annotations
@@ -23,14 +24,12 @@ def _write_synthetic_predictions(path: Path, *, n_total: int = 1500, seed: int =
     """Mimic majorana_acp.cli.evaluate output: HDF5 with energy/score/label/etc."""
     rng = np.random.default_rng(seed)
     energy = rng.uniform(500.0, 3000.0, size=n_total)
-    # Bimodal scores: ~half near 0, ~half near 1 (mirrors real classifier output).
     label = (rng.random(size=n_total) < 0.5).astype(np.int8)
     score = np.where(
         label == 1,
         rng.beta(8, 1, size=n_total),
         rng.beta(1, 8, size=n_total),
     )
-
     with h5py.File(path, "w") as f:
         f.create_dataset("energy", data=energy.astype(np.float32))
         f.create_dataset("score", data=score.astype(np.float32))
@@ -51,14 +50,13 @@ def _fast_cfg(
     out_dir: Path,
     target_class: int | str = 1,
 ) -> CutAcceptanceConfig:
-    """Tiny config so the smoke test completes in a few seconds."""
     return CutAcceptanceConfig(
         name="pipeline_smoke",
         train_predictions_path=train_path,
         validation_predictions_path=val_path,
         out_dir=out_dir,
         target_class=target_class,
-        energy_bin_width=100.0,  # 25 bins across [500, 3000]
+        energy_bin_width=100.0,
         n_per_trial=8,
         min_events_per_bin=2,
         encoder=EncoderConfig(type="mlp", latent_dim=8, hidden_dims=[16], dropout=0.1),
@@ -76,7 +74,7 @@ def _fast_cfg(
             seed=0,
         ),
         decoder_hidden_dims=[16, 16],
-        mc_dropout_samples=4,  # keep the test fast
+        mc_dropout_samples=4,
     )
 
 
@@ -98,55 +96,22 @@ def test_run_pipeline_end_to_end(tmp_path: Path) -> None:
     assert summary.n_bins_used >= 5
     assert 0.0 <= summary.youden_T_star <= 1.0
 
-    # Every promised artifact exists.
-    for name in (
-        "cnp.ckpt",
-        "training_pool.npz",
-        "validation_binned.npz",
-        "cnp_predictions.npz",
-        "run_summary.json",
-    ):
+    # Only the training-side artifacts exist now (no scoring outputs).
+    for name in ("cnp.ckpt", "training_pool.npz", "run_summary.json"):
         assert (out / name).is_file(), f"missing artifact: {name}"
+    for absent in ("validation_binned.npz", "cnp_predictions.npz"):
+        assert not (out / absent).is_file(), (
+            f"{absent} should no longer be produced by the pipeline"
+        )
 
-    # run_summary.json round-trips cleanly.
     parsed = json.loads((out / "run_summary.json").read_text())
     assert parsed["name"] == summary.name
     assert parsed["n_bins_used"] == summary.n_bins_used
+    assert "coverage_cnp_1sigma" not in parsed  # legacy field removed
 
-    # cnp_predictions.npz has matching grid + slice + uncertainty.
-    preds = np.load(out / "cnp_predictions.npz")
-    grid_shape = (preds["energy_grid"].size, preds["threshold_grid"].size)
-    assert preds["beta_grid"].shape == grid_shape
-    assert preds["beta_std_grid"].shape == grid_shape
-    assert preds["beta_at_T_star"].shape == preds["energy_grid"].shape
-    assert preds["beta_std_at_T_star"].shape == preds["energy_grid"].shape
-    assert np.all(np.isfinite(preds["beta_grid"]))
-    # CNP std is non-negative and bounded by 0.5 (β ∈ [0,1] sigma can't exceed that).
-    assert np.all(preds["beta_std_grid"] >= 0.0)
-    assert np.all(preds["beta_std_grid"] <= 0.5)
-
-    # Coverage values are fractions in [0, 1] for both flavors.
-    for v in (
-        summary.coverage_cnp_1sigma, summary.coverage_cnp_2sigma, summary.coverage_cnp_3sigma,
-        summary.coverage_combined_1sigma, summary.coverage_combined_2sigma,
-        summary.coverage_combined_3sigma,
-    ):
-        assert 0.0 <= v <= 1.0
-
-    # validation_binned.npz: Wilson rate_lo / rate_hi instead of rate_err.
-    val_arr = np.load(out / "validation_binned.npz")
-    assert "rate_lo" in val_arr.files
-    assert "rate_hi" in val_arr.files
-    valid = ~np.isnan(val_arr["rate"])
-    if valid.any():
-        # lo <= rate <= hi where valid; bounds in [0, 1].
-        assert np.all(val_arr["rate_lo"][valid] <= val_arr["rate"][valid] + 1e-9)
-        assert np.all(val_arr["rate"][valid] <= val_arr["rate_hi"][valid] + 1e-9)
-        assert np.all((val_arr["rate_lo"][valid] >= 0) & (val_arr["rate_hi"][valid] <= 1))
-
-    # validation_binned.npz has same E grid; bins below min_events_per_bin are NaN.
-    val_arr = np.load(out / "validation_binned.npz")
-    assert val_arr["bin_centers"].shape == preds["energy_grid"].shape
+    pool = np.load(out / "training_pool.npz")
+    assert pool["bin_centers"].ndim == 1
+    assert pool["bin_event_counts"].shape == pool["bin_centers"].shape
 
 
 @pytest.mark.slow
