@@ -1,23 +1,27 @@
-"""Binned-CNP cut-acceptance pipeline — *training only*.
+"""True-CNP cut-acceptance pipeline — *training only*.
 
-The pipeline now exists solely to train the CNP. All scoring / coverage
-/ visualization happens downstream in ``scripts.diagnostics.cnp_test_inference``,
-which runs the D_C / D_T protocol on the saved checkpoint.
+The pipeline trains a 1D-regression CNP in ``InputMode.EVENT_ONLY``:
+each context event carries its own coordinates ``(E_i_norm, T_norm)``
+in ``phi``, and there is no broadcasted trial-level theta. The bin
+grid is used **only** as a sampling-stratification mechanism inside
+:class:`majorana_acp.cut_acceptance.event_sampler.EventSampler` — the
+CNP itself never sees bin boundaries.
 
 For one ``run_pipeline(cfg)`` call we:
 
 1. Load the train-split predictions, filter by ``target_class`` +
-   ``energy_range``, and build a :class:`BinnedSampler`.
-2. Train a RESUM_FLEX CNP on this sampler.
-3. Compute the Youden-J best T* once from the *test* labels (so
-   downstream diagnostics share a fixed reference threshold).
+   ``energy_range``, and build an :class:`EventSampler`.
+2. Train a RESUM_FLEX CNP (``dim_theta=None``, ``dim_phi=2``) on it.
+3. Compute the Youden-J best T* once from the *test* labels so
+   downstream diagnostics share a fixed reference threshold.
 4. Save the checkpoint + a small ``run_summary.json``.
 
 Outputs (all under ``cfg.out_dir``):
 
 * ``cnp.ckpt``           — RESUM_FLEX CNP checkpoint.
-* ``training_pool.npz``  — per-bin event counts on the train split,
-  used by inference to know the canonical bin grid.
+* ``training_pool.npz``  — bin centers + per-bin event counts on the
+  train split. Kept *only* so the diagnostics script can bin D_T on the
+  same grid for the blue Wilson errorbars; not load-bearing for the CNP.
 * ``run_summary.json``   — scalars (paths, counts, final loss, T*).
 """
 
@@ -33,8 +37,8 @@ import torch
 from core import build_cnp, save_checkpoint, train_cnp
 from sklearn.metrics import roc_curve
 
-from majorana_acp.cut_acceptance.binned_sampler import BinnedSampler, load_events
 from majorana_acp.cut_acceptance.config import CutAcceptanceConfig
+from majorana_acp.cut_acceptance.event_sampler import EventSampler, load_events
 
 
 @dataclass(frozen=True)
@@ -104,12 +108,11 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
         target_class=cfg.target_class,
         energy_range=cfg.energy_range,
     )
-    sampler = BinnedSampler(
+    sampler = EventSampler(
         train_e, train_s,
         energy_range=cfg.energy_range,
         energy_bin_width=cfg.energy_bin_width,
         threshold_range=cfg.threshold_range,
-        n_per_trial=cfg.n_per_trial,
         min_events_per_bin=cfg.min_events_per_bin,
         t_sampling="boundary_mix",
     )
@@ -120,10 +123,10 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
         n_events_total=np.int64(train_e.size),
     )
 
-    # 2. Train the CNP.
+    # 2. Train the CNP — EVENT_ONLY with per-event (E_i, T) in phi.
     torch.manual_seed(cfg.training.seed)
     cnp = build_cnp(
-        cfg.encoder, dim_theta=2, dim_phi=None,
+        cfg.encoder, dim_theta=None, dim_phi=2,
         decoder_hidden_dims=list(cfg.decoder_hidden_dims),
     )
     history = train_cnp(cnp, sampler, cnp_config=cfg.cnp, training_config=cfg.training)
@@ -131,8 +134,8 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
         out_dir / "cnp.ckpt",
         cnp,
         encoder_config=cfg.encoder,
-        dim_theta=2,
-        dim_phi=None,
+        dim_theta=None,
+        dim_phi=2,
         history=history,
         metadata={
             "name": cfg.name,
@@ -141,6 +144,8 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             "train_predictions_path": str(cfg.train_predictions_path),
             "validation_predictions_path": str(cfg.validation_predictions_path),
             "decoder_hidden_dims": list(cfg.decoder_hidden_dims),
+            "input_mode": "event_only",
+            "sampling_strategy": "bin_stratified",
         },
     )
     final_train_loss = float(history["loss"][-1]) if history.get("loss") else float("nan")

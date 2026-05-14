@@ -24,7 +24,7 @@ def test_defaults_load() -> None:
     assert cfg.energy_range == (500.0, 3000.0)
     assert cfg.energy_bin_width == 10.0
     assert cfg.threshold_range == (0.0, 1.0)
-    assert cfg.n_per_trial == 32
+    assert cfg.n_per_trial is None  # deprecated; legacy YAMLs may still set it
     assert cfg.min_events_per_bin == 4
     assert cfg.decoder_hidden_dims == [128, 128, 128]
 

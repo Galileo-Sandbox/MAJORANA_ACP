@@ -57,7 +57,6 @@ def _fast_cfg(
         out_dir=out_dir,
         target_class=target_class,
         energy_bin_width=100.0,
-        n_per_trial=8,
         min_events_per_bin=2,
         encoder=EncoderConfig(type="mlp", latent_dim=8, hidden_dims=[16], dropout=0.1),
         cnp=CNPConfig(
@@ -112,6 +111,14 @@ def test_run_pipeline_end_to_end(tmp_path: Path) -> None:
     pool = np.load(out / "training_pool.npz")
     assert pool["bin_centers"].ndim == 1
     assert pool["bin_event_counts"].shape == pool["bin_centers"].shape
+
+    # Checkpoint must record the new EVENT_ONLY mode (dim_phi=2, dim_theta=None).
+    import torch
+    state = torch.load(out / "cnp.ckpt", map_location="cpu", weights_only=False)
+    assert state["dim_theta"] is None
+    assert state["dim_phi"] == 2
+    assert state["metadata"]["input_mode"] == "event_only"
+    assert state["metadata"]["sampling_strategy"] == "bin_stratified"
 
 
 @pytest.mark.slow

@@ -82,22 +82,26 @@ class CutAcceptanceConfig(_Frozen):
     # ------------------------------------------------------------------
     # Per-trial sampling
     # ------------------------------------------------------------------
-    n_per_trial: int = Field(
-        32,
+    n_per_trial: int | None = Field(
+        default=None,
         ge=1,
         description=(
-            "Events per trial drawn from the bin's pool (with replacement "
-            "when the bin has fewer events). 32 is the historical HF batch "
-            "size and works for both wide (20 keV) and narrow (5 keV) bins."
+            "DEPRECATED. The True-CNP pipeline reads events-per-trial from "
+            "``training.n_events_per_trial`` instead. Kept here so legacy "
+            "YAMLs (from the bin-isolated DESIGN_ONLY era) still parse — "
+            "the value is ignored by the new pipeline. Remove from new "
+            "configs."
         ),
     )
     min_events_per_bin: int = Field(
         4,
         ge=1,
         description=(
-            "Bins with fewer events than this are skipped — for narrow "
-            "binnings rare-energy slabs would otherwise be pure binomial "
-            "noise."
+            "Bins with fewer events than this are excluded from the "
+            "EventSampler's stratification pool — events in those bins "
+            "do not contribute to training. For narrow binnings this "
+            "drops rare-energy slabs that would otherwise dominate the "
+            "stratified draw via tiny pools."
         ),
     )
 
