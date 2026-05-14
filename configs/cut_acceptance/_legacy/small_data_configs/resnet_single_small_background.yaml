@@ -1,12 +1,11 @@
-# Cut-acceptance run on resnet_single (ultra_small, 1% subset).
-# target_class=0 -> background-rejection rate β_bkg(E, T) (rejection = 1 - β_bkg).
-# Same partition_seed as the signal config so the LF/HF/holdout split is reproducible
-# across the two pipelines while staying disjoint at the event level (different
-# target_class -> different base_mask -> non-overlapping events).
-name: resnet_single_ultra_small_background
+# Cut-acceptance run on resnet_single_small (5% subset). target_class=0.
+# Background-rejection counterpart of the signal config. Same partition_seed
+# so the LF/HF/holdout split is reproducible across both runs and the two
+# pipelines stay disjoint at the event level (different target_class -> non-overlapping base_mask).
+name: resnet_single_small_background
 
-predictions_path: runs/ultra_small_data_configs/resnet_single_ultra_small/eval/predictions.h5
-out_dir: results/cut_acceptance/ultra_small_data_configs/resnet_single_ultra_small/background
+predictions_path: runs/small_data_configs/resnet_single_small/eval/predictions.h5
+out_dir: results/cut_acceptance/small_data_configs/resnet_single_small/background
 
 target_class: 0
 energy_range: [500.0, 3000.0]
@@ -21,8 +20,10 @@ peak_split: {lf: 0.10, hf_train: 0.30, hf_holdout: 0.60}
 partition_seed: 0
 
 threshold_range: [0.0, 1.0]
-n_per_trial_lf: 128
+n_per_trial_lf: 32
 n_per_trial_hf: 32
+n_mfgp_lf_trials: 200
+n_mfgp_hf_trials: 400
 min_pool_size: 8
 
 energy_grid_step: 10.0
@@ -38,13 +39,13 @@ cnp:
   n_context_min: 16
   n_context_max: 64
   output_activation: sigmoid
-  mixup_alpha: 0.1
+  mixup_alpha: 0.01
 
 training:
-  n_steps: 1500
+  n_steps: 6000
   learning_rate: 1.0e-3
   batch_size: 16
-  n_events_per_trial: 128
+  n_events_per_trial: 32
   n_mc_samples: 4
   grad_clip: 1.0
   eval_every: 0

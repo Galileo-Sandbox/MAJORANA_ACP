@@ -1,9 +1,12 @@
-# Cut-acceptance run on simple_cnn_ultra_small (1% subset). target_class=1.
-# Same as the resnet_single config except predictions_path / out_dir / name.
-name: simple_cnn_ultra_small_signal
+# Cut-acceptance run on resnet_single_small (5% subset). target_class=1.
+# Same pipeline shape as the ultra_small_data_configs sibling; only the
+# upstream classifier (and therefore predictions.h5) changes. Five times
+# more peak events per tier than ultra_small, so the MFGP coverage check
+# should land much closer to the Gaussian targets.
+name: resnet_single_small_signal
 
-predictions_path: runs/ultra_small_data_configs/simple_cnn_ultra_small/eval/predictions.h5
-out_dir: results/cut_acceptance/ultra_small_data_configs/simple_cnn_ultra_small/signal
+predictions_path: runs/small_data_configs/resnet_single_small/eval/predictions.h5
+out_dir: results/cut_acceptance/small_data_configs/resnet_single_small/signal
 
 target_class: 1
 energy_range: [500.0, 3000.0]
@@ -18,8 +21,10 @@ peak_split: {lf: 0.10, hf_train: 0.30, hf_holdout: 0.60}
 partition_seed: 0
 
 threshold_range: [0.0, 1.0]
-n_per_trial_lf: 128
+n_per_trial_lf: 32
 n_per_trial_hf: 32
+n_mfgp_lf_trials: 200
+n_mfgp_hf_trials: 400
 min_pool_size: 8
 
 energy_grid_step: 10.0
@@ -35,13 +40,13 @@ cnp:
   n_context_min: 16
   n_context_max: 64
   output_activation: sigmoid
-  mixup_alpha: 0.1
+  mixup_alpha: 0.01
 
 training:
-  n_steps: 1500
+  n_steps: 6000
   learning_rate: 1.0e-3
   batch_size: 16
-  n_events_per_trial: 128
+  n_events_per_trial: 32
   n_mc_samples: 4
   grad_clip: 1.0
   eval_every: 0

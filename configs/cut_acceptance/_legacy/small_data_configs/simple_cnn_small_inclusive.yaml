@@ -1,10 +1,12 @@
-# Cut-acceptance run on simple_cnn_small (5% subset). target_class=0.
-name: simple_cnn_small_background
+# Cut-acceptance run on simple_cnn_small (5% subset). target_class="all".
+# Label-agnostic / inclusive pass rate counterpart of the signal/background
+# siblings — see the resnet_single_small_inclusive.yaml note for details.
+name: simple_cnn_small_inclusive
 
 predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
-out_dir: results/cut_acceptance/small_data_configs/simple_cnn_small/background
+out_dir: results/cut_acceptance/small_data_configs/simple_cnn_small/inclusive
 
-target_class: 0
+target_class: "all"
 energy_range: [500.0, 3000.0]
 
 peak_windows:
@@ -17,8 +19,10 @@ peak_split: {lf: 0.10, hf_train: 0.30, hf_holdout: 0.60}
 partition_seed: 0
 
 threshold_range: [0.0, 1.0]
-n_per_trial_lf: 128
+n_per_trial_lf: 32
 n_per_trial_hf: 32
+n_mfgp_lf_trials: 200
+n_mfgp_hf_trials: 400
 min_pool_size: 8
 
 energy_grid_step: 10.0
@@ -34,13 +38,13 @@ cnp:
   n_context_min: 16
   n_context_max: 64
   output_activation: sigmoid
-  mixup_alpha: 0.1
+  mixup_alpha: 0.01
 
 training:
-  n_steps: 1500
+  n_steps: 6000
   learning_rate: 1.0e-3
   batch_size: 16
-  n_events_per_trial: 128
+  n_events_per_trial: 32
   n_mc_samples: 4
   grad_clip: 1.0
   eval_every: 0

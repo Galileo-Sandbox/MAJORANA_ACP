@@ -1,41 +1,28 @@
-"""Cut-acceptance estimation via RESUM_FLEX (CNP + MFGP) on a 2D (energy, threshold) plane.
+"""Cut-acceptance estimation via a binned CNP on the (E_bin, T) plane.
 
-This subpackage adapts a trained PSD-classifier's per-event scores into a
-multi-fidelity rare-event-design problem so that we can replace the
-binned-with-binomial-error-bars acceptance plot in
-``notebooks/data_visualization.ipynb`` §8.4 with a smooth, calibrated
-β(E, T) heatmap that has principled uncertainty.
+The CNP learns β(E_bin_center, T) = P(score ≥ T | event in that bin),
+trained on classifier predictions over the **train** Majorana split and
+validated against an empirical binned pass rate computed on the **test**
+split. No MFGP, no peak/continuum partition — see ``pipeline.py``.
 
 Mapping to the RESuM framework (S8 in their validation matrix):
 
-- ``θ = (E, T) ∈ ℝ²`` — design parameters (energy bin centre, threshold).
-- ``φ = None`` — DESIGN_ONLY mode; events have no per-event covariates
-  beyond their identity.
-- ``X_ki = 1[score_i ≥ T_k]`` — per-event binary pass/fail at threshold
-  ``T_k`` for events near energy ``E_k``.
+- ``θ = (E_bin_center, T) ∈ ℝ²`` — design parameters in normalized
+  ``[0, 1]^2``.
+- ``φ = None`` — DESIGN_ONLY mode.
+- ``X_ki = 1[score_i ≥ T_k]`` — per-event binary pass/fail.
 
-Two independent pipelines run on disjoint data slices: one with
-``target_class=1`` (signal acceptance) and one with ``target_class=0``
-(background rejection).
+Three runs per (group, model): ``target_class=1`` (signal acceptance),
+``target_class=0`` (background rejection), and ``target_class="all"``
+(inclusive pass rate marginalised over the natural class composition).
 """
 
+from majorana_acp.cut_acceptance.binned_sampler import BinnedSampler, load_events
 from majorana_acp.cut_acceptance.config import CutAcceptanceConfig, load_config
-from majorana_acp.cut_acceptance.partition import (
-    PartitionedIndices,
-    partition_events,
-)
-from majorana_acp.cut_acceptance.sampler import (
-    DesignOnlySampler,
-    EventPool,
-    load_event_pool,
-)
 
 __all__ = [
+    "BinnedSampler",
     "CutAcceptanceConfig",
-    "DesignOnlySampler",
-    "EventPool",
-    "PartitionedIndices",
     "load_config",
-    "load_event_pool",
-    "partition_events",
+    "load_events",
 ]
