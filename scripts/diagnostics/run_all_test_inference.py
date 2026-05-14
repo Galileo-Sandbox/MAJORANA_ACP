@@ -9,10 +9,17 @@ from pathlib import Path
 
 # Headless backend for the CLI sweep so figures save without an X display.
 import matplotlib  # noqa: E402
+
 matplotlib.use("Agg")
 
 from majorana_acp.cut_acceptance.config import load_config  # noqa: E402
-from scripts.diagnostics.cnp_test_inference import run as run_cell  # noqa: E402
+from scripts.diagnostics.cnp_test_inference import (  # noqa: E402
+    DEFAULT_MAX_CONTEXT_PER_PASS,
+    DEFAULT_N_DENSE,
+)
+from scripts.diagnostics.cnp_test_inference import (
+    run as run_cell,
+)
 
 CFG_ROOT = Path("configs/cut_acceptance").resolve()
 OUT_ROOT = Path("analysis/cnp_audit").resolve()
@@ -24,6 +31,10 @@ def main() -> None:
     ap.add_argument("--context-fraction", type=float, default=0.20)
     ap.add_argument("--n-mc", type=int, default=50)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--n-dense", type=int, default=DEFAULT_N_DENSE)
+    ap.add_argument(
+        "--max-context-per-pass", type=int, default=DEFAULT_MAX_CONTEXT_PER_PASS,
+    )
     args = ap.parse_args()
 
     n_done = n_skipped = 0
@@ -48,6 +59,8 @@ def main() -> None:
             context_fraction=args.context_fraction,
             n_mc=args.n_mc,
             seed=args.seed,
+            n_dense=args.n_dense,
+            max_context_per_pass=args.max_context_per_pass,
         )
         n_done += 1
         print(f"[done] {rel} → {out_dir}\n")

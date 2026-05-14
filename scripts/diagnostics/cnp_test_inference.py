@@ -1,32 +1,30 @@
-"""Test-set inference for binned-CNP cut acceptance.
+"""Test-set inference for the True-CNP cut-acceptance pipeline.
 
-Implements the D_C / D_T protocol the project switched to so that the
-calibration check has no information leakage:
+The trained CNP is a 1D-regression CNP in ``InputMode.EVENT_ONLY``:
+each context event carries its own ``phi_i = (E_i_norm, T_norm)``. As
+a true stochastic process, β(E) is a continuous function of energy —
+we evaluate it on a dense grid by aggregating **all** D_C events
+(capped at :data:`MAX_CONTEXT_PER_PASS`) into a single global
+representation ``r``, then decoding at every query point in one
+forward call.
 
+Pipeline
+--------
 * Sample a configurable fraction of the **test** events (default 100%).
-* Split the sample into a Context set ``D_C`` (default 20%) and an
-  independent Target set ``D_T`` (default 80%).
-* Bin both sets at the trained model's energy grid.
-* CNP β(E) is computed by **conditioning on D_C** at each bin: for
-  each bin we draw ``n_per_trial`` events with replacement from that
-  bin's D_C pool, binarise their scores at the queried T, and run
-  ``n_mc`` forward passes with **dropout active** (MC Dropout). β_mean
-  and σ_CNP come from the sample over those passes.
-* Empirical pass rate uses **only D_T**, with **Wilson** 1σ errorbars
-  (handles small-N / k=0 / k=N correctly — unlike the naive
-  √(p(1-p)/n) form).
-* Coverage is reported two ways:
+* Split into a Context set ``D_C`` (default 20%) and a disjoint Target
+  set ``D_T`` (default 80%).
+* Empirical pass rate (blue) comes from **D_T only**, binned at the
+  pipeline's saved bin grid, with Wilson 1σ errorbars.
+* CNP β(E) (red) comes from MC Dropout: ``n_mc`` forward passes, each
+  with a fresh D_C subsample of up to :data:`MAX_CONTEXT_PER_PASS`
+  events. Each pass produces one global ``r`` aggregated across the
+  entire spectrum, then decodes at the bin centers AND a dense grid in
+  one shot.
+* Coverage is reported at the **bin-center** queries (matching D_T
+  binning):
     - cnp_only : |β_emp − β_pred| < k · σ_CNP
     - combined : |β_emp − β_pred| < k · √(σ_CNP² + σ_emp²)
   with σ_emp = (rate_hi − rate_lo) / 2 (the Wilson half-width).
-
-Bins where the D_C pool is empty are skipped (CNP β set to NaN);
-bins where D_T is empty get NaN rate (no empirical point plotted).
-
-The script can be run on the CLI for one config, or imported and
-called from a notebook (the notebook exposes TEST_FRACTION /
-CONTEXT_FRACTION / N_MC / SEED variables that pass through to
-``infer_and_evaluate``).
 """
 from __future__ import annotations
 
@@ -36,6 +34,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import h5py
+
 # NB: we do *not* force the matplotlib backend at module-load time —
 # that would override the inline backend when this module is imported
 # from a Jupyter notebook (the bug that hid all §8.4 plots). The CLI
@@ -43,13 +42,12 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from core import build_cnp
+from schemas.data_models import InputMode, StandardBatch
 from sklearn.metrics import roc_curve
 
-from core import build_cnp
 from majorana_acp.cut_acceptance.config import CutAcceptanceConfig, load_config
 from majorana_acp.cut_acceptance.pipeline import wilson_interval
-from schemas.data_models import InputMode, StandardBatch
-
 
 PEAK_MARKERS = [
     ("Tl-208 FE", 2614.0),
@@ -58,10 +56,27 @@ PEAK_MARKERS = [
     ("Bi-214 1620", 1620.0),
 ]
 
+# Defaults exposed through the CLI / notebook for tuning.
+DEFAULT_N_DENSE = 800
+DEFAULT_MAX_CONTEXT_PER_PASS = 256
+
 
 @dataclass(frozen=True)
 class InferenceResult:
-    """Per-cell artifacts produced by :func:`infer_and_evaluate`."""
+    """Per-cell artifacts produced by :func:`infer_and_evaluate`.
+
+    Two parallel β estimates:
+
+    * **Bin-center** (``bin_centers``, ``beta``, ``beta_std``) — one
+      query per pipeline-saved bin. Used for coverage metrics vs D_T.
+    * **Dense grid** (``dense_energies``, ``dense_beta``,
+      ``dense_beta_std``) — uniform sampling for plotting a smooth red
+      curve.
+
+    Both come out of the same MC-Dropout passes — a single shared
+    target_batch carries both sets of query coordinates, so they are
+    consistent with each other up to floating-point.
+    """
 
     bin_centers: np.ndarray
     # Empirical (D_T only) — rate is k/N, lo/hi are Wilson 1σ bounds.
@@ -69,10 +84,16 @@ class InferenceResult:
     rate_lo: np.ndarray
     rate_hi: np.ndarray
     n_target_per_bin: np.ndarray
-    # CNP prediction (conditioned on D_C).
+    # CNP prediction at bin centers (used for coverage vs D_T).
     beta: np.ndarray
     beta_std: np.ndarray
-    n_context_per_bin: np.ndarray
+    # CNP prediction on a dense grid (smooth red curve).
+    dense_energies: np.ndarray
+    dense_beta: np.ndarray
+    dense_beta_std: np.ndarray
+    # Knobs.
+    n_context_per_pass: int   # actual cap used (min(MAX_CONTEXT_PER_PASS, |D_C|)).
+    context_window_kev: float  # always np.inf for True CNP — kept for notebook compat.
     # Headline scalars.
     T_star: float
     n_total: int
@@ -96,8 +117,9 @@ def _bin_edges_from_centers(bin_centers: np.ndarray, bin_width: float) -> np.nda
 
 
 def _load_cnp(cfg: CutAcceptanceConfig, ckpt_path: Path) -> torch.nn.Module:
+    """Reconstruct the EVENT_ONLY CNP architecture and load weights."""
     cnp = build_cnp(
-        cfg.encoder, dim_theta=2, dim_phi=None,
+        cfg.encoder, dim_theta=None, dim_phi=2,
         decoder_hidden_dims=list(cfg.decoder_hidden_dims),
     )
     state = torch.load(ckpt_path, map_location="cpu", weights_only=False)
@@ -108,13 +130,11 @@ def _load_cnp(cfg: CutAcceptanceConfig, ckpt_path: Path) -> torch.nn.Module:
 
 def _filter_test_events(
     cfg: CutAcceptanceConfig,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, float]:
-    """Load test predictions.h5 and apply (class, energy_range) filters.
+) -> tuple[np.ndarray, np.ndarray, float]:
+    """Load test predictions.h5; apply (class, energy_range) filters; pick T*.
 
-    Returns (energy, score, label_full, score_full, T_star) — the
-    label_full + score_full are kept around for the ROC curve, which
-    uses *all* labels (not just the class-filtered ones) to pick the
-    Youden-J optimal threshold.
+    T* comes from the Youden-J point of the ROC over **all** labels
+    (not just the class-filtered ones).
     """
     with h5py.File(cfg.validation_predictions_path, "r") as f:
         e_full = f["energy"][:].astype(np.float64)
@@ -129,19 +149,14 @@ def _filter_test_events(
         cls_mask = l_full == int(cfg.target_class)
     e_lo, e_hi = cfg.energy_range
     keep = cls_mask & (e_full >= e_lo) & (e_full <= e_hi)
-    return e_full[keep], s_full[keep], l_full, s_full, T_star
+    return e_full[keep], s_full[keep], T_star
 
 
 def split_test_data(
     energy: np.ndarray, score: np.ndarray,
     *, test_fraction: float, context_fraction: float, seed: int,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Return ``(e_C, s_C, e_T, s_T)`` for the configured split.
-
-    ``test_fraction`` ∈ (0, 1] picks a subset of the test events
-    (seeded); ``context_fraction`` ∈ (0, 1) splits that subset into
-    Context (D_C) and Target (D_T) halves.
-    """
+    """Return ``(e_C, s_C, e_T, s_T)`` for the configured split."""
     if not 0.0 < test_fraction <= 1.0:
         raise ValueError(f"test_fraction must be in (0, 1], got {test_fraction}")
     if not 0.0 < context_fraction < 1.0:
@@ -157,14 +172,6 @@ def split_test_data(
     return energy[ctx_idx], score[ctx_idx], energy[tgt_idx], score[tgt_idx]
 
 
-def _bin_events(
-    energy: np.ndarray, edges: np.ndarray
-) -> list[np.ndarray]:
-    """Return a per-bin list of *indices into ``energy``*."""
-    bin_idx = np.clip(np.digitize(energy, edges) - 1, 0, edges.size - 2)
-    return [np.flatnonzero(bin_idx == b) for b in range(edges.size - 1)]
-
-
 def _empirical_with_wilson(
     energies: np.ndarray, scores: np.ndarray, T: float, edges: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -176,78 +183,91 @@ def _empirical_with_wilson(
     return rate, lo, hi, total.astype(np.int64)
 
 
-def _cnp_infer_per_bin(
+# --------------------------------------------------------------------------- #
+# Global-aggregation MC-Dropout inference
+# --------------------------------------------------------------------------- #
+
+
+def _cnp_infer_global(
     cnp: torch.nn.Module,
     cfg: CutAcceptanceConfig,
-    bin_centers: np.ndarray,
-    bin_context_scores: list[np.ndarray],
+    query_energies: np.ndarray,
+    ctx_energies: np.ndarray,
+    ctx_scores: np.ndarray,
     T: float,
     *,
     n_mc: int,
     seed: int,
-    max_context: int | None = None,
-) -> tuple[np.ndarray, np.ndarray]:
-    """Per-bin (β_mean, β_std) using MC Dropout with **variable-N** context.
+    max_context_per_pass: int = DEFAULT_MAX_CONTEXT_PER_PASS,
+) -> tuple[np.ndarray, np.ndarray, int]:
+    """β(E) at arbitrary query energies via global-aggregation MC Dropout.
 
-    For each bin we condition the CNP on the actual events in
-    ``D_C[bin]`` — **without replacement** — capped at
-    ``max_context`` (defaults to ``cfg.n_per_trial``). Bins with an
-    empty D_C pool are NaN. This is the key robustness change: the
-    CNP receives a context whose size honestly reflects how much data
-    that bin has. Combined with low ``cnp.n_context_min`` during
-    training, σ_CNP should grow when the bin is data-poor.
+    Each MC pass:
+      1. Sample (without replacement) up to ``max_context_per_pass``
+         events from D_C → that pass's context.
+      2. Run **one** CNP forward: aggregate across all context events
+         → single global ``r``; decode at every query energy in one
+         shot.
 
-    Skipping a bin means: empty D_C → no possible prediction.
+    The CNP is a 1D-regression CNP in EVENT_ONLY mode, so each context
+    event contributes its own ``(E_i_norm, T_norm)`` and each target
+    query is just another phi row.
+
+    Returns ``(beta_mean, beta_std, n_context_per_pass_used)`` where
+    the third element is ``min(|D_C|, max_context_per_pass)``.
     """
-    if max_context is None:
-        max_context = cfg.n_per_trial
     rng = np.random.default_rng(int(seed))
-    n_e = bin_centers.size
-    beta_mean = np.full(n_e, np.nan, dtype=np.float64)
-    beta_std = np.full(n_e, np.nan, dtype=np.float64)
+    n_q = query_energies.size
+    if ctx_energies.size == 0:
+        return (
+            np.full(n_q, np.nan, dtype=np.float64),
+            np.full(n_q, np.nan, dtype=np.float64),
+            0,
+        )
+
     e_lo, e_hi = cfg.energy_range
     t_lo, t_hi = cfg.threshold_range
-    t_norm = (T - t_lo) / (t_hi - t_lo)
+    t_norm = float((T - t_lo) / (t_hi - t_lo))
+    q_norm = (query_energies - e_lo) / (e_hi - e_lo)
+    # Target batch is identical for every MC pass: one trial, N_q
+    # queries, each at (E*_i_norm, T_norm). Labels are unused at
+    # inference but required by the StandardBatch validator.
+    tgt_phi = np.stack([q_norm, np.full_like(q_norm, t_norm)], axis=-1)[None, :, :]
+    tgt_labels = np.zeros((1, n_q), dtype=np.int8)
+    tgt_batch = StandardBatch(
+        mode=InputMode.EVENT_ONLY, theta=None, phi=tgt_phi, labels=tgt_labels,
+    )
 
+    n_ctx = int(min(ctx_energies.size, max_context_per_pass))
+    ctx_e_norm_all = (ctx_energies - e_lo) / (e_hi - e_lo)
+    ctx_x_all = (ctx_scores >= T).astype(np.int8)
+
+    samples = np.empty((n_mc, n_q), dtype=np.float64)
     cnp.train()  # enable dropout
     try:
         with torch.no_grad():
-            for i, e_center in enumerate(bin_centers):
-                ctx_pool = bin_context_scores[i]
-                if ctx_pool.size == 0:
-                    continue
-                # Effective context size honors the bin's actual D_C
-                # population (no padding-by-replacement). If the bin
-                # has fewer events than max_context, the CNP sees a
-                # smaller trial and *should* return a wider σ.
-                n_ctx = int(min(ctx_pool.size, max_context))
-                e_norm = (e_center - e_lo) / (e_hi - e_lo)
-                theta = np.array([[e_norm, t_norm]], dtype=np.float64)
-                samples = np.empty(n_mc, dtype=np.float64)
-                for m in range(n_mc):
-                    if n_ctx >= ctx_pool.size:
-                        # Use every available D_C event in the bin
-                        # (still permute so order-sensitive parts of
-                        # the encoder see slight variation).
-                        order = rng.permutation(ctx_pool.size)
-                        picks = order[:n_ctx]
-                    else:
-                        picks = rng.choice(ctx_pool.size, size=n_ctx, replace=False)
-                    ctx_labels = (ctx_pool[picks] >= T).astype(np.int8)[None, :]
-                    ctx_batch = StandardBatch(
-                        mode=InputMode.DESIGN_ONLY, theta=theta, phi=None, labels=ctx_labels
-                    )
-                    tgt_batch = StandardBatch(
-                        mode=InputMode.DESIGN_ONLY, theta=theta, phi=None,
-                        labels=ctx_labels.copy(),
-                    )
-                    beta = cnp.predict_beta(ctx_batch, tgt_batch).cpu().numpy()
-                    samples[m] = float(beta.mean())
-                beta_mean[i] = float(samples.mean())
-                beta_std[i] = float(samples.std(ddof=1))
+            for m in range(n_mc):
+                if n_ctx >= ctx_energies.size:
+                    picks = rng.permutation(ctx_energies.size)
+                else:
+                    picks = rng.choice(ctx_energies.size, size=n_ctx, replace=False)
+                ctx_e_norm = ctx_e_norm_all[picks]
+                ctx_phi = np.stack(
+                    [ctx_e_norm, np.full(n_ctx, t_norm)], axis=-1
+                )[None, :, :]
+                ctx_labels = ctx_x_all[picks][None, :]
+                ctx_batch = StandardBatch(
+                    mode=InputMode.EVENT_ONLY, theta=None,
+                    phi=ctx_phi, labels=ctx_labels,
+                )
+                beta = cnp.predict_beta(ctx_batch, tgt_batch).cpu().numpy()
+                samples[m] = beta[0]
     finally:
         cnp.eval()
-    return beta_mean, beta_std
+
+    beta_mean = samples.mean(axis=0)
+    beta_std = samples.std(axis=0, ddof=1)
+    return beta_mean, beta_std, n_ctx
 
 
 def _coverage_two_ways(
@@ -287,12 +307,12 @@ def infer_and_evaluate(
     context_fraction: float = 0.20,
     n_mc: int = 50,
     seed: int = 0,
+    n_dense: int = DEFAULT_N_DENSE,
+    max_context_per_pass: int = DEFAULT_MAX_CONTEXT_PER_PASS,
 ) -> InferenceResult:
     """Load the trained CNP and run the D_C / D_T protocol end-to-end."""
-    # 1. Test events filtered by (class, energy range), and Youden-J T*.
-    energy_all, score_all, _l_full, _s_full, T_star = _filter_test_events(cfg)
+    energy_all, score_all, T_star = _filter_test_events(cfg)
 
-    # 2. Random D_C / D_T split (after taking an overall test_fraction).
     e_C, s_C, e_T, s_T = split_test_data(
         energy_all, score_all,
         test_fraction=test_fraction,
@@ -300,44 +320,45 @@ def infer_and_evaluate(
         seed=seed,
     )
 
-    # 3. Bin grid from the pipeline's saved training_pool (so the CNP
-    #    sees energies it was trained on).
+    # The pipeline's saved bin grid is still the canonical D_T binning
+    # for the blue Wilson points + coverage. The CNP itself doesn't
+    # know about it.
     pool = np.load(Path(cfg.out_dir) / "training_pool.npz")
     bin_centers = pool["bin_centers"]
     edges = _bin_edges_from_centers(bin_centers, cfg.energy_bin_width)
+    e_lo, e_hi = cfg.energy_range
+    dense_energies = np.linspace(e_lo, e_hi, int(n_dense))
 
-    # 4. Empirical from D_T only.
     rate, rate_lo, rate_hi, counts_T = _empirical_with_wilson(e_T, s_T, T_star, edges)
-    # Skip rates for bins whose D_T count is below min_events_per_bin
-    # (these are dominated by sample noise — see project rationale).
     sparse_T = counts_T < cfg.min_events_per_bin
     rate[sparse_T] = np.nan
     rate_lo[sparse_T] = np.nan
     rate_hi[sparse_T] = np.nan
 
-    # 5. CNP context pool per bin (D_C events binned at the same grid).
-    ctx_bin_indices = _bin_events(e_C, edges)
-    bin_context_scores = [s_C[idx] for idx in ctx_bin_indices]
-    counts_C = np.array([p.size for p in bin_context_scores], dtype=np.int64)
-
-    # 6. MC-Dropout CNP inference per bin, conditioned on D_C.
     cnp = _load_cnp(cfg, Path(cfg.out_dir) / "cnp.ckpt")
-    beta, beta_std = _cnp_infer_per_bin(
-        cnp, cfg, bin_centers, bin_context_scores, T_star,
+    n_bin = bin_centers.size
+    query_e = np.concatenate([bin_centers, dense_energies])
+    beta_all, std_all, n_ctx_used = _cnp_infer_global(
+        cnp, cfg, query_e, e_C, s_C, T_star,
         n_mc=n_mc, seed=seed,
+        max_context_per_pass=max_context_per_pass,
     )
+    beta_bin, std_bin = beta_all[:n_bin], std_all[:n_bin]
+    beta_dense, std_dense = beta_all[n_bin:], std_all[n_bin:]
 
-    # 7. Headline metrics (Pearson, offset, two coverage flavors).
     cov_cnp, cov_comb, mean_off, pearson_r = _coverage_two_ways(
-        rate, rate_lo, rate_hi, beta, beta_std
+        rate, rate_lo, rate_hi, beta_bin, std_bin
     )
 
     return InferenceResult(
         bin_centers=bin_centers,
         rate=rate, rate_lo=rate_lo, rate_hi=rate_hi,
         n_target_per_bin=counts_T,
-        beta=beta, beta_std=beta_std,
-        n_context_per_bin=counts_C,
+        beta=beta_bin, beta_std=std_bin,
+        dense_energies=dense_energies,
+        dense_beta=beta_dense, dense_beta_std=std_dense,
+        n_context_per_pass=int(n_ctx_used),
+        context_window_kev=float("inf"),
         T_star=T_star,
         n_total=int(energy_all.size),
         n_context_total=int(e_C.size),
@@ -363,13 +384,11 @@ def plot_inference(
 ) -> None:
     """Save the canonical 1-axis figure for one cell.
 
-    Blue: D_T binned points with Wilson errorbars.
-    Red:  CNP β(E) (conditioned on D_C).
-    Band: ±1σ combined ( √(σ_CNP² + σ_emp²) ).
+    Blue: D_T binned points with Wilson 1σ errorbars.
+    Red:  CNP β(E) on the **dense grid** (continuous; no per-bin gaps).
+    Band: dense ±σ_CNP — the MC-Dropout predictive uncertainty.
     """
     fig, ax = plt.subplots(figsize=(11, 4.8))
-    # Asymmetric Wilson errorbars; defensively clamp at 0 in case of FP
-    # rounding so matplotlib doesn't reject the input.
     yerr_lo = np.maximum(np.where(np.isnan(res.rate), 0.0, res.rate - res.rate_lo), 0.0)
     yerr_hi = np.maximum(np.where(np.isnan(res.rate), 0.0, res.rate_hi - res.rate), 0.0)
     ax.errorbar(
@@ -377,23 +396,25 @@ def plot_inference(
         fmt="o", ms=4, capsize=2, color="steelblue",
         label=f"D_T binned (Wilson 1σ)  N_target={res.n_target_total}",
     )
-    mu = np.clip(res.beta, 0.0, 1.0)
+
+    mu = np.clip(res.dense_beta, 0.0, 1.0)
     if show_band:
-        sigma_emp = 0.5 * (res.rate_hi - res.rate_lo)
-        sigma_emp = np.where(np.isnan(sigma_emp), 0.0, sigma_emp)
-        sigma_cnp = np.where(np.isnan(res.beta_std), 0.0, res.beta_std)
-        sigma_tot = np.sqrt(sigma_cnp**2 + sigma_emp**2)
+        sigma_cnp = np.where(np.isnan(res.dense_beta_std), 0.0, res.dense_beta_std)
         ax.fill_between(
-            res.bin_centers,
-            np.clip(mu - sigma_tot, 0.0, 1.0),
-            np.clip(mu + sigma_tot, 0.0, 1.0),
+            res.dense_energies,
+            np.clip(mu - sigma_cnp, 0.0, 1.0),
+            np.clip(mu + sigma_cnp, 0.0, 1.0),
             color="firebrick", alpha=0.20,
-            label="combined ±1σ  (√(σ_CNP² + σ_emp²))",
+            label="CNP ±σ_CNP  (MC Dropout)",
         )
     ax.plot(
-        res.bin_centers, mu, color="firebrick", lw=1.6,
-        label=f"CNP β(E) | D_C   N_context={res.n_context_total}",
+        res.dense_energies, mu, color="firebrick", lw=1.6,
+        label=(
+            f"CNP β(E) | D_C   N_context={res.n_context_total}"
+            f"   n_ctx/pass={res.n_context_per_pass}"
+        ),
     )
+
     e_lo, e_hi = cfg.energy_range
     for label_, e_pk in PEAK_MARKERS:
         if e_lo <= e_pk <= e_hi:
@@ -439,18 +460,17 @@ def write_report(
         f"  energy_bin_width [keV]:       {cfg.energy_bin_width:.1f}",
         f"  test_fraction:                {test_fraction}",
         f"  context_fraction (of subset): {context_fraction}",
+        f"  n_dense (red curve points):   {res.dense_energies.size}",
         f"  n_mc passes (MC Dropout):     {n_mc}",
+        f"  n_context per MC pass:        {res.n_context_per_pass}",
         f"  seed:                         {seed}",
         f"  Youden-J best T*:             {res.T_star:.4f}",
         "",
         f"  N_total (after class+E filter): {res.n_total}",
         f"  |D_C| = {res.n_context_total}    |D_T| = {res.n_target_total}",
-        f"  mean events / bin   D_C = {float(res.n_context_per_bin.mean()):.2f}    "
-        f"D_T = {float(res.n_target_per_bin.mean()):.2f}",
-        f"  bins with empty D_C: {int((res.n_context_per_bin == 0).sum())}",
-        f"  bins with empty D_T: {int((res.n_target_per_bin == 0).sum())}",
+        f"  bins with empty D_T:          {int((res.n_target_per_bin == 0).sum())}",
         "",
-        f"[1] Energy fidelity (D_T vs CNP β(E))",
+        "[1] Energy fidelity (D_T vs CNP β(E) at bin centers)",
         f"    Pearson r        = {res.pearson_r:+.4f}",
         f"    mean offset (D_T − CNP) = {res.mean_offset:+.4f}",
         "",
@@ -473,13 +493,14 @@ def write_report(
         energy_bin_width=cfg.energy_bin_width,
         test_fraction=test_fraction,
         context_fraction=context_fraction,
+        n_dense=int(res.dense_energies.size),
         n_mc=n_mc,
+        n_context_per_pass=res.n_context_per_pass,
         seed=seed,
         T_star=res.T_star,
         n_total=res.n_total,
         n_context_total=res.n_context_total,
         n_target_total=res.n_target_total,
-        bins_empty_D_C=int((res.n_context_per_bin == 0).sum()),
         bins_empty_D_T=int((res.n_target_per_bin == 0).sum()),
         pearson_r=res.pearson_r,
         mean_offset=res.mean_offset,
@@ -496,12 +517,16 @@ def run(
     *,
     test_fraction: float = 1.0, context_fraction: float = 0.20,
     n_mc: int = 50, seed: int = 0,
+    n_dense: int = DEFAULT_N_DENSE,
+    max_context_per_pass: int = DEFAULT_MAX_CONTEXT_PER_PASS,
 ) -> dict:
     cfg = load_config(cfg_path)
     res = infer_and_evaluate(
         cfg,
         test_fraction=test_fraction, context_fraction=context_fraction,
         n_mc=n_mc, seed=seed,
+        n_dense=n_dense,
+        max_context_per_pass=max_context_per_pass,
     )
     return write_report(
         cfg, res, out_dir,
@@ -523,6 +548,14 @@ def main() -> None:
     ap.add_argument("--context-fraction", type=float, default=0.20)
     ap.add_argument("--n-mc", type=int, default=50)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument(
+        "--n-dense", type=int, default=DEFAULT_N_DENSE,
+        help="Number of points in the smooth red β(E) curve.",
+    )
+    ap.add_argument(
+        "--max-context-per-pass", type=int, default=DEFAULT_MAX_CONTEXT_PER_PASS,
+        help="Cap on D_C events fed to the CNP per MC pass (without replacement).",
+    )
     args = ap.parse_args()
     out_dir = args.out_dir
     if out_dir is None:
@@ -532,7 +565,9 @@ def main() -> None:
         test_fraction=args.test_fraction,
         context_fraction=args.context_fraction,
         n_mc=args.n_mc,
-        seed=args.seed)
+        seed=args.seed,
+        n_dense=args.n_dense,
+        max_context_per_pass=args.max_context_per_pass)
 
 
 if __name__ == "__main__":
