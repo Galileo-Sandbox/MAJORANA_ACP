@@ -270,6 +270,34 @@ def _cnp_infer_global(
     return beta_mean, beta_std, n_ctx
 
 
+def pull_arrays(res: InferenceResult) -> tuple[np.ndarray, np.ndarray]:
+    """Return ``(z_cnp_only, z_combined)`` signed pulls for valid bins.
+
+    A "pull" is the signed standardized residual
+    ``z = (rate_emp − β_pred) / σ`` per D_T bin. Two flavors:
+
+    * ``z_cnp_only`` uses ``σ = σ_CNP`` (MC-Dropout std alone) —
+      should appear wide (under-covered) because binomial scatter
+      isn't included.
+    * ``z_combined`` uses ``σ = √(σ_CNP² + σ_emp²)`` — should be
+      ≈ ``N(0, 1)`` if the model is calibrated against the
+      binomial-noise-corrupted empirical estimate.
+
+    Only bins where both ``rate`` and ``beta`` are finite contribute.
+    """
+    valid = ~np.isnan(res.rate) & ~np.isnan(res.beta)
+    if not valid.any():
+        empty = np.empty(0, dtype=np.float64)
+        return empty, empty
+    rate = res.rate[valid]
+    beta = res.beta[valid]
+    sigma_cnp = np.maximum(res.beta_std[valid], 1e-9)
+    sigma_emp = 0.5 * (res.rate_hi[valid] - res.rate_lo[valid])
+    sigma_combined = np.sqrt(sigma_cnp**2 + sigma_emp**2)
+    resid = rate - beta
+    return resid / sigma_cnp, resid / np.maximum(sigma_combined, 1e-9)
+
+
 def _coverage_two_ways(
     rate: np.ndarray, rate_lo: np.ndarray, rate_hi: np.ndarray,
     beta: np.ndarray, beta_std: np.ndarray,
@@ -440,6 +468,82 @@ def plot_inference(
     plt.close(fig)
 
 
+def plot_pulls(
+    ax,
+    z: np.ndarray,
+    *,
+    title: str,
+    n_bins: int = 30,
+    x_range: tuple[float, float] = (-5.0, 5.0),
+) -> None:
+    """Draw a single pull histogram with the ideal ``N(0, 1)`` overlay.
+
+    The histogram bars are counts; the red curve is the standard
+    normal PDF scaled by ``N · bin_width`` so the two integrate to the
+    same area. A calibrated model produces bars that follow the curve
+    closely with empirical ``μ ≈ 0`` and ``σ ≈ 1``.
+    """
+    z = z[np.isfinite(z)]
+    n = z.size
+    if n == 0:
+        ax.text(0.5, 0.5, "no valid bins", ha="center", va="center",
+                transform=ax.transAxes)
+        ax.set_title(title, fontsize=10)
+        return
+    counts, edges = np.histogram(z, bins=n_bins, range=x_range)
+    centers = 0.5 * (edges[:-1] + edges[1:])
+    bin_width = edges[1] - edges[0]
+    ax.bar(
+        centers, counts, width=bin_width,
+        color="steelblue", alpha=0.65, edgecolor="white", linewidth=0.5,
+        label=f"observed (N={n})",
+    )
+    x = np.linspace(x_range[0], x_range[1], 400)
+    pdf = np.exp(-0.5 * x**2) / np.sqrt(2.0 * np.pi)
+    ax.plot(x, pdf * n * bin_width, color="firebrick", lw=1.6, label="ideal N(0, 1)")
+    ax.axvline(0.0, color="gray", ls=":", alpha=0.6, lw=0.8)
+    mu = float(z.mean())
+    sigma = float(z.std(ddof=1)) if n > 1 else float("nan")
+    ax.set_xlim(*x_range)
+    ax.set_xlabel("z = (rate − β) / σ")
+    ax.set_ylabel("count")
+    ax.legend(loc="upper right", fontsize=9)
+    ax.set_title(f"{title}\nemp μ = {mu:+.2f}    σ = {sigma:.2f}", fontsize=10)
+
+
+def plot_coverage(
+    cfg: CutAcceptanceConfig,
+    res: InferenceResult,
+    out_path: Path,
+) -> None:
+    """Save the canonical 1×2 calibration figure (pulls + ideal N(0, 1)).
+
+    Left:  pulls using ``σ_CNP`` alone — the model's MC-Dropout band.
+    Right: pulls using ``σ_combined = √(σ_CNP² + σ_emp²)`` — including
+    binomial scatter on the empirical estimate.
+    """
+    z_cnp, z_comb = pull_arrays(res)
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.4))
+    plot_pulls(
+        axes[0], z_cnp,
+        title=f"pulls / σ_CNP   (cov₁σ = {res.coverage_cnp['1sigma']:.2f})",
+    )
+    plot_pulls(
+        axes[1], z_comb,
+        title=f"pulls / σ_combined   (cov₁σ = {res.coverage_combined['1sigma']:.2f})",
+    )
+    fig.suptitle(
+        f"{cfg.name}   ·   bin = {cfg.energy_bin_width:.0f} keV   ·   "
+        f"target_class = {cfg.target_class!r}   ·   "
+        f"calibration target: μ = 0, σ = 1",
+        fontsize=11,
+    )
+    fig.tight_layout()
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=120)
+    plt.close(fig)
+
+
 def write_report(
     cfg: CutAcceptanceConfig,
     res: InferenceResult,
@@ -483,7 +587,10 @@ def write_report(
     ]
     plot_path = out_dir / "test_set_audit.png"
     plot_inference(cfg, res, plot_path)
+    coverage_path = out_dir / "coverage_audit.png"
+    plot_coverage(cfg, res, coverage_path)
     lines.append(f"plot: {plot_path}")
+    lines.append(f"coverage: {coverage_path}")
     text = "\n".join(lines) + "\n"
     (out_dir / "test_set_audit.txt").write_text(text)
 
