@@ -183,16 +183,26 @@ def _cnp_infer_per_bin(
     *,
     n_mc: int,
     seed: int,
+    max_context: int | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Per-bin (β_mean, β_std) using MC Dropout + D_C-only context.
+    """Per-bin (β_mean, β_std) using MC Dropout with **variable-N** context.
 
-    Bins with empty D_C pool get NaN.
+    For each bin we condition the CNP on the actual events in
+    ``D_C[bin]`` — **without replacement** — capped at
+    ``max_context`` (defaults to ``cfg.n_per_trial``). Bins with an
+    empty D_C pool are NaN. This is the key robustness change: the
+    CNP receives a context whose size honestly reflects how much data
+    that bin has. Combined with low ``cnp.n_context_min`` during
+    training, σ_CNP should grow when the bin is data-poor.
+
+    Skipping a bin means: empty D_C → no possible prediction.
     """
+    if max_context is None:
+        max_context = cfg.n_per_trial
     rng = np.random.default_rng(int(seed))
     n_e = bin_centers.size
     beta_mean = np.full(n_e, np.nan, dtype=np.float64)
     beta_std = np.full(n_e, np.nan, dtype=np.float64)
-    n_ctx = cfg.n_per_trial
     e_lo, e_hi = cfg.energy_range
     t_lo, t_hi = cfg.threshold_range
     t_norm = (T - t_lo) / (t_hi - t_lo)
@@ -204,11 +214,23 @@ def _cnp_infer_per_bin(
                 ctx_pool = bin_context_scores[i]
                 if ctx_pool.size == 0:
                     continue
+                # Effective context size honors the bin's actual D_C
+                # population (no padding-by-replacement). If the bin
+                # has fewer events than max_context, the CNP sees a
+                # smaller trial and *should* return a wider σ.
+                n_ctx = int(min(ctx_pool.size, max_context))
                 e_norm = (e_center - e_lo) / (e_hi - e_lo)
                 theta = np.array([[e_norm, t_norm]], dtype=np.float64)
                 samples = np.empty(n_mc, dtype=np.float64)
                 for m in range(n_mc):
-                    picks = rng.integers(0, ctx_pool.size, size=n_ctx)
+                    if n_ctx >= ctx_pool.size:
+                        # Use every available D_C event in the bin
+                        # (still permute so order-sensitive parts of
+                        # the encoder see slight variation).
+                        order = rng.permutation(ctx_pool.size)
+                        picks = order[:n_ctx]
+                    else:
+                        picks = rng.choice(ctx_pool.size, size=n_ctx, replace=False)
                     ctx_labels = (ctx_pool[picks] >= T).astype(np.int8)[None, :]
                     ctx_batch = StandardBatch(
                         mode=InputMode.DESIGN_ONLY, theta=theta, phi=None, labels=ctx_labels

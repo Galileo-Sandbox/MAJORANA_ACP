@@ -22,7 +22,7 @@ encoder:
   dropout: 0.1
 
 cnp:
-  n_context_min: 8
+  n_context_min: 2
   n_context_max: 24
   output_activation: sigmoid
   mixup_alpha: 0.01
