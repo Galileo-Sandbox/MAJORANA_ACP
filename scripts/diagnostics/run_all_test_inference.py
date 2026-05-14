@@ -7,8 +7,12 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from majorana_acp.cut_acceptance.config import load_config
-from scripts.diagnostics.cnp_test_inference import run as run_cell
+# Headless backend for the CLI sweep so figures save without an X display.
+import matplotlib  # noqa: E402
+matplotlib.use("Agg")
+
+from majorana_acp.cut_acceptance.config import load_config  # noqa: E402
+from scripts.diagnostics.cnp_test_inference import run as run_cell  # noqa: E402
 
 CFG_ROOT = Path("configs/cut_acceptance").resolve()
 OUT_ROOT = Path("analysis/cnp_audit").resolve()

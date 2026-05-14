@@ -36,8 +36,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import h5py
-import matplotlib
-matplotlib.use("Agg")
+# NB: we do *not* force the matplotlib backend at module-load time —
+# that would override the inline backend when this module is imported
+# from a Jupyter notebook (the bug that hid all §8.4 plots). The CLI
+# entry point flips to Agg explicitly before saving any figure.
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -509,6 +511,11 @@ def run(
 
 
 def main() -> None:
+    # CLI entry — headless. Notebook callers leave the backend alone
+    # so plt.show() keeps working inline.
+    import matplotlib
+    matplotlib.use("Agg")
+
     ap = argparse.ArgumentParser()
     ap.add_argument("config", type=Path)
     ap.add_argument("--out-dir", type=Path, default=None)
