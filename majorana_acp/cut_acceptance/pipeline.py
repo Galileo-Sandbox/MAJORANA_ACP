@@ -78,6 +78,11 @@ def wilson_interval(
         half = (z * np.sqrt(p * (1.0 - p) / n + (z * z) / (4.0 * n * n))) / denom
     lo = np.clip(center - half, 0.0, 1.0)
     hi = np.clip(center + half, 0.0, 1.0)
+    # FP guarantees: lo ≤ p ≤ hi (rounding can otherwise produce
+    # ``hi = 0.9999…8`` against ``p = 1.0``, which breaks matplotlib
+    # errorbars with negative half-widths).
+    lo = np.minimum(lo, p)
+    hi = np.maximum(hi, p)
     lo = np.where(n > 0, lo, np.nan)
     hi = np.where(n > 0, hi, np.nan)
     return lo, hi

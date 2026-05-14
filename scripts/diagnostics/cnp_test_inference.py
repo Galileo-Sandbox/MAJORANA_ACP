@@ -366,9 +366,10 @@ def plot_inference(
     Band: ±1σ combined ( √(σ_CNP² + σ_emp²) ).
     """
     fig, ax = plt.subplots(figsize=(11, 4.8))
-    # Asymmetric Wilson errorbars.
-    yerr_lo = np.where(np.isnan(res.rate), 0.0, res.rate - res.rate_lo)
-    yerr_hi = np.where(np.isnan(res.rate), 0.0, res.rate_hi - res.rate)
+    # Asymmetric Wilson errorbars; defensively clamp at 0 in case of FP
+    # rounding so matplotlib doesn't reject the input.
+    yerr_lo = np.maximum(np.where(np.isnan(res.rate), 0.0, res.rate - res.rate_lo), 0.0)
+    yerr_hi = np.maximum(np.where(np.isnan(res.rate), 0.0, res.rate_hi - res.rate), 0.0)
     ax.errorbar(
         res.bin_centers, res.rate, yerr=[yerr_lo, yerr_hi],
         fmt="o", ms=4, capsize=2, color="steelblue",
