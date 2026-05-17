@@ -47,7 +47,11 @@ from schemas.data_models import InputMode, StandardBatch
 from sklearn.metrics import roc_curve
 
 from majorana_acp.cut_acceptance.config import CutAcceptanceConfig, load_config
-from majorana_acp.cut_acceptance.pipeline import wilson_interval
+from majorana_acp.cut_acceptance.pipeline import (
+    resolve_name,
+    resolve_out_dir,
+    wilson_interval,
+)
 
 PEAK_MARKERS = [
     ("Tl-208 FE", 2614.0),
@@ -358,7 +362,8 @@ def infer_and_evaluate(
     # The pipeline's saved bin grid is still the canonical D_T binning
     # for the blue Wilson points + coverage. The CNP itself doesn't
     # know about it.
-    pool = np.load(Path(cfg.out_dir) / "training_pool.npz")
+    cell_dir = resolve_out_dir(cfg)
+    pool = np.load(cell_dir / "training_pool.npz")
     bin_centers = pool["bin_centers"]
     edges = _bin_edges_from_centers(bin_centers, cfg.energy_bin_width)
     e_lo, e_hi = cfg.energy_range
@@ -370,7 +375,7 @@ def infer_and_evaluate(
     rate_lo[sparse_T] = np.nan
     rate_hi[sparse_T] = np.nan
 
-    cnp = _load_cnp(cfg, Path(cfg.out_dir) / "cnp.ckpt")
+    cnp = _load_cnp(cfg, cell_dir / "cnp.ckpt")
     n_bin = bin_centers.size
     query_e = np.concatenate([bin_centers, dense_energies])
     beta_all, std_all, n_ctx_used = _cnp_infer_global(
@@ -462,7 +467,7 @@ def plot_inference(
     ax.grid(alpha=0.3)
     ax.legend(loc="upper right", fontsize=9)
     ax.set_title(
-        f"{cfg.name}   (bin = {cfg.energy_bin_width:.0f} keV, "
+        f"{resolve_name(cfg)}   (bin = {cfg.energy_bin_width:.0f} keV, "
         f"target_class={cfg.target_class!r})\n"
         f"r = {res.pearson_r:.3f}    offset = {res.mean_offset:+.3f}    "
         f"cov₁σ  CNP={res.coverage_cnp['1sigma']:.2f}  "
@@ -537,7 +542,7 @@ def plot_coverage(
         title=f"pulls / σ_combined   (cov₁σ = {res.coverage_combined['1sigma']:.2f})",
     )
     fig.suptitle(
-        f"{cfg.name}   ·   bin = {cfg.energy_bin_width:.0f} keV   ·   "
+        f"{resolve_name(cfg)}   ·   bin = {cfg.energy_bin_width:.0f} keV   ·   "
         f"target_class = {cfg.target_class!r}",
         fontsize=10,
     )
@@ -558,10 +563,10 @@ def write_report(
     out_dir.mkdir(parents=True, exist_ok=True)
     lines: list[str] = [
         "=" * 78,
-        f"Test-set inference  ·  {cfg.name}",
+        f"Test-set inference  ·  {resolve_name(cfg)}",
         "=" * 78,
-        f"  config:                       {Path(cfg.out_dir).name}",
-        f"  trained CNP:                  {Path(cfg.out_dir) / 'cnp.ckpt'}",
+        f"  config:                       {resolve_out_dir(cfg).name}",
+        f"  trained CNP:                  {resolve_out_dir(cfg) / 'cnp.ckpt'}",
         f"  test predictions:             {cfg.validation_predictions_path}",
         f"  target_class:                 {cfg.target_class!r}",
         f"  energy_bin_width [keV]:       {cfg.energy_bin_width:.1f}",
@@ -598,7 +603,7 @@ def write_report(
     (out_dir / "test_set_audit.txt").write_text(text)
 
     metrics = dict(
-        config=cfg.name,
+        config=resolve_name(cfg),
         target_class=str(cfg.target_class),
         energy_bin_width=cfg.energy_bin_width,
         test_fraction=test_fraction,

@@ -12,7 +12,12 @@ import logging
 from pathlib import Path
 
 from majorana_acp.cut_acceptance.config import load_config
-from majorana_acp.cut_acceptance.pipeline import run_pipeline
+from majorana_acp.cut_acceptance.pipeline import (
+    paradigm_path_suffix,
+    resolve_name,
+    resolve_out_dir,
+    run_pipeline,
+)
 
 
 def main() -> int:
@@ -32,12 +37,13 @@ def main() -> int:
 
     cfg = load_config(args.config)
     log.info(
-        "config: %s  target_class=%s  bin_width=%.0f keV  out_dir=%s",
-        cfg.name,
+        "config: %s  target_class=%s  bin_width=%.0f keV  paradigm=%s",
+        resolve_name(cfg),
         cfg.target_class,
         cfg.energy_bin_width,
-        cfg.out_dir,
+        paradigm_path_suffix(cfg),
     )
+    log.info("  out_dir: %s", resolve_out_dir(cfg))
 
     summary = run_pipeline(cfg, seed=args.seed)
 

@@ -134,8 +134,16 @@ def test_run_pipeline_end_to_end(tmp_path: Path) -> None:
 
 
 @pytest.mark.slow
-def test_pipeline_variable_n_and_auto_derived_paths(tmp_path: Path) -> None:
-    """``variable_uniform`` trains via the wrapper and out_dir is auto-derived."""
+def test_pipeline_variable_n_and_auto_derived_paths(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """``variable_uniform`` trains via the wrapper and out_dir is auto-derived.
+
+    Chdir into ``tmp_path`` so the auto-derived ``results/...`` path
+    lands inside the temp dir rather than polluting the real
+    ``results/`` tree under the repo.
+    """
+    monkeypatch.chdir(tmp_path)
     train = tmp_path / "train.h5"
     val = tmp_path / "test.h5"
     upstream = tmp_path / "my_classifier.yaml"
