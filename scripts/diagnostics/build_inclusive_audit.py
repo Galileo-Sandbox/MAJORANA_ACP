@@ -44,7 +44,7 @@ AUDIT_ROOT = Path("analysis/cnp_audit")
 MODEL = "simple_cnn_small"
 BIN_DIR = "bin10"
 CLS = "inclusive"
-OUT_PATH = AUDIT_ROOT / "_audit_inclusive_result.md"
+OUT_PATH = AUDIT_ROOT / "_audit_inclusive.md"
 
 
 def _fmt_p(p: float | None) -> str:
