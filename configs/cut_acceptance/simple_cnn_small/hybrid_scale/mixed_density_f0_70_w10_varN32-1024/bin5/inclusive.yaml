@@ -1,0 +1,50 @@
+# Hybrid-scale w10_varN_large · bin5/inclusive: 10 keV mixed-density focus
+# + per-step variable N ∈ [32, 1024]. Sister cell of bin10/signal — the
+# golden config from the peak-comparison sweep — extended across the
+# full (bin_width × class) matrix so §8.4.3 resolution-sweep panels
+# render with continuous, well-calibrated curves.
+# out_dir / name are auto-derived from the canonical paradigm tag.
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 5.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: mixed_density
+zoom_window_width_kev: 10.0
+local_event_fraction: 0.70
+trial_size_strategy: variable_uniform
+n_trial_events_min: 32
+n_trial_events_max: 1024
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 2
+  n_context_max: 1023        # lets context grow with N; auto-clamps when N small
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 6000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform; placeholder
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
