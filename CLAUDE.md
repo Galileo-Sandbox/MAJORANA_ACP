@@ -98,7 +98,330 @@ Each item is a `dict` containing at least: `waveform` (float32 tensor), `label` 
 - **Be strict with the user and double-check**: what the user says is not always correct. If a statement seems wrong or an idea seems impractical, ask for clarification and state the objection clearly.
 - **Never directly continue right after conversation compression**: stop after compression. The user will re-supply the context, docs, and code to read. Do not start blindly.
 
-## Cut-Acceptance · True CNP (Per-Event Coordinates) Plan (FINAL)
+## Cut-Acceptance · Hybrid-Scale Sampling Plan (FINAL)
+
+### Settlements
+1. **Variable-N**: per-step wrapper in `pipeline.py`; RESUM_FLEX untouched.
+2. **Path derivation**: auto when YAML leaves `out_dir`/`name` blank; YAML-explicit values override.
+3. **Path serialization**: underscore for decimals → `mixed_density_f0_70_w50` (not `f0p70`).
+4. **`random_clusters` failure**: raise `ValueError` after 50 rejection attempts. No silent fallback.
+5. **Inference**: untouched by `variable_uniform`. D_C remains the global-aggregation set built from the test split.
+
+(Earlier "PROPOSED" copy below; settlements above supersede where they conflict.)
+
+### Why now
+
+The True-CNP framework is in place but every cell uses one sampling strategy: `flat_stratified` (bin-uniform). Real spectra have sharp acceptance transitions at γ peaks (Tl-208 FE 2614 keV, ⁴⁰K 1460 keV) that a uniformly-stratified context smooths over. We need a *matrix* of sampling strategies so the same CNP architecture can be probed under different spatial-information regimes, with clean version control so experiments don't clobber each other.
+
+### Design intent — two orthogonal axes
+
+| Axis | Knob | Values |
+|---|---|---|
+| **A. Trial size** | `trial_size_strategy` | `fixed` \| `variable_uniform` |
+| **B. Spatial pattern** | `sampling_pattern` | `flat_stratified` \| `mixed_density` \| `random_clusters` \| `physics_anchored` |
+
+The two are deliberately decoupled — every (A, B) combination is a valid experiment.
+
+### Critical RESUM_FLEX compatibility constraint (read this before agreeing to the spec)
+
+`core/training.train_cnp` reads `training_config.n_events_per_trial` **once** outside the step loop, and passes that fixed value to `generator.generate(n_events=…)` every step. The downstream encoder also requires uniform `N` per batch (`StandardBatch.labels` is `[B, N]`, no padding mask).
+
+Consequence: **per-trial variable `N` within a single batch is not implementable without modifying RESUM_FLEX**. Two ways to honor the `variable_uniform` spec:
+
+* **Per-step variable N (recommended)**: each training step picks one `N ~ Uniform[N_min, N_max]` and all trials in that step share it. Across the full training, the model still sees the full range. We get there by writing a thin training loop wrapper in `majorana_acp/cut_acceptance/pipeline.py` that mimics `train_cnp` but resamples `n_events` per step. RESUM_FLEX stays untouched.
+* **True per-trial variable N**: would need a padded-N + mask extension to the CNP encoder. Bigger refactor, deferred.
+
+I'll proceed with per-step variable N. If you want true per-trial variable N, that's a separate plan (RESUM_FLEX padding-mask extension).
+
+### Phase 1 — Config schema + sampler refactor + tests
+
+**Config (`majorana_acp/cut_acceptance/config.py`)** — add the new knobs as two sub-blocks. Defaults reproduce current behavior exactly so the 9 existing YAMLs need no edits:
+
+```python
+trial_size_strategy: Literal["fixed", "variable_uniform"] = "fixed"
+n_events_per_trial_total: int = 48                 # used by "fixed"
+n_trial_events_min: int = 16                       # used by "variable_uniform"
+n_trial_events_max: int = 64                       # used by "variable_uniform"
+
+sampling_pattern: Literal[
+    "flat_stratified", "mixed_density",
+    "random_clusters", "physics_anchored",
+] = "flat_stratified"
+zoom_window_width_kev: float = 50.0                # used by mixed_density / clusters / anchored
+local_event_fraction: float = 0.70                 # used by mixed_density / anchored
+n_clusters: int = 2                                # used by random_clusters
+physics_peaks_kev: list[float] = [1460.0, 2614.0]  # used by physics_anchored
+```
+
+Validators: enforce `n_trial_events_max ≥ n_trial_events_min ≥ 4`, `0 < local_event_fraction < 1`, `n_clusters ≥ 1`, `zoom_window_width_kev > 0`. Filter `physics_peaks_kev` to those inside `energy_range` at config-load time (warn if any dropped).
+
+**Sampler (`majorana_acp/cut_acceptance/event_sampler.py`)** — keep the same `generate(n_trials, n_events, seed)` signature; the caller continues to control `n_events`. The sampler now reads the pattern config and dispatches per trial:
+
+```python
+class EventSampler:
+    def __init__(self, …, *,
+                 sampling_pattern, zoom_window_width_kev, local_event_fraction,
+                 n_clusters, physics_peaks_kev):
+        …
+
+    def generate(self, n_trials, n_events, seed) -> StandardBatch:
+        rng = np.random.default_rng(seed)
+        t_k = self._sample_t(rng, n_trials)
+        event_indices = np.empty((n_trials, n_events), dtype=np.int64)
+        for k in range(n_trials):
+            event_indices[k] = self._draw_one_trial(rng, n_events)
+        # ... assemble phi + labels from event_indices ...
+```
+
+`_draw_one_trial(rng, n)` is the dispatch. Each pattern is a private helper:
+
+**Pattern 1 — `_draw_flat_stratified(rng, n)`**: current behavior, factored out (no logic change). For `n` slots, pick `n` kept-bin indices uniformly with replacement, then pick one event uniformly from each picked bin.
+
+**Pattern 2 — `_draw_mixed_density(rng, n)`**:
+1. `focus_idx = rng.integers(0, n_kept)`; `E_focus = self.bin_centers[focus_idx]`.
+2. `half_w = self.zoom_window_width_kev / 2`.
+3. `local_bins = np.flatnonzero(np.abs(self.bin_centers - E_focus) <= half_w + 0.5 * self.energy_bin_width)`. (Half-bin pad so partial-overlap bins are included.)
+4. `n_local = round(n * self.local_event_fraction)`; `n_global = n - n_local`.
+5. Draw `n_local` events bin-stratified within `local_bins`; `n_global` events flat-stratified.
+6. Concatenate + shuffle so the encoder sees a permutation-invariant set.
+
+**Pattern 3 — `_draw_random_clusters(rng, n)`**:
+1. Pick `self.n_clusters` non-overlapping focus energies via rejection sampling: draw a candidate from `kept_bin_indices`, reject if its `±zoom_window_width_kev/2` window overlaps any previously-accepted window. Cap rejections at 50; if can't fit `n_clusters`, raise (config error).
+2. Build the union of in-window bins across all clusters.
+3. Split `n` event slots evenly across clusters (`n // n_clusters`, distribute remainder round-robin).
+4. Within each cluster, draw events bin-stratified from its own bin set.
+5. Concatenate + shuffle.
+
+**Pattern 4 — `_draw_physics_anchored(rng, n)`**: identical to `_draw_mixed_density` except `E_focus = rng.choice(self.physics_peaks_kev)` (already filtered to in-range at config time). Window/bin selection / split / draw all reuse the same code path.
+
+**Tests** (`tests/cut_acceptance/test_event_sampler.py`) — add a fixture-parameterized matrix:
+* For each (size_strategy, pattern) pair: emit a large batch, verify shape, mode, phi range, label dtype, reproducibility.
+* `mixed_density`: with `local_event_fraction=0.7` and a focus near 1500 keV, ≥60% of phi[:,:,0] events lie within `±half_w` of focus. (Loose bound — gives RNG slack.)
+* `random_clusters` with `n_clusters=2`, `W=50`: every emitted event falls inside one of the two picked windows; zero events lie outside both.
+* `physics_anchored`: every trial's focus is within `±half_w` of some peak in `physics_peaks_kev`.
+* `variable_uniform`: not a sampler-level concern (handled in the training loop). Skipped here; covered by a pipeline test in Phase 2.
+
+### Phase 2 — Pipeline wiring + dynamic paths + smoke
+
+**Auto-derived `out_dir` and `name`** — when the user leaves `out_dir` / `name` blank in the YAML, the pipeline derives them from a canonical pattern serializer:
+
+```python
+def paradigm_path_suffix(cfg) -> str:
+    """Returns e.g. 'true_cnp' or 'hybrid_scale/mixed_density_f0p70_w50'."""
+    if cfg.sampling_pattern == "flat_stratified" and cfg.trial_size_strategy == "fixed":
+        return "true_cnp"
+    # Otherwise sit under hybrid_scale/<pattern>_<serialized_params>/
+    bits = [cfg.sampling_pattern]
+    if cfg.sampling_pattern in ("mixed_density", "physics_anchored"):
+        bits.append(f"f{cfg.local_event_fraction:.2f}".replace(".", "p"))
+        bits.append(f"w{int(cfg.zoom_window_width_kev)}")
+    elif cfg.sampling_pattern == "random_clusters":
+        bits.append(f"n{cfg.n_clusters}")
+        bits.append(f"w{int(cfg.zoom_window_width_kev)}")
+    if cfg.trial_size_strategy == "variable_uniform":
+        bits.append(f"varN{cfg.n_trial_events_min}-{cfg.n_trial_events_max}")
+    return f"hybrid_scale/{'_'.join(bits)}"
+```
+
+Examples produced:
+* baseline → `true_cnp/`
+* `mixed_density f=0.70 w=50` → `hybrid_scale/mixed_density_f0p70_w50/`
+* `random_clusters n=2 w=50 varN 16-64` → `hybrid_scale/random_clusters_n2_w50_varN16-64/`
+
+`CutAcceptanceConfig` makes `out_dir` and `name` **optional**. The pipeline resolves them like:
+```python
+paradigm = paradigm_path_suffix(cfg)
+out_dir = cfg.out_dir or Path(f"results/cut_acceptance/{model}/{paradigm}/bin{bw}/{cls}")
+name = cfg.name or f"{model}_bin{bw}_{cls}__{paradigm.replace('/', '__')}"
+```
+Existing YAMLs that have explicit `out_dir` / `name` keep working unchanged (the True-CNP YAMLs do).
+
+**Training loop wrapper** — when `trial_size_strategy == "variable_uniform"`, `pipeline.py` uses a local wrapper `train_cnp_variable_n_per_step` that mimics `train_cnp` but draws `n_events` fresh from `Uniform[n_trial_events_min, n_trial_events_max]` each step and clamps `n_ctx_max ≤ n_events - 1` before calling `split_context_target`. When `fixed`, the stock `train_cnp` is used (no behavior change for the 9 existing cells).
+
+**Smoke cell**: write a new YAML at `configs/cut_acceptance/simple_cnn_small/hybrid_scale/mixed_density_f0p70_w50/bin10/signal.yaml` that sets:
+```yaml
+sampling_pattern: mixed_density
+zoom_window_width_kev: 50.0
+local_event_fraction: 0.70
+```
+Train it end-to-end. Verify:
+* `out_dir` lands at `results/cut_acceptance/simple_cnn_small/hybrid_scale/mixed_density_f0p70_w50/bin10/signal/`.
+* `cnp.ckpt` is reachable from the diagnostic script.
+* `run_summary.json` carries `upstream_classifier_sha256` + the resolved paradigm string.
+
+### Phase 3 — Evaluation sweep + audit
+
+* Add a YAML at `hybrid_scale/random_clusters_n2_w50/bin10/signal.yaml` as a second variant.
+* Sweep both with `run_all_test_inference.py` (still uses rglob → picks up the deeper tree automatically).
+* Visually verify on the audit PNG:
+  * `mixed_density` red curve shows sharper local features near the focus regions vs the `true_cnp` baseline — should "see" peaks better.
+  * `random_clusters` shows wider `σ_CNP` band in the out-of-cluster regions (no D_C → honest uncertainty).
+* Coverage plot (combined-σ pulls vs N(0,1)) should remain near calibration target.
+
+### Files touched (sketch)
+
+| File | Phase | Net change |
+|---|---|---|
+| `majorana_acp/cut_acceptance/config.py` | 1 | New fields + validators; `out_dir`/`name` become optional |
+| `majorana_acp/cut_acceptance/event_sampler.py` | 1 | Pattern dispatch + 4 private draw helpers |
+| `tests/cut_acceptance/test_event_sampler.py` | 1 | Parameterized matrix, ~6 new tests |
+| `majorana_acp/cut_acceptance/pipeline.py` | 2 | `paradigm_path_suffix` resolver, optional `out_dir/name` derivation, `train_cnp_variable_n_per_step` wrapper |
+| `configs/cut_acceptance/simple_cnn_small/hybrid_scale/mixed_density_f0p70_w50/bin10/signal.yaml` | 2 | New (smoke) |
+| `configs/cut_acceptance/simple_cnn_small/hybrid_scale/random_clusters_n2_w50/bin10/signal.yaml` | 3 | New (sweep variant) |
+| `tests/cut_acceptance/test_pipeline.py` | 2 | A `variable_uniform` smoke pass + asserts on derived path |
+
+Estimated effort: ~45 min code + 6 min two-cell training + 5 min audit.
+
+### Open questions
+
+1. **Per-step vs per-trial variable N**: confirm per-step (within-batch N is uniform) is acceptable, or do you want me to plan the RESUM_FLEX padding-mask extension as a separate workstream?
+2. **`out_dir` / `name` derivation**: confirm "auto-derive when blank; keep YAML-explicit value when provided". Or do you want strict auto-derive (ignore YAML's `out_dir` and `name` entirely)?
+3. **Pattern serialization in path**: `mixed_density_f0p70_w50` (`f0p70` = `0.70` with the dot replaced) — readable? Or prefer `f0_70`, `f70pct`, or numeric `f70_w50`?
+4. **`random_clusters` failure mode**: if rejection sampling can't fit `n_clusters` non-overlapping windows of the requested width (e.g., `n_clusters=8`, `W=500` keV in a 2500-keV range), raise a config error vs. silently fall back to overlapping clusters. I lean **raise** — clearer.
+5. **Validation set lineage**: the `variable_uniform` setting affects training only; inference still uses the same global-aggregation D_C subsampling. Confirm this is the intended decoupling.
+
+### Commit plan
+
+| # | Commit | Scope |
+|---|---|---|
+| 1 | `Decoupled trial-size and sampling-pattern config knobs` | config.py + validators + test_config additions |
+| 2 | `Hybrid sampling patterns in EventSampler` | event_sampler.py dispatch + 4 helpers + test_event_sampler matrix |
+| 3 | `Auto-derive out_dir + name from paradigm; variable-N wrapper` | pipeline.py (path resolver + variable-N loop) |
+| 4 | `Smoke YAML: hybrid_scale/mixed_density_f0p70_w50/bin10/signal` | one new YAML + trained run_summary.json |
+| 5 | `Sweep variant: hybrid_scale/random_clusters_n2_w50/bin10/signal` | second new YAML + trained run_summary.json |
+| 6 | (notebook update — uncommitted per standing rule) | §8.4 paradigm-suffix display |
+
+---
+
+## Cut-Acceptance · Version-Control & Lineage Refactor Plan (PROPOSED)
+
+### Why now
+The True-CNP rollout is shipped and exercised across 9 cells. Before any
+hybrid-scale evolution, close four naming / lineage gaps that would
+otherwise compound into a multi-paradigm mess:
+
+| # | Gap | Fix in this refactor |
+|---|---|---|
+| 1 | Paradigm invisible in config names / paths | Sibling-tree under `<paradigm>/` |
+| 2 | No explicit link from cut-acceptance to its upstream classifier | Mandatory `upstream_classifier_config` + recorded SHA256 |
+| 3 | Trained artifacts live in gitignored `results/`; no fingerprint in git | Track `run_summary.json` via a `.gitignore` exception |
+| 4 | Notebook hard-codes paradigm | New `CURRENT_PARADIGM` toggle |
+
+### Phase 1 — Configuration migration (sibling tree)
+
+* New layout:
+  `configs/cut_acceptance/<model>/<paradigm>/bin{5,10,20}/{signal,background,inclusive}.yaml`
+* Operation:
+  ```
+  mkdir -p configs/cut_acceptance/simple_cnn_small/true_cnp
+  git mv configs/cut_acceptance/simple_cnn_small/bin5   configs/cut_acceptance/simple_cnn_small/true_cnp/
+  git mv configs/cut_acceptance/simple_cnn_small/bin10  configs/cut_acceptance/simple_cnn_small/true_cnp/
+  git mv configs/cut_acceptance/simple_cnn_small/bin20  configs/cut_acceptance/simple_cnn_small/true_cnp/
+  ```
+* Inside each of the 9 migrated YAMLs, edit:
+  * `name:` append `__true_cnp` suffix (e.g. `simple_cnn_small_bin10_signal__true_cnp`).
+  * `out_dir:` mirror new tree → `results/cut_acceptance/simple_cnn_small/true_cnp/bin{N}/{class}`.
+* `run_all_test_inference.py` already uses `rglob` over `configs/cut_acceptance/`, so it will pick up the new tree automatically — but double-check the `OUT_ROOT / rel.parent / rel.stem` calculation lands at the expected `analysis/cnp_audit/simple_cnn_small/true_cnp/...`.
+
+### Phase 2 — Upstream classifier lineage
+
+* `CutAcceptanceConfig` gains:
+  ```python
+  upstream_classifier_config: Path = Field(
+      ...,
+      description=(
+          "Path (relative to repo root) to the YAML that trained the "
+          "classifier whose predictions.h5 outputs we score against. "
+          "Mandatory — the SHA256 of this file is recorded in "
+          "run_summary.json so each cut-acceptance run is bound to "
+          "an exact upstream classifier state."
+      ),
+  )
+  ```
+* No existence validation at config-load time (so tests don't need to stub the upstream YAML on disk just to parse). Existence is asserted at pipeline-execution time, when we open it to hash.
+* All 9 YAMLs add:
+  `upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml`
+* `pipeline.py` additions inside `run_pipeline`:
+  * Compute SHA256 of `cfg.upstream_classifier_config`.
+  * Store both the path string and the hash in `run_summary.json` as
+    `upstream_classifier_config` and `upstream_classifier_sha256`.
+* `tests/cut_acceptance/test_pipeline.py`: smoke test now writes a stub upstream YAML to `tmp_path` and passes its path through `_fast_cfg`.
+* `tests/cut_acceptance/test_config.py`: add a case asserting loading fails when `upstream_classifier_config` is missing.
+
+### Phase 3 — Lightweight checkpoint fingerprinting
+
+Goal: `run_summary.json` becomes the version-controlled "what trained at this path, when, against which upstream" record. We don't try to commit the `cnp.ckpt` itself.
+
+* `.gitignore` exception (idiomatic git form):
+  ```
+  results/*
+  !results/**/
+  !results/**/run_summary.json
+  ```
+  (The current `results/` rule is replaced by these three lines. Smoke-test with `git check-ignore -v results/cut_acceptance/.../cnp.ckpt` (ignored) and `…/run_summary.json` (tracked).)
+* Extend `PipelineSummary` to include `upstream_classifier_config`, `upstream_classifier_sha256`, and (cheap) the training-data-subset descriptor — anything that uniquely identifies the run.
+* Update the test_pipeline assertions to verify these fields are present in the saved JSON.
+
+### Phase 4 — Notebook paradigm toggle
+
+Cell 39:
+
+* Add `CURRENT_PARADIGM = "true_cnp"` next to `CURRENT_MODEL`.
+* Path construction in `get_inference`:
+  ```python
+  cfg_path = (
+      CFG_ROOT / model / CURRENT_PARADIGM / f"bin{bin_width}" / f"{target_class}.yaml"
+  )
+  ```
+* Include `CURRENT_PARADIGM` in the `_inference_cache` key so swapping the toggle doesn't return a stale result.
+* Update the suptitle strings in §8.4.{2,3,4} cells to show the active paradigm.
+
+### Verification
+
+Per-phase: run `pytest tests/cut_acceptance/ -q`. End-to-end:
+
+1. Retrain one cell (`true_cnp/bin10/signal`) and confirm:
+   * `out_dir` lands at `results/cut_acceptance/simple_cnn_small/true_cnp/bin10/signal/`.
+   * `run_summary.json` contains the new lineage fields.
+   * `git status` shows that single `run_summary.json` as a trackable new file (and `cnp.ckpt` as still ignored).
+2. Full retrain + sweep (~5 min training + ~1 min inference): all 9 cells produce True-CNP outputs at the new paths.
+3. Open notebook, set `CURRENT_PARADIGM = "true_cnp"`, re-run §8.4 — figures match the regenerated PNGs.
+
+### Commit plan
+
+One commit per phase, then a verification-output commit:
+
+1. `Sibling-tree layout: configs/.../<paradigm>/bin*/...`
+2. `Bind cut-acceptance to upstream classifier via SHA256`
+3. `Track run_summary.json as the lightweight experiment registry`
+4. `Notebook: CURRENT_PARADIGM toggle for paradigm-aware paths`
+5. `Refresh 9 run_summary.json after True-CNP retraining`  *(adds the now-tracked JSONs)*
+
+### Files touched
+
+| File | Phase |
+|---|---|
+| `configs/cut_acceptance/simple_cnn_small/bin{5,10,20}/*.yaml` (moved + edited) | 1, 2 |
+| `majorana_acp/cut_acceptance/config.py` | 2 |
+| `majorana_acp/cut_acceptance/pipeline.py` | 2, 3 |
+| `tests/cut_acceptance/test_config.py` | 2 |
+| `tests/cut_acceptance/test_pipeline.py` | 2, 3 |
+| `.gitignore` | 3 |
+| `notebooks/data_visualization.ipynb` | 4 |
+
+### Estimated effort
+
+~25 min code + 6 min retraining + sweep + 5 min verification. No upstream library changes.
+
+### Open questions
+
+1. **Paradigm name**: `true_cnp` per your spec. Confirm the suffix `__true_cnp` (double underscore) is what you want in `name:`; or single underscore `_true_cnp`?
+2. **Old `results/cut_acceptance/simple_cnn_small/bin{N}/`** directories will be left as orphans after migration (gitignored, harmless). Do you want me to `rm -rf` them at the end, or leave them?
+3. **Backfill or retrain?** Migration moves config paths; the existing checkpoints sit at the *old* `results/.../bin{N}/` paths and could be `mv`'d to the new paths. But their `run_summary.json` won't have the new lineage fields. Cleanest is retrain. ~5 min cost.
+
+---
+
+## Cut-Acceptance · True CNP (Per-Event Coordinates) Plan (IMPLEMENTED 2026-05-13)
 
 ### Reframe
 
