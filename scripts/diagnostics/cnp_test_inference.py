@@ -3,10 +3,11 @@
 The trained CNP is a 1D-regression CNP in ``InputMode.EVENT_ONLY``:
 each context event carries its own ``phi_i = (E_i_norm, T_norm)``. As
 a true stochastic process, β(E) is a continuous function of energy —
-we evaluate it on a dense grid by aggregating **all** D_C events
-(capped at :data:`MAX_CONTEXT_PER_PASS`) into a single global
-representation ``r``, then decoding at every query point in one
-forward call.
+we evaluate it on a dense grid by aggregating **all** D_C events into
+a single global representation ``r`` and decoding at every query point
+in one forward call. ``DEFAULT_MAX_CONTEXT_PER_PASS`` is set high
+enough that the full D_C is used by default; the cap exists only for
+memory-constrained experiments and can be lowered explicitly.
 
 Pipeline
 --------
@@ -15,17 +16,19 @@ Pipeline
   set ``D_T`` (default 80%).
 * Empirical pass rate (blue) comes from **D_T only**, binned at the
   pipeline's saved bin grid, with Wilson 1σ errorbars.
-* CNP β(E) (red) comes from MC Dropout: ``n_mc`` forward passes, each
-  with a fresh D_C subsample of up to :data:`MAX_CONTEXT_PER_PASS`
-  events. Each pass produces one global ``r`` aggregated across the
-  entire spectrum, then decodes at the bin centers AND a dense grid in
-  one shot.
+* CNP β(E) (red) comes from MC Dropout: ``n_mc`` forward passes that
+  share the **same full D_C context** (built once outside the loop),
+  varying only the dropout mask. Each pass produces one global ``r``
+  aggregated across the entire spectrum, then decodes at the bin
+  centers AND a dense grid in one shot. If the user lowers the cap
+  below ``|D_C|``, each pass instead resamples a fresh subset.
 * Coverage is reported at the **bin-center** queries (matching D_T
   binning):
     - cnp_only : |β_emp − β_pred| < k · σ_CNP
     - combined : |β_emp − β_pred| < k · √(σ_CNP² + σ_emp²)
   with σ_emp = (rate_hi − rate_lo) / 2 (the Wilson half-width).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -63,7 +66,14 @@ PEAK_MARKERS = [
 
 # Defaults exposed through the CLI / notebook for tuning.
 DEFAULT_N_DENSE = 800
-DEFAULT_MAX_CONTEXT_PER_PASS = 256
+# Effectively unlimited — modest 5-figure cap that's safely above any
+# realistic |D_C| in this project (~1.4 k events at the largest), so
+# the cap never bites unless the user opts in explicitly. The earlier
+# value (256) silently discarded ~80 % of available conditioning
+# evidence and capped the model's representation bandwidth far below
+# what the variable-N training paradigms can exploit. Keep the knob
+# in the CLI for memory-constrained experiments only.
+DEFAULT_MAX_CONTEXT_PER_PASS = 99999
 
 
 @dataclass(frozen=True)
@@ -160,10 +170,18 @@ def compute_peak_metrics(
     for name, e0 in peak_markers:
         in_window = np.flatnonzero(np.abs(bin_centers - e0) <= half_window_kev)
         chi2_dc, z_dc, p_dc, n_dc = _peak_chi2_and_z(
-            rate_DC, sigma_emp_DC, beta, beta_std, in_window,
+            rate_DC,
+            sigma_emp_DC,
+            beta,
+            beta_std,
+            in_window,
         )
         chi2_dt, z_dt, p_dt, n_dt = _peak_chi2_and_z(
-            rate_DT, sigma_emp_DT, beta, beta_std, in_window,
+            rate_DT,
+            sigma_emp_DT,
+            beta,
+            beta_std,
+            in_window,
         )
         out.append(
             PeakRegionMetrics(
@@ -171,8 +189,14 @@ def compute_peak_metrics(
                 peak_energy_kev=float(e0),
                 half_window_kev=float(half_window_kev),
                 n_bins_in_window=int(in_window.size),
-                chi2_DC=chi2_dc, z_DC=z_dc, p_DC=p_dc, n_valid_DC=n_dc,
-                chi2_DT=chi2_dt, z_DT=z_dt, p_DT=p_dt, n_valid_DT=n_dt,
+                chi2_DC=chi2_dc,
+                z_DC=z_dc,
+                p_DC=p_dc,
+                n_valid_DC=n_dc,
+                chi2_DT=chi2_dt,
+                z_DT=z_dt,
+                p_DT=p_dt,
+                n_valid_DT=n_dt,
             )
         )
     return out
@@ -209,7 +233,11 @@ class InferenceResult:
     dense_beta: np.ndarray
     dense_beta_std: np.ndarray
     # Knobs.
-    n_context_per_pass: int   # actual cap used (min(MAX_CONTEXT_PER_PASS, |D_C|)).
+    n_context_per_pass: int  # actual context size used per MC pass.
+    # Equals |D_C| under the default unlimited cap;
+    # equals max_context_per_pass if the user
+    # lowered it below |D_C| (then each pass
+    # resamples a fresh subset).
     context_window_kev: float  # always np.inf for True CNP — kept for notebook compat.
     # Headline scalars.
     T_star: float
@@ -238,7 +266,9 @@ def _bin_edges_from_centers(bin_centers: np.ndarray, bin_width: float) -> np.nda
 def _load_cnp(cfg: CutAcceptanceConfig, ckpt_path: Path) -> torch.nn.Module:
     """Reconstruct the EVENT_ONLY CNP architecture and load weights."""
     cnp = build_cnp(
-        cfg.encoder, dim_theta=None, dim_phi=2,
+        cfg.encoder,
+        dim_theta=None,
+        dim_phi=2,
         decoder_hidden_dims=list(cfg.decoder_hidden_dims),
     )
     state = torch.load(ckpt_path, map_location="cpu", weights_only=False)
@@ -272,8 +302,12 @@ def _filter_test_events(
 
 
 def split_test_data(
-    energy: np.ndarray, score: np.ndarray,
-    *, test_fraction: float, context_fraction: float, seed: int,
+    energy: np.ndarray,
+    score: np.ndarray,
+    *,
+    test_fraction: float,
+    context_fraction: float,
+    seed: int,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Return ``(e_C, s_C, e_T, s_T)`` for the configured split."""
     if not 0.0 < test_fraction <= 1.0:
@@ -292,7 +326,10 @@ def split_test_data(
 
 
 def _empirical_with_wilson(
-    energies: np.ndarray, scores: np.ndarray, T: float, edges: np.ndarray,
+    energies: np.ndarray,
+    scores: np.ndarray,
+    T: float,
+    edges: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Per-bin (rate, rate_lo, rate_hi, counts) on the supplied event set."""
     total, _ = np.histogram(energies, bins=edges)
@@ -354,10 +391,14 @@ def _cnp_infer_global(
     tgt_phi = np.stack([q_norm, np.full_like(q_norm, t_norm)], axis=-1)[None, :, :]
     tgt_labels = np.zeros((1, n_q), dtype=np.int8)
     tgt_batch = StandardBatch(
-        mode=InputMode.EVENT_ONLY, theta=None, phi=tgt_phi, labels=tgt_labels,
+        mode=InputMode.EVENT_ONLY,
+        theta=None,
+        phi=tgt_phi,
+        labels=tgt_labels,
     )
 
     n_ctx = int(min(ctx_energies.size, max_context_per_pass))
+    use_all_context = n_ctx >= ctx_energies.size
     ctx_e_norm_all = (ctx_energies - e_lo) / (e_hi - e_lo)
     ctx_x_all = (ctx_scores >= T).astype(np.int8)
 
@@ -368,24 +409,38 @@ def _cnp_infer_global(
     # genuinely carries more information about β there, and we let the
     # encoder's representation reflect that. Do not "fix" this to match
     # training without thinking through the information-flow implications.
+    #
+    # When ``use_all_context`` (the default — see DEFAULT_MAX_CONTEXT_PER_PASS)
+    # we build the context tensor *once* outside the MC loop and reuse it for
+    # every forward pass. Then the only stochasticity across the n_mc passes
+    # is the dropout mask — exactly the model's epistemic uncertainty,
+    # uncontaminated by per-pass context-resampling variance. The earlier
+    # behavior (resample a 256-event subset every pass) inflated σ_CNP with
+    # data-starvation noise that masked the real model bias.
     samples = np.empty((n_mc, n_q), dtype=np.float64)
     cnp.train()  # enable dropout
+
+    def _make_ctx_batch(idx: np.ndarray) -> StandardBatch:
+        ctx_e_norm = ctx_e_norm_all[idx]
+        ctx_phi = np.stack([ctx_e_norm, np.full(idx.size, t_norm)], axis=-1)[None, :, :]
+        ctx_labels = ctx_x_all[idx][None, :]
+        return StandardBatch(
+            mode=InputMode.EVENT_ONLY,
+            theta=None,
+            phi=ctx_phi,
+            labels=ctx_labels,
+        )
+
+    fixed_ctx_batch = _make_ctx_batch(np.arange(ctx_energies.size)) if use_all_context else None
+
     try:
         with torch.no_grad():
             for m in range(n_mc):
-                if n_ctx >= ctx_energies.size:
-                    picks = rng.permutation(ctx_energies.size)
+                if use_all_context:
+                    ctx_batch = fixed_ctx_batch
                 else:
                     picks = rng.choice(ctx_energies.size, size=n_ctx, replace=False)
-                ctx_e_norm = ctx_e_norm_all[picks]
-                ctx_phi = np.stack(
-                    [ctx_e_norm, np.full(n_ctx, t_norm)], axis=-1
-                )[None, :, :]
-                ctx_labels = ctx_x_all[picks][None, :]
-                ctx_batch = StandardBatch(
-                    mode=InputMode.EVENT_ONLY, theta=None,
-                    phi=ctx_phi, labels=ctx_labels,
-                )
+                    ctx_batch = _make_ctx_batch(picks)
                 beta = cnp.predict_beta(ctx_batch, tgt_batch).cpu().numpy()
                 samples[m] = beta[0]
     finally:
@@ -425,8 +480,11 @@ def pull_arrays(res: InferenceResult) -> tuple[np.ndarray, np.ndarray]:
 
 
 def _coverage_two_ways(
-    rate: np.ndarray, rate_lo: np.ndarray, rate_hi: np.ndarray,
-    beta: np.ndarray, beta_std: np.ndarray,
+    rate: np.ndarray,
+    rate_lo: np.ndarray,
+    rate_hi: np.ndarray,
+    beta: np.ndarray,
+    beta_std: np.ndarray,
 ) -> tuple[dict[str, float], dict[str, float], float, float]:
     """Return (cnp_only, combined, mean_offset, pearson_r) at 1σ/2σ/3σ."""
     valid = ~np.isnan(rate) & ~np.isnan(beta)
@@ -468,7 +526,8 @@ def infer_and_evaluate(
     energy_all, score_all, T_star = _filter_test_events(cfg)
 
     e_C, s_C, e_T, s_T = split_test_data(
-        energy_all, score_all,
+        energy_all,
+        score_all,
         test_fraction=test_fraction,
         context_fraction=context_fraction,
         seed=seed,
@@ -489,9 +548,7 @@ def infer_and_evaluate(
     # binned now so peak-region χ² can be computed for the context
     # side ("does the CNP match the data it was conditioned on?").
     rate, rate_lo, rate_hi, counts_T = _empirical_with_wilson(e_T, s_T, T_star, edges)
-    rate_DC, rate_DC_lo, rate_DC_hi, counts_C = _empirical_with_wilson(
-        e_C, s_C, T_star, edges
-    )
+    rate_DC, rate_DC_lo, rate_DC_hi, counts_C = _empirical_with_wilson(e_C, s_C, T_star, edges)
     sparse_T = counts_T < cfg.min_events_per_bin
     rate[sparse_T] = np.nan
     rate_lo[sparse_T] = np.nan
@@ -506,8 +563,14 @@ def infer_and_evaluate(
     n_bin = bin_centers.size
     query_e = np.concatenate([bin_centers, dense_energies])
     beta_all, std_all, n_ctx_used = _cnp_infer_global(
-        cnp, cfg, query_e, e_C, s_C, T_star,
-        n_mc=n_mc, seed=seed,
+        cnp,
+        cfg,
+        query_e,
+        e_C,
+        s_C,
+        T_star,
+        n_mc=n_mc,
+        seed=seed,
         max_context_per_pass=max_context_per_pass,
     )
     beta_bin, std_bin = beta_all[:n_bin], std_all[:n_bin]
@@ -522,18 +585,26 @@ def infer_and_evaluate(
     sigma_emp_DT = 0.5 * (rate_hi - rate_lo)
     sigma_emp_DC = 0.5 * (rate_DC_hi - rate_DC_lo)
     peak_metrics = compute_peak_metrics(
-        bin_centers, beta_bin, std_bin,
-        rate_DC, sigma_emp_DC,
-        rate, sigma_emp_DT,
+        bin_centers,
+        beta_bin,
+        std_bin,
+        rate_DC,
+        sigma_emp_DC,
+        rate,
+        sigma_emp_DT,
     )
 
     return InferenceResult(
         bin_centers=bin_centers,
-        rate=rate, rate_lo=rate_lo, rate_hi=rate_hi,
+        rate=rate,
+        rate_lo=rate_lo,
+        rate_hi=rate_hi,
         n_target_per_bin=counts_T,
-        beta=beta_bin, beta_std=std_bin,
+        beta=beta_bin,
+        beta_std=std_bin,
         dense_energies=dense_energies,
-        dense_beta=beta_dense, dense_beta_std=std_dense,
+        dense_beta=beta_dense,
+        dense_beta_std=std_dense,
         n_context_per_pass=int(n_ctx_used),
         context_window_kev=float("inf"),
         T_star=T_star,
@@ -570,8 +641,13 @@ def plot_inference(
     yerr_lo = np.maximum(np.where(np.isnan(res.rate), 0.0, res.rate - res.rate_lo), 0.0)
     yerr_hi = np.maximum(np.where(np.isnan(res.rate), 0.0, res.rate_hi - res.rate), 0.0)
     ax.errorbar(
-        res.bin_centers, res.rate, yerr=[yerr_lo, yerr_hi],
-        fmt="o", ms=4, capsize=2, color="steelblue",
+        res.bin_centers,
+        res.rate,
+        yerr=[yerr_lo, yerr_hi],
+        fmt="o",
+        ms=4,
+        capsize=2,
+        color="steelblue",
         label=f"D_T binned (Wilson 1σ)  N_target={res.n_target_total}",
     )
 
@@ -582,11 +658,15 @@ def plot_inference(
             res.dense_energies,
             np.clip(mu - sigma_cnp, 0.0, 1.0),
             np.clip(mu + sigma_cnp, 0.0, 1.0),
-            color="firebrick", alpha=0.20,
+            color="firebrick",
+            alpha=0.20,
             label="CNP ±σ_CNP  (MC Dropout)",
         )
     ax.plot(
-        res.dense_energies, mu, color="firebrick", lw=1.6,
+        res.dense_energies,
+        mu,
+        color="firebrick",
+        lw=1.6,
         label=(
             f"CNP β(E) | D_C   N_context={res.n_context_total}"
             f"   n_ctx/pass={res.n_context_per_pass}"
@@ -636,16 +716,20 @@ def plot_pulls(
     z = z[np.isfinite(z)]
     n = z.size
     if n == 0:
-        ax.text(0.5, 0.5, "no valid bins", ha="center", va="center",
-                transform=ax.transAxes)
+        ax.text(0.5, 0.5, "no valid bins", ha="center", va="center", transform=ax.transAxes)
         ax.set_title(title, fontsize=10)
         return
     counts, edges = np.histogram(z, bins=n_bins, range=x_range)
     centers = 0.5 * (edges[:-1] + edges[1:])
     bin_width = edges[1] - edges[0]
     ax.bar(
-        centers, counts, width=bin_width,
-        color="steelblue", alpha=0.65, edgecolor="white", linewidth=0.5,
+        centers,
+        counts,
+        width=bin_width,
+        color="steelblue",
+        alpha=0.65,
+        edgecolor="white",
+        linewidth=0.5,
         label=f"observed (N={n})",
     )
     x = np.linspace(x_range[0], x_range[1], 400)
@@ -676,7 +760,8 @@ def plot_coverage(
     _, z_comb = pull_arrays(res)
     fig, ax = plt.subplots(figsize=(6.5, 4.4))
     plot_pulls(
-        ax, z_comb,
+        ax,
+        z_comb,
         title=f"pulls / σ_combined   (cov₁σ = {res.coverage_combined['1sigma']:.2f})",
     )
     fig.suptitle(
@@ -695,7 +780,10 @@ def write_report(
     res: InferenceResult,
     out_dir: Path,
     *,
-    test_fraction: float, context_fraction: float, n_mc: int, seed: int,
+    test_fraction: float,
+    context_fraction: float,
+    n_mc: int,
+    seed: int,
 ) -> dict:
     """Persist text + JSON reports + the diagnostic figure."""
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -735,11 +823,7 @@ def write_report(
         "    target χ² ≈ 1.0  ·  p > 0.5 = indistinguishable from sharp truth  "
         "·  p < 0.05 = significant local miss",
         "    " + "─" * 72,
-        (
-            "    peak              n_bins      "
-            "D_C: χ²    Z      p          "
-            "D_T: χ²    Z      p"
-        ),
+        ("    peak              n_bins      D_C: χ²    Z      p          D_T: χ²    Z      p"),
         "    " + "─" * 72,
         *[
             (
@@ -786,10 +870,14 @@ def write_report(
                 "peak_energy_kev": pm.peak_energy_kev,
                 "half_window_kev": pm.half_window_kev,
                 "n_bins_in_window": pm.n_bins_in_window,
-                "chi2_DC": pm.chi2_DC, "z_DC": pm.z_DC,
-                "p_DC": pm.p_DC, "n_valid_DC": pm.n_valid_DC,
-                "chi2_DT": pm.chi2_DT, "z_DT": pm.z_DT,
-                "p_DT": pm.p_DT, "n_valid_DT": pm.n_valid_DT,
+                "chi2_DC": pm.chi2_DC,
+                "z_DC": pm.z_DC,
+                "p_DC": pm.p_DC,
+                "n_valid_DC": pm.n_valid_DC,
+                "chi2_DT": pm.chi2_DT,
+                "z_DT": pm.z_DT,
+                "p_DT": pm.p_DT,
+                "n_valid_DT": pm.n_valid_DT,
             }
             for pm in res.peak_metrics
         ],
@@ -800,25 +888,34 @@ def write_report(
 
 
 def run(
-    cfg_path: Path, out_dir: Path,
+    cfg_path: Path,
+    out_dir: Path,
     *,
-    test_fraction: float = 1.0, context_fraction: float = 0.20,
-    n_mc: int = 50, seed: int = 0,
+    test_fraction: float = 1.0,
+    context_fraction: float = 0.20,
+    n_mc: int = 50,
+    seed: int = 0,
     n_dense: int = DEFAULT_N_DENSE,
     max_context_per_pass: int = DEFAULT_MAX_CONTEXT_PER_PASS,
 ) -> dict:
     cfg = load_config(cfg_path)
     res = infer_and_evaluate(
         cfg,
-        test_fraction=test_fraction, context_fraction=context_fraction,
-        n_mc=n_mc, seed=seed,
+        test_fraction=test_fraction,
+        context_fraction=context_fraction,
+        n_mc=n_mc,
+        seed=seed,
         n_dense=n_dense,
         max_context_per_pass=max_context_per_pass,
     )
     return write_report(
-        cfg, res, out_dir,
-        test_fraction=test_fraction, context_fraction=context_fraction,
-        n_mc=n_mc, seed=seed,
+        cfg,
+        res,
+        out_dir,
+        test_fraction=test_fraction,
+        context_fraction=context_fraction,
+        n_mc=n_mc,
+        seed=seed,
     )
 
 
@@ -826,6 +923,7 @@ def main() -> None:
     # CLI entry — headless. Notebook callers leave the backend alone
     # so plt.show() keeps working inline.
     import matplotlib
+
     matplotlib.use("Agg")
 
     ap = argparse.ArgumentParser()
@@ -836,11 +934,15 @@ def main() -> None:
     ap.add_argument("--n-mc", type=int, default=50)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument(
-        "--n-dense", type=int, default=DEFAULT_N_DENSE,
+        "--n-dense",
+        type=int,
+        default=DEFAULT_N_DENSE,
         help="Number of points in the smooth red β(E) curve.",
     )
     ap.add_argument(
-        "--max-context-per-pass", type=int, default=DEFAULT_MAX_CONTEXT_PER_PASS,
+        "--max-context-per-pass",
+        type=int,
+        default=DEFAULT_MAX_CONTEXT_PER_PASS,
         help="Cap on D_C events fed to the CNP per MC pass (without replacement).",
     )
     args = ap.parse_args()
@@ -848,13 +950,16 @@ def main() -> None:
     if out_dir is None:
         rel = args.config.relative_to(Path("configs/cut_acceptance"))
         out_dir = Path("analysis/cnp_audit") / rel.parent / rel.stem
-    run(args.config, out_dir,
+    run(
+        args.config,
+        out_dir,
         test_fraction=args.test_fraction,
         context_fraction=args.context_fraction,
         n_mc=args.n_mc,
         seed=args.seed,
         n_dense=args.n_dense,
-        max_context_per_pass=args.max_context_per_pass)
+        max_context_per_pass=args.max_context_per_pass,
+    )
 
 
 if __name__ == "__main__":
