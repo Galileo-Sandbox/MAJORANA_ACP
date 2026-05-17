@@ -98,6 +98,136 @@ Each item is a `dict` containing at least: `waveform` (float32 tensor), `label` 
 - **Be strict with the user and double-check**: what the user says is not always correct. If a statement seems wrong or an idea seems impractical, ask for clarification and state the objection clearly.
 - **Never directly continue right after conversation compression**: stop after compression. The user will re-supply the context, docs, and code to read. Do not start blindly.
 
+## Cut-Acceptance · Localized Peak Evaluation + High-Capacity Hybrid Sweep (PROPOSED)
+
+### Why now
+
+The first hybrid smoke (`mixed_density_f0_70_w50`) showed a 22 % NLL
+drop vs True-CNP baseline, but a 50 keV focus window smooths over
+HPGe peak structure (FWHM ~few keV). To get the CNP to actually
+*resolve* peak-region acceptance transitions we need (a) much
+narrower focus windows that match real detector physics (10 / 5 keV),
+(b) much larger N per trial so the encoder's `r` carries enough
+information to support that resolution, and (c) a quantitative
+evaluation rooted in the peak regions themselves — global Pearson r
+is dominated by the flat majority of the spectrum and can't tell us
+whether sharp features are captured.
+
+### Phase 1 — Localized peak-region metrics
+
+Add a `PeakRegionMetrics` dataclass and a computation function to
+`scripts/diagnostics/cnp_test_inference.py`. For each peak `E₀` in
+the existing `PEAK_MARKERS` list, define the evaluation window
+`I_peak = [E₀ − 5, E₀ + 5]` keV and compute, **separately for D_C
+and D_T**:
+
+* `chi2_<X>` — reduced χ²:
+  `(1/N_bins) Σ (y_i − β_i)² / (σ_stat_i² + σ_CNP_i²)`
+* `z_<X>` — local Z-score:
+  `(ȳ_I − β̄_I) / √(Var(y)_I + ⟨σ_CNP²⟩_I)`
+* `p_<X>` — two-tailed p-value from |Z| via `scipy.stats.norm.sf`.
+
+D_C support requires also binning the context set with Wilson
+intervals (today only D_T is binned for the blue points). Cheap
+addition — reuse `_empirical_with_wilson`.
+
+`InferenceResult.peak_metrics: list[PeakRegionMetrics]` carries the
+arrays. `write_report` formats a per-peak table and writes it into
+`test_set_audit.txt` + `test_set_audit.json`. The audit PNG is
+unchanged in this phase.
+
+**Statistical edge case**: with 10-keV-wide peak windows on a 10-keV
+bin grid, `n_bins_in_window ∈ {1, 2}`. χ² and Z over 1 datapoint
+are weak signals; treat them as point estimates rather than rigorous
+hypothesis tests until we run wider-window or finer-binning cells.
+
+### Phase 2 — Configuration matrix (4 new YAMLs)
+
+All at `bin10/signal` to enable direct baseline comparison. YAMLs
+live at the canonical auto-derived paths (not the user-supplied
+nickname filenames) so the registry, results tree, and inference
+sweep stay in sync. Mapping:
+
+| nickname           | canonical YAML path                                                                            |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| `w10_fixed48`      | `hybrid_scale/mixed_density_f0_70_w10/bin10/signal.yaml`                                       |
+| `w10_varN_large`   | `hybrid_scale/mixed_density_f0_70_w10_varN32-1024/bin10/signal.yaml`                           |
+| `physics_w10_varN` | `hybrid_scale/physics_anchored_f0_80_w10_varN32-1024/bin10/signal.yaml`                        |
+| `hyper_zoom_w5`    | `hybrid_scale/mixed_density_f0_85_w5_varN32-1024/bin10/signal.yaml`                            |
+
+Knobs per cell (only deltas from `true_cnp/bin10/signal.yaml` shown):
+
+* `w10_fixed48`: `sampling_pattern: mixed_density`, `zoom_window_width_kev: 10`, `local_event_fraction: 0.70`, `trial_size_strategy: fixed`, `training.n_events_per_trial: 48`.
+* `w10_varN_large`: same `mixed_density / w=10 / f=0.70` as above plus `trial_size_strategy: variable_uniform`, `n_trial_events_min: 32`, `n_trial_events_max: 1024`.
+* `physics_w10_varN`: `sampling_pattern: physics_anchored`, `w=10`, `local_event_fraction: 0.80`, `physics_peaks_kev: [1592, 1620, 2103, 2614]`, `varN 32-1024`.
+* `hyper_zoom_w5`: `sampling_pattern: mixed_density`, `w=5`, `local_event_fraction: 0.85`, `varN 32-1024`.
+
+### Compute / memory plan for the large-N cells
+
+`n_events=1024 × batch_size=16 = 16,384` events per step. Per-event
+encoder activations are `[B, N, Z=64]` ≈ 4 MB; gradients double
+that. Single forward + backward sits comfortably in CPU RAM and
+GPU VRAM (32 GB free). Per-step cost grows roughly linearly in N:
+
+| N    | est. step time on CPU | total for 3000 steps |
+| ---- | --------------------- | -------------------- |
+| 48   | ~7 ms                  | ~25 s   (current)    |
+| 1024 | ~150 ms                | ~7–8 min             |
+
+For three N=1024 cells + one fixed-N cell that's ~25 min of CPU. If
+the per-step time blows past 200 ms during smoke training, I'll
+switch to GPU (one-line addition: `cnp.to("cuda")` + move batches).
+Otherwise CPU is fine and simpler.
+
+### Phase 3 — Sweep + comparison table
+
+1. Train all 4 cells with `python -m majorana_acp.cut_acceptance.cli <cfg>`.
+2. Run `python -m scripts.diagnostics.run_all_test_inference` to
+   regenerate audit PNGs + per-cell `test_set_audit.json` (now
+   carrying peak metrics).
+3. Build a comparison report at `analysis/cnp_audit/_peak_comparison.md`
+   that loads each cell's JSON, ranks by peak χ² and p-value, and
+   prints a table:
+
+   ```
+   peak     | true_cnp                | w10_fixed48              | w10_varN_large            | physics_w10_varN          | hyper_zoom_w5
+            | χ²_DC χ²_DT  p_DC  p_DT | χ²_DC χ²_DT  p_DC  p_DT | ...
+   FE 2614  |  1.23  1.85  0.20  0.04 |  ...
+   SE 2103  |  ...
+   DEP 1592 |  ...
+   1620     |  ...
+   ```
+
+Targets to look for: χ²_DT closer to 1.0 (cleanly piercing data),
+p_DT > 0.5 (statistically indistinguishable from sharp truth).
+
+### Open questions
+
+1. **Naming**: I'll use canonical paths for the YAMLs. If you want
+   the user-supplied nicknames literally (e.g.
+   `configs/.../hybrid_scale/w10_fixed48.yaml` as a top-level YAML
+   without the `binN/{class}.yaml` subdirectory), say so — that
+   would require an explicit `out_dir` / `name` override per YAML
+   and a small change to the diagnostic sweep's path expectation.
+2. **Peak window**: 10 keV-wide (`half_w = 5.0`) gives 1–2 bins per
+   peak at bin10. If you want a "wider statistical aperture" without
+   changing the focus physics (e.g. half_w=20 for evaluation only,
+   while training still uses w=5 or w=10), I'll add it as a kwarg
+   default.
+3. **Compute mode**: CPU vs GPU. I'll start CPU; pivot if step time
+   exceeds the estimate.
+
+### Commit plan
+
+| # | Commit                                                              |
+| - | ------------------------------------------------------------------- |
+| 1 | `Peak-region χ² + Z metrics for D_C and D_T`                        |
+| 2 | `4 hybrid-scale configs: w10/fixed48, w10/varN, physics, hyper_w5`  |
+| 3 | `Trained registry entries for the new 4 cells`  (4 run_summary.json) |
+| 4 | `Peak-comparison report under analysis/cnp_audit/`                  |
+
+---
+
 ## Cut-Acceptance · Hybrid-Scale Sampling Plan (FINAL)
 
 ### Settlements

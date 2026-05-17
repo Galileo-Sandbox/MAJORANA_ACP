@@ -41,6 +41,7 @@ import h5py
 # entry point flips to Agg explicitly before saving any figure.
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats as _stats
 import torch
 from core import build_cnp
 from schemas.data_models import InputMode, StandardBatch
@@ -63,6 +64,118 @@ PEAK_MARKERS = [
 # Defaults exposed through the CLI / notebook for tuning.
 DEFAULT_N_DENSE = 800
 DEFAULT_MAX_CONTEXT_PER_PASS = 256
+
+
+@dataclass(frozen=True)
+class PeakRegionMetrics:
+    """Localized goodness-of-fit at a single γ-peak window.
+
+    For each peak ``E₀`` we evaluate over the bins whose centers sit
+    within ``[E₀ − half_window_kev, E₀ + half_window_kev]``. The same
+    quantities are computed **twice** — once against the Context-set
+    empirical rate (``_DC``, probes whether the CNP's representation
+    matches the data it was conditioned on) and once against the
+    Target set (``_DT``, probes generalization to held-out events).
+
+    Fields
+    ------
+    chi2_<X>
+        Reduced χ²:  ``(1/N) Σ (y_i − β_i)² / (σ_stat_i² + σ_CNP_i²)``.
+        A value ≈ 1 indicates the model + uncertainty budget cleanly
+        pierce the empirical averages. > 1: over-smoothing; < 1:
+        over-confident σ.
+    z_<X>
+        Local Z-score:
+        ``(ȳ_I − β̄_I) / √(Var(y)_I + ⟨σ_CNP²⟩_I)``.
+        Sign indicates direction of systematic bias.
+    p_<X>
+        Two-tailed p-value from |Z| under N(0,1). ``p < 0.05`` flags a
+        statistically significant feature mismatch; ``p > 0.5`` means
+        the model is indistinguishable from the sharp physics truth.
+    n_valid_<X>
+        How many bins inside the window had a finite empirical rate
+        (others are excluded from the χ² and Z averages).
+    """
+
+    peak_name: str
+    peak_energy_kev: float
+    half_window_kev: float
+    n_bins_in_window: int
+    # Context-side
+    chi2_DC: float
+    z_DC: float
+    p_DC: float
+    n_valid_DC: int
+    # Target-side
+    chi2_DT: float
+    z_DT: float
+    p_DT: float
+    n_valid_DT: int
+
+
+def _peak_chi2_and_z(
+    rate: np.ndarray,
+    sigma_emp: np.ndarray,
+    beta: np.ndarray,
+    beta_std: np.ndarray,
+    in_window: np.ndarray,
+) -> tuple[float, float, float, int]:
+    """Return ``(chi2, z, p, n_valid)`` for one (peak, side) combination."""
+    valid_mask = ~np.isnan(rate[in_window])
+    valid = in_window[valid_mask]
+    if valid.size == 0:
+        return float("nan"), float("nan"), float("nan"), 0
+    y = rate[valid]
+    b = beta[valid]
+    se = np.maximum(sigma_emp[valid], 1e-9)
+    sc = np.maximum(beta_std[valid], 1e-9)
+    denom = se**2 + sc**2
+    chi2 = float(np.mean((y - b) ** 2 / denom))
+    y_bar = float(np.mean(y))
+    b_bar = float(np.mean(b))
+    var_y = float(np.var(y, ddof=1)) if valid.size > 1 else 0.0
+    mean_sc2 = float(np.mean(sc**2))
+    denom_z = max(var_y + mean_sc2, 1e-18)
+    z = (y_bar - b_bar) / float(np.sqrt(denom_z))
+    p = float(2.0 * _stats.norm.sf(abs(z)))
+    return chi2, z, p, int(valid.size)
+
+
+def compute_peak_metrics(
+    bin_centers: np.ndarray,
+    beta: np.ndarray,
+    beta_std: np.ndarray,
+    rate_DC: np.ndarray,
+    sigma_emp_DC: np.ndarray,
+    rate_DT: np.ndarray,
+    sigma_emp_DT: np.ndarray,
+    *,
+    peak_markers: list[tuple[str, float]] = None,  # type: ignore[assignment]
+    half_window_kev: float = 5.0,
+) -> list[PeakRegionMetrics]:
+    """Localized peak-region χ²/Z/p for D_C and D_T, per peak."""
+    if peak_markers is None:
+        peak_markers = PEAK_MARKERS
+    out: list[PeakRegionMetrics] = []
+    for name, e0 in peak_markers:
+        in_window = np.flatnonzero(np.abs(bin_centers - e0) <= half_window_kev)
+        chi2_dc, z_dc, p_dc, n_dc = _peak_chi2_and_z(
+            rate_DC, sigma_emp_DC, beta, beta_std, in_window,
+        )
+        chi2_dt, z_dt, p_dt, n_dt = _peak_chi2_and_z(
+            rate_DT, sigma_emp_DT, beta, beta_std, in_window,
+        )
+        out.append(
+            PeakRegionMetrics(
+                peak_name=name,
+                peak_energy_kev=float(e0),
+                half_window_kev=float(half_window_kev),
+                n_bins_in_window=int(in_window.size),
+                chi2_DC=chi2_dc, z_DC=z_dc, p_DC=p_dc, n_valid_DC=n_dc,
+                chi2_DT=chi2_dt, z_DT=z_dt, p_DT=p_dt, n_valid_DT=n_dt,
+            )
+        )
+    return out
 
 
 @dataclass(frozen=True)
@@ -107,6 +220,8 @@ class InferenceResult:
     mean_offset: float
     coverage_cnp: dict[str, float]
     coverage_combined: dict[str, float]
+    # Localized peak-region goodness-of-fit (per peak in PEAK_MARKERS).
+    peak_metrics: list[PeakRegionMetrics]
 
 
 # --------------------------------------------------------------------------- #
@@ -369,11 +484,23 @@ def infer_and_evaluate(
     e_lo, e_hi = cfg.energy_range
     dense_energies = np.linspace(e_lo, e_hi, int(n_dense))
 
+    # Bin D_T (target) and D_C (context) on the same grid. D_T's
+    # Wilson errorbars feed the blue points + coverage; D_C's also
+    # binned now so peak-region χ² can be computed for the context
+    # side ("does the CNP match the data it was conditioned on?").
     rate, rate_lo, rate_hi, counts_T = _empirical_with_wilson(e_T, s_T, T_star, edges)
+    rate_DC, rate_DC_lo, rate_DC_hi, counts_C = _empirical_with_wilson(
+        e_C, s_C, T_star, edges
+    )
     sparse_T = counts_T < cfg.min_events_per_bin
     rate[sparse_T] = np.nan
     rate_lo[sparse_T] = np.nan
     rate_hi[sparse_T] = np.nan
+    # D_C sparsity threshold: at least 1 event for a binomial rate to exist.
+    sparse_C = counts_C < 1
+    rate_DC[sparse_C] = np.nan
+    rate_DC_lo[sparse_C] = np.nan
+    rate_DC_hi[sparse_C] = np.nan
 
     cnp = _load_cnp(cfg, cell_dir / "cnp.ckpt")
     n_bin = bin_centers.size
@@ -388,6 +515,16 @@ def infer_and_evaluate(
 
     cov_cnp, cov_comb, mean_off, pearson_r = _coverage_two_ways(
         rate, rate_lo, rate_hi, beta_bin, std_bin
+    )
+
+    # Localized peak-region metrics — one row per peak, evaluated
+    # separately against D_C (representation) and D_T (generalization).
+    sigma_emp_DT = 0.5 * (rate_hi - rate_lo)
+    sigma_emp_DC = 0.5 * (rate_DC_hi - rate_DC_lo)
+    peak_metrics = compute_peak_metrics(
+        bin_centers, beta_bin, std_bin,
+        rate_DC, sigma_emp_DC,
+        rate, sigma_emp_DT,
     )
 
     return InferenceResult(
@@ -407,6 +544,7 @@ def infer_and_evaluate(
         mean_offset=mean_off,
         coverage_cnp=cov_cnp,
         coverage_combined=cov_comb,
+        peak_metrics=peak_metrics,
     )
 
 
@@ -592,6 +730,27 @@ def write_report(
         f"    combined :   1σ={res.coverage_combined['1sigma']:.3f}   "
         f"2σ={res.coverage_combined['2sigma']:.3f}   3σ={res.coverage_combined['3sigma']:.3f}",
         "",
+        "[3] Localized peak-region goodness-of-fit  "
+        f"(window = ±{res.peak_metrics[0].half_window_kev:.1f} keV around each peak)",
+        "    target χ² ≈ 1.0  ·  p > 0.5 = indistinguishable from sharp truth  "
+        "·  p < 0.05 = significant local miss",
+        "    " + "─" * 72,
+        (
+            "    peak              n_bins      "
+            "D_C: χ²    Z      p          "
+            "D_T: χ²    Z      p"
+        ),
+        "    " + "─" * 72,
+        *[
+            (
+                f"    {pm.peak_name:<16s}  {pm.n_bins_in_window:>3d} "
+                f"        {pm.chi2_DC:>5.2f}  {pm.z_DC:>+5.2f}  {pm.p_DC:>5.3f}    "
+                f"   {pm.chi2_DT:>5.2f}  {pm.z_DT:>+5.2f}  {pm.p_DT:>5.3f}"
+            )
+            for pm in res.peak_metrics
+        ],
+        "    " + "─" * 72,
+        "",
     ]
     plot_path = out_dir / "test_set_audit.png"
     plot_inference(cfg, res, plot_path)
@@ -621,6 +780,19 @@ def write_report(
         mean_offset=res.mean_offset,
         coverage_cnp=res.coverage_cnp,
         coverage_combined=res.coverage_combined,
+        peak_metrics=[
+            {
+                "peak_name": pm.peak_name,
+                "peak_energy_kev": pm.peak_energy_kev,
+                "half_window_kev": pm.half_window_kev,
+                "n_bins_in_window": pm.n_bins_in_window,
+                "chi2_DC": pm.chi2_DC, "z_DC": pm.z_DC,
+                "p_DC": pm.p_DC, "n_valid_DC": pm.n_valid_DC,
+                "chi2_DT": pm.chi2_DT, "z_DT": pm.z_DT,
+                "p_DT": pm.p_DT, "n_valid_DT": pm.n_valid_DT,
+            }
+            for pm in res.peak_metrics
+        ],
     )
     (out_dir / "test_set_audit.json").write_text(json.dumps(metrics, indent=2))
     print(text)
