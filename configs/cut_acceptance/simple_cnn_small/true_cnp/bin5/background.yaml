@@ -2,13 +2,13 @@
 # 1D-regression CNP in EVENT_ONLY mode: per-event (E_i, T) in phi.
 # Bin grid (5 keV) is used ONLY for sampling stratification at train
 # time and for D_T binning at evaluation time; the CNP is grid-agnostic.
-name: simple_cnn_small_bin5_signal
+name: simple_cnn_small_bin5_background__true_cnp
 
 train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
 validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
-out_dir: results/cut_acceptance/simple_cnn_small/bin5/signal
+out_dir: results/cut_acceptance/simple_cnn_small/true_cnp/bin5/background
 
-target_class: 1
+target_class: 0
 energy_range: [500.0, 3000.0]
 energy_bin_width: 5.0
 threshold_range: [0.0, 1.0]

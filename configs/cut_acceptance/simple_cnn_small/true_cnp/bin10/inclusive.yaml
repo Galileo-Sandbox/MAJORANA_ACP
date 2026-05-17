@@ -1,16 +1,16 @@
 # True-CNP cut-acceptance run on simple_cnn_small.
 # 1D-regression CNP in EVENT_ONLY mode: per-event (E_i, T) in phi.
-# Bin grid (5 keV) is used ONLY for sampling stratification at train
+# Bin grid (10 keV) is used ONLY for sampling stratification at train
 # time and for D_T binning at evaluation time; the CNP is grid-agnostic.
-name: simple_cnn_small_bin5_inclusive
+name: simple_cnn_small_bin10_inclusive__true_cnp
 
 train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
 validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
-out_dir: results/cut_acceptance/simple_cnn_small/bin5/inclusive
+out_dir: results/cut_acceptance/simple_cnn_small/true_cnp/bin10/inclusive
 
 target_class: "all"
 energy_range: [500.0, 3000.0]
-energy_bin_width: 5.0
+energy_bin_width: 10.0
 threshold_range: [0.0, 1.0]
 
 min_events_per_bin: 4
@@ -28,7 +28,7 @@ cnp:
   mixup_alpha: 0.01
 
 training:
-  n_steps: 6000
+  n_steps: 3000
   learning_rate: 1.0e-3
   batch_size: 16
   n_events_per_trial: 48
