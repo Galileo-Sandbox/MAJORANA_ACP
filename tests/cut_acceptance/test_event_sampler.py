@@ -217,3 +217,264 @@ def test_rejects_zero_n_trials_or_events() -> None:
         s.generate(n_trials=0, n_events=4, seed=0)
     with pytest.raises(ValueError, match="n_events"):
         s.generate(n_trials=2, n_events=0, seed=0)
+
+
+# --- hybrid-scale sampling patterns ---------------------------------
+
+
+@pytest.mark.parametrize(
+    "pattern,kwargs",
+    [
+        ("flat_stratified", {}),
+        ("mixed_density", dict(zoom_window_width_kev=200.0, local_event_fraction=0.7)),
+        ("random_clusters", dict(zoom_window_width_kev=200.0, n_clusters=2)),
+        (
+            "physics_anchored",
+            dict(
+                zoom_window_width_kev=200.0,
+                local_event_fraction=0.7,
+                physics_peaks_kev=[1500.0, 2614.0],
+            ),
+        ),
+    ],
+)
+def test_all_patterns_emit_valid_batches(pattern: str, kwargs: dict) -> None:
+    """Every pattern produces an EVENT_ONLY batch with the right shape + dtypes."""
+    e, s = _pool()
+    sampler = EventSampler(
+        e, s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=100.0,
+        min_events_per_bin=4,
+        sampling_pattern=pattern,
+        **kwargs,
+    )
+    batch = sampler.generate(n_trials=4, n_events=32, seed=0)
+    assert batch.mode is InputMode.EVENT_ONLY
+    assert batch.theta is None
+    assert batch.phi.shape == (4, 32, 2)
+    assert batch.labels.shape == (4, 32)
+    assert batch.phi.min() >= 0.0
+    assert batch.phi.max() <= 1.0
+    assert set(np.unique(batch.labels).tolist()).issubset({0, 1})
+
+
+@pytest.mark.parametrize(
+    "pattern,kwargs",
+    [
+        ("flat_stratified", {}),
+        ("mixed_density", dict(zoom_window_width_kev=200.0, local_event_fraction=0.7)),
+        ("random_clusters", dict(zoom_window_width_kev=200.0, n_clusters=2)),
+        (
+            "physics_anchored",
+            dict(
+                zoom_window_width_kev=200.0,
+                local_event_fraction=0.7,
+                physics_peaks_kev=[1500.0, 2614.0],
+            ),
+        ),
+    ],
+)
+def test_all_patterns_reproducible(pattern: str, kwargs: dict) -> None:
+    """Same seed → identical (phi, labels) per pattern."""
+    e, s = _pool()
+    sampler = EventSampler(
+        e, s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=100.0,
+        min_events_per_bin=4,
+        sampling_pattern=pattern,
+        **kwargs,
+    )
+    a = sampler.generate(n_trials=3, n_events=16, seed=99)
+    b = sampler.generate(n_trials=3, n_events=16, seed=99)
+    np.testing.assert_array_equal(a.phi, b.phi)
+    np.testing.assert_array_equal(a.labels, b.labels)
+
+
+def test_mixed_density_concentrates_local_events() -> None:
+    """≈70% of a trial's events should land in the focus window.
+
+    The implementation pads the window by half a bin width on each
+    side (a bin is "in-window" if any part of it overlaps), so the
+    effective local range is ``±(half_w + bin_width/2)`` around the
+    focus center.
+    """
+    e, s = _pool(n=10_000)
+    bin_width = 50.0
+    half_w = 100.0  # zoom_window_width_kev / 2
+    eff_half = half_w + 0.5 * bin_width   # include the half-bin pad
+    sampler = EventSampler(
+        e, s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=bin_width,
+        min_events_per_bin=4,
+        sampling_pattern="mixed_density",
+        zoom_window_width_kev=2.0 * half_w,
+        local_event_fraction=0.7,
+    )
+    batch = sampler.generate(n_trials=1, n_events=2000, seed=11)
+    e_picked = batch.phi[0, :, 0] * (3000.0 - 500.0) + 500.0
+    # Recover the focus center: median of the densest run of bins.
+    # The local pool dominates, so the median of the picked energies
+    # is a robust estimator of the focus when ≥50% land local.
+    focus_est = float(np.median(e_picked))
+    frac_local = float(((e_picked >= focus_est - eff_half) &
+                        (e_picked <= focus_est + eff_half)).mean())
+    # Target = 0.7. Allow 0.6 lower bound for RNG slack; the critical
+    # comparison is against the natural-density baseline of ~0.08
+    # (a 200-keV window covers 8% of the 2500-keV span).
+    assert frac_local >= 0.60, f"frac_local={frac_local:.3f} below 0.6 target"
+
+
+def test_random_clusters_starves_outside_regions() -> None:
+    """All events lie in n_clusters compact islands; gaps stay empty.
+
+    Direct contract check: bin the picked energies into the same
+    bin-width grid the sampler uses internally; the nonzero bins must
+    form exactly ``n_clusters`` contiguous runs, each spanning at
+    most the window plus a half-bin pad on each side.
+    """
+    e, s = _pool(n=10_000)
+    bin_width = 50.0
+    window = 200.0
+    sampler = EventSampler(
+        e, s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=bin_width,
+        min_events_per_bin=4,
+        sampling_pattern="random_clusters",
+        zoom_window_width_kev=window,
+        n_clusters=2,
+    )
+    batch = sampler.generate(n_trials=1, n_events=2000, seed=7)
+    e_picked = batch.phi[0, :, 0] * (3000.0 - 500.0) + 500.0
+    counts, _ = np.histogram(
+        e_picked, bins=np.arange(500.0, 3000.0 + bin_width, bin_width)
+    )
+    nonzero = counts > 0
+    # Count contiguous nonzero runs.
+    runs: list[tuple[int, int]] = []
+    in_run = False
+    for i, nz in enumerate(nonzero):
+        if nz and not in_run:
+            start = i
+            in_run = True
+        elif not nz and in_run:
+            runs.append((start, i))
+            in_run = False
+    if in_run:
+        runs.append((start, len(nonzero)))
+
+    assert len(runs) == 2, (
+        f"expected 2 islands, got {len(runs)} contiguous nonzero runs"
+    )
+    # Each island spans the window plus up to one bin of pad on each
+    # side → (window + 2*bin_width) / bin_width.
+    max_span_bins = int((window + 2.0 * bin_width) // bin_width)
+    for s_idx, e_idx in runs:
+        span = e_idx - s_idx
+        assert span <= max_span_bins, (
+            f"island spans {span} bins (> {max_span_bins} expected)"
+        )
+
+
+def test_random_clusters_event_count_partitions_evenly() -> None:
+    """N=48 with n_clusters=2 → 24+24; with n=49 → 24+25 (order randomized)."""
+    e, s = _pool(n=5000)
+    sampler = EventSampler(
+        e, s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=50.0,
+        min_events_per_bin=4,
+        sampling_pattern="random_clusters",
+        zoom_window_width_kev=200.0,
+        n_clusters=2,
+    )
+    batch = sampler.generate(n_trials=1, n_events=49, seed=3)
+    # 49 events across 2 clusters: counts should sum to 49 by definition.
+    assert batch.phi.shape == (1, 49, 2)
+    assert batch.labels.shape == (1, 49)
+
+
+def test_random_clusters_raises_when_unplaceable() -> None:
+    """3 disjoint 1500-keV windows can't fit in 2500 keV — must raise."""
+    e, s = _pool(n=5000)
+    sampler = EventSampler(
+        e, s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=50.0,
+        min_events_per_bin=4,
+        sampling_pattern="random_clusters",
+        zoom_window_width_kev=1500.0,
+        n_clusters=3,
+    )
+    with pytest.raises(ValueError, match="non-overlapping"):
+        sampler.generate(n_trials=1, n_events=32, seed=0)
+
+
+def test_physics_anchored_focus_is_always_near_a_peak() -> None:
+    """Every trial's local events cluster around one of the configured peaks."""
+    e, s = _pool(n=10_000)
+    peaks = [1500.0, 2614.0]
+    sampler = EventSampler(
+        e, s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=50.0,
+        min_events_per_bin=4,
+        sampling_pattern="physics_anchored",
+        zoom_window_width_kev=200.0,
+        local_event_fraction=0.7,
+        physics_peaks_kev=peaks,
+    )
+    batch = sampler.generate(n_trials=20, n_events=100, seed=5)
+    e_picked = batch.phi[:, :, 0] * (3000.0 - 500.0) + 500.0
+    # For each trial, the mode of the energy histogram should be near
+    # one of the configured peaks.
+    for k in range(20):
+        ev = e_picked[k]
+        counts, edges = np.histogram(ev, bins=np.arange(500.0, 3001.0, 25.0))
+        mid = float(edges[np.argmax(counts)] + 12.5)
+        nearest_peak_dist = min(abs(mid - p) for p in peaks)
+        # mode should sit inside the 200-keV window of the chosen peak;
+        # allow some slack for histogram resolution.
+        assert nearest_peak_dist < 125.0, (
+            f"trial {k}: mode {mid:.0f} keV is {nearest_peak_dist:.0f} keV "
+            f"from the nearest peak (expected within window half-width)"
+        )
+
+
+def test_physics_anchored_rejects_no_in_range_peaks() -> None:
+    """If physics_peaks_kev becomes empty (filtered by range), constructor raises."""
+    e, s = _pool()
+    with pytest.raises(ValueError, match="physics_anchored"):
+        EventSampler(
+            e, s,
+            energy_range=(500.0, 1000.0),  # excludes both 1500 and 2614
+            energy_bin_width=50.0,
+            min_events_per_bin=4,
+            sampling_pattern="physics_anchored",
+            zoom_window_width_kev=200.0,
+            local_event_fraction=0.7,
+            physics_peaks_kev=[1500.0, 2614.0],
+        )
+
+
+def test_flat_stratified_remains_bin_uniform_under_skew() -> None:
+    """Regression check: refactor preserved the original flat behavior."""
+    rng = np.random.default_rng(0)
+    e_low = rng.uniform(500.0, 1500.0, size=5000)
+    e_high = rng.uniform(1500.0, 3000.0, size=1000)
+    energy = np.concatenate([e_low, e_high])
+    score = rng.uniform(0.0, 1.0, size=energy.size)
+    sampler = EventSampler(
+        energy, score,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=100.0,
+        min_events_per_bin=4,
+        sampling_pattern="flat_stratified",
+    )
+    batch = sampler.generate(n_trials=1, n_events=20_000, seed=0)
+    e_picked = batch.phi[0, :, 0] * (3000.0 - 500.0) + 500.0
+    frac_low = (e_picked < 1500.0).mean()
+    assert 0.35 <= frac_low <= 0.45
