@@ -23,7 +23,17 @@ wheels/
 /wandb/
 /mlruns/
 /lightning_logs/
-results/
+
+# Trained artifacts under results/ stay gitignored (cnp.ckpt etc.
+# are large binaries), but we *track* run_summary.json — it's the
+# lightweight per-experiment fingerprint and our git-visible
+# experiment registry. The three-line idiom below is required
+# because git won't re-include a file under a fully-ignored parent
+# directory: we ignore every path at every depth, then re-allow
+# subdirectories so git descends, then re-allow the specific JSON.
+results/**
+!results/**/
+!results/**/run_summary.json
 
 # OS / editor
 .DS_Store
