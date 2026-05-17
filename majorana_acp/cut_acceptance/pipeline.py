@@ -143,7 +143,11 @@ def _classifier_model_name(cfg: CutAcceptanceConfig) -> str:
     return Path(cfg.upstream_classifier_config).stem
 
 
-def _derive_out_dir(cfg: CutAcceptanceConfig) -> Path:
+def resolve_out_dir(cfg: CutAcceptanceConfig) -> Path:
+    """YAML-explicit ``out_dir`` wins; otherwise auto-derive from the
+    canonical sibling-tree layout."""
+    if cfg.out_dir is not None:
+        return Path(cfg.out_dir)
     return Path(
         "results", "cut_acceptance",
         _classifier_model_name(cfg),
@@ -153,7 +157,10 @@ def _derive_out_dir(cfg: CutAcceptanceConfig) -> Path:
     )
 
 
-def _derive_name(cfg: CutAcceptanceConfig) -> str:
+def resolve_name(cfg: CutAcceptanceConfig) -> str:
+    """YAML-explicit ``name`` wins; otherwise build from the paradigm tag."""
+    if cfg.name is not None:
+        return cfg.name
     model = _classifier_model_name(cfg)
     paradigm = paradigm_path_suffix(cfg).replace("/", "__")
     return (
@@ -281,11 +288,8 @@ def wilson_interval(
 
 def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
     """Train the CNP and save the checkpoint. No scoring / coverage."""
-    # Auto-derive paths when the YAML leaves them blank. Explicit YAML
-    # values still win — same escape-hatch behavior as before.
-    resolved_out_dir = Path(cfg.out_dir) if cfg.out_dir is not None else _derive_out_dir(cfg)
-    resolved_name = cfg.name if cfg.name is not None else _derive_name(cfg)
-    out_dir = resolved_out_dir
+    out_dir = resolve_out_dir(cfg)
+    resolved_name = resolve_name(cfg)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. Build the training sampler — thread the hybrid-scale knobs through.
