@@ -49,12 +49,14 @@ def _fast_cfg(
     val_path: Path,
     out_dir: Path,
     target_class: int | str = 1,
+    upstream_path: Path | None = None,
 ) -> CutAcceptanceConfig:
     return CutAcceptanceConfig(
         name="pipeline_smoke",
         train_predictions_path=train_path,
         validation_predictions_path=val_path,
         out_dir=out_dir,
+        upstream_classifier_config=upstream_path or Path("dummy.yaml"),
         target_class=target_class,
         energy_bin_width=100.0,
         min_events_per_bin=2,
@@ -82,9 +84,11 @@ def test_run_pipeline_end_to_end(tmp_path: Path) -> None:
     train = tmp_path / "train.h5"
     val = tmp_path / "test.h5"
     out = tmp_path / "out"
+    upstream = tmp_path / "stub_upstream.yaml"
+    upstream.write_text("name: stub_upstream_classifier\n")
     _write_synthetic_predictions(train, seed=0)
     _write_synthetic_predictions(val, seed=1)
-    cfg = _fast_cfg(train, val, out, target_class=1)
+    cfg = _fast_cfg(train, val, out, target_class=1, upstream_path=upstream)
 
     summary = run_pipeline(cfg, seed=0)
 
@@ -107,6 +111,11 @@ def test_run_pipeline_end_to_end(tmp_path: Path) -> None:
     assert parsed["name"] == summary.name
     assert parsed["n_bins_used"] == summary.n_bins_used
     assert "coverage_cnp_1sigma" not in parsed  # legacy field removed
+    # Lineage fields present + sha256 matches the stub file's content.
+    import hashlib
+    expected_sha = hashlib.sha256(upstream.read_bytes()).hexdigest()
+    assert parsed["upstream_classifier_config"] == str(upstream)
+    assert parsed["upstream_classifier_sha256"] == expected_sha
 
     pool = np.load(out / "training_pool.npz")
     assert pool["bin_centers"].ndim == 1
@@ -125,8 +134,12 @@ def test_run_pipeline_end_to_end(tmp_path: Path) -> None:
 def test_pipeline_handles_inclusive_class(tmp_path: Path) -> None:
     train = tmp_path / "train.h5"
     val = tmp_path / "test.h5"
+    upstream = tmp_path / "stub_upstream.yaml"
+    upstream.write_text("name: stub_upstream_classifier\n")
     _write_synthetic_predictions(train, seed=2)
     _write_synthetic_predictions(val, seed=3)
-    cfg = _fast_cfg(train, val, tmp_path / "inc", target_class="all")
+    cfg = _fast_cfg(
+        train, val, tmp_path / "inc", target_class="all", upstream_path=upstream,
+    )
     summary = run_pipeline(cfg, seed=0)
     assert summary.target_class == "all"

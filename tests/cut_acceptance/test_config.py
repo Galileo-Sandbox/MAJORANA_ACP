@@ -14,6 +14,7 @@ def _kwargs(**overrides):
         validation_predictions_path="dummy_test.h5",
         out_dir="dummy",
         target_class=1,
+        upstream_classifier_config="dummy_upstream.yaml",
     )
     base.update(overrides)
     return base
@@ -75,8 +76,23 @@ def test_yaml_roundtrip(tmp_path) -> None:
         "out_dir: /tmp/out\n"
         "target_class: 0\n"
         "energy_bin_width: 5.0\n"
+        "upstream_classifier_config: /tmp/upstream.yaml\n"
     )
     cfg = load_config(yaml_path)
     assert cfg.name == "smoke"
     assert cfg.target_class == 0
     assert cfg.energy_bin_width == 5.0
+    assert str(cfg.upstream_classifier_config) == "/tmp/upstream.yaml"
+
+
+def test_upstream_classifier_config_is_required() -> None:
+    """Lineage hash needs an upstream to point at — no silent default."""
+    incomplete = dict(
+        name="missing-upstream",
+        train_predictions_path="t.h5",
+        validation_predictions_path="v.h5",
+        out_dir="out",
+        target_class=1,
+    )
+    with pytest.raises(ValueError, match="upstream_classifier_config"):
+        CutAcceptanceConfig(**incomplete)

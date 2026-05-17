@@ -7,6 +7,7 @@ name: simple_cnn_small_bin10_inclusive__true_cnp
 train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
 validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
 out_dir: results/cut_acceptance/simple_cnn_small/true_cnp/bin10/inclusive
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
 
 target_class: "all"
 energy_range: [500.0, 3000.0]

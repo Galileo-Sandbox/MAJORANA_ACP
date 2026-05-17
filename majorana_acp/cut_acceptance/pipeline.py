@@ -27,6 +27,7 @@ Outputs (all under ``cfg.out_dir``):
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -53,9 +54,23 @@ class PipelineSummary:
     n_bins_used: int
     cnp_final_train_loss: float
     youden_T_star: float
+    # Upstream-classifier lineage — binds this run to an exact
+    # classifier-config state. The SHA256 is the source of truth; the
+    # path is kept for human readability.
+    upstream_classifier_config: str
+    upstream_classifier_sha256: str
 
     def to_json(self, path: Path | str) -> None:
         Path(path).write_text(json.dumps(asdict(self), indent=2))
+
+
+def _sha256_file(path: Path) -> str:
+    """Hex SHA256 of a file's bytes (streamed; fine for YAMLs and beyond)."""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 # ---------------------------------------------------------------------------
@@ -169,6 +184,16 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
     keep = cls_mask & (val_energy >= e_lo) & (val_energy <= e_hi)
     n_validation_events = int(keep.sum())
 
+    # Upstream classifier lineage — fail loudly if the referenced YAML
+    # is missing, since a wrong/stale reference invalidates the whole run.
+    upstream_path = Path(cfg.upstream_classifier_config)
+    if not upstream_path.is_file():
+        raise FileNotFoundError(
+            f"upstream_classifier_config does not exist: {upstream_path}. "
+            "Configure a path relative to the repo root or fix the file."
+        )
+    upstream_sha = _sha256_file(upstream_path)
+
     summary = PipelineSummary(
         name=cfg.name,
         target_class=cfg.target_class,
@@ -180,6 +205,8 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
         n_bins_used=int(sampler.n_bins),
         cnp_final_train_loss=final_train_loss,
         youden_T_star=T_star,
+        upstream_classifier_config=str(upstream_path),
+        upstream_classifier_sha256=upstream_sha,
     )
     summary.to_json(out_dir / "run_summary.json")
     return summary

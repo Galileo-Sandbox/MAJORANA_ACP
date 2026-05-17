@@ -52,6 +52,16 @@ class CutAcceptanceConfig(_Frozen):
         ),
     )
     out_dir: Path = Field(..., description="Directory to write CNP + diagnostics into.")
+    upstream_classifier_config: Path = Field(
+        ...,
+        description=(
+            "Path (relative to repo root) to the YAML that trained the "
+            "classifier whose ``predictions.h5`` outputs feed this run. "
+            "The SHA256 of this file is recorded in ``run_summary.json`` "
+            "at pipeline time, binding the cut-acceptance run to an exact "
+            "upstream-classifier state. Mandatory — no default."
+        ),
+    )
 
     # ------------------------------------------------------------------
     # Class filter and energy binning
