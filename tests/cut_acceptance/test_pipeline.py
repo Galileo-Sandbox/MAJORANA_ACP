@@ -121,13 +121,70 @@ def test_run_pipeline_end_to_end(tmp_path: Path) -> None:
     assert pool["bin_centers"].ndim == 1
     assert pool["bin_event_counts"].shape == pool["bin_centers"].shape
 
-    # Checkpoint must record the new EVENT_ONLY mode (dim_phi=2, dim_theta=None).
+    # Checkpoint must record the new EVENT_ONLY mode (dim_phi=2, dim_theta=None)
+    # and the hybrid-scale fingerprint (default = baseline True-CNP).
     import torch
     state = torch.load(out / "cnp.ckpt", map_location="cpu", weights_only=False)
     assert state["dim_theta"] is None
     assert state["dim_phi"] == 2
     assert state["metadata"]["input_mode"] == "event_only"
-    assert state["metadata"]["sampling_strategy"] == "bin_stratified"
+    assert state["metadata"]["sampling_pattern"] == "flat_stratified"
+    assert state["metadata"]["trial_size_strategy"] == "fixed"
+    assert state["metadata"]["paradigm_path_suffix"] == "true_cnp"
+
+
+@pytest.mark.slow
+def test_pipeline_variable_n_and_auto_derived_paths(tmp_path: Path) -> None:
+    """``variable_uniform`` trains via the wrapper and out_dir is auto-derived."""
+    train = tmp_path / "train.h5"
+    val = tmp_path / "test.h5"
+    upstream = tmp_path / "my_classifier.yaml"
+    upstream.write_text("name: stub_upstream\n")
+    _write_synthetic_predictions(train, seed=4)
+    _write_synthetic_predictions(val, seed=5)
+
+    cfg = CutAcceptanceConfig(
+        train_predictions_path=train,
+        validation_predictions_path=val,
+        upstream_classifier_config=upstream,
+        target_class=1,
+        energy_bin_width=100.0,
+        min_events_per_bin=2,
+        encoder=EncoderConfig(type="mlp", latent_dim=8, hidden_dims=[16], dropout=0.1),
+        cnp=CNPConfig(
+            n_context_min=2, n_context_max=6,
+            output_activation="sigmoid", mixup_alpha=0.01,
+        ),
+        training=TrainingConfig(
+            n_steps=15, learning_rate=1e-3, batch_size=4,
+            n_events_per_trial=8,  # ignored under variable_uniform
+            n_mc_samples=2, grad_clip=1.0, eval_every=0, seed=0,
+        ),
+        decoder_hidden_dims=[16, 16],
+        mc_dropout_samples=4,
+        # Hybrid-scale knobs.
+        sampling_pattern="mixed_density",
+        zoom_window_width_kev=300.0,
+        local_event_fraction=0.7,
+        trial_size_strategy="variable_uniform",
+        n_trial_events_min=8,
+        n_trial_events_max=12,
+        # out_dir / name left blank — pipeline auto-derives.
+    )
+    summary = run_pipeline(cfg, seed=0)
+
+    # Path derivation lands at the canonical hybrid_scale tree, with
+    # the variable-N suffix appended.
+    expected_suffix = "hybrid_scale/mixed_density_f0_70_w300_varN8-12"
+    assert expected_suffix in summary.out_dir.replace("\\", "/")
+    assert "__" + expected_suffix.replace("/", "__") in summary.name
+    parsed = json.loads(
+        (Path(summary.out_dir) / "run_summary.json").read_text()
+    )
+    assert parsed["sampling_pattern"] == "mixed_density"
+    assert parsed["trial_size_strategy"] == "variable_uniform"
+    assert parsed["paradigm_path_suffix"] == expected_suffix
+    assert parsed["upstream_classifier_sha256"]
 
 
 @pytest.mark.slow
