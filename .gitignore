@@ -21,6 +21,7 @@ wheels/
 /runs/
 /analysis/
 /wandb/
+/results/
 /mlruns/
 /lightning_logs/
 
