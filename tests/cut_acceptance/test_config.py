@@ -96,3 +96,44 @@ def test_upstream_classifier_config_is_required() -> None:
     )
     with pytest.raises(ValueError, match="upstream_classifier_config"):
         CutAcceptanceConfig(**incomplete)
+
+
+def test_hybrid_defaults_reproduce_true_cnp() -> None:
+    """Bare config (no hybrid knobs touched) must equal the True-CNP baseline."""
+    cfg = CutAcceptanceConfig(**_kwargs())
+    assert cfg.trial_size_strategy == "fixed"
+    assert cfg.sampling_pattern == "flat_stratified"
+    assert cfg.zoom_window_width_kev == 50.0
+    assert cfg.local_event_fraction == 0.70
+    assert cfg.n_clusters == 2
+    assert cfg.physics_peaks_kev == [1460.0, 2614.0]
+
+
+def test_n_trial_events_max_must_exceed_min() -> None:
+    with pytest.raises(ValueError, match="n_trial_events_max"):
+        CutAcceptanceConfig(
+            **_kwargs(n_trial_events_min=32, n_trial_events_max=16)
+        )
+
+
+def test_physics_peaks_outside_energy_range_are_dropped() -> None:
+    """Peaks past energy_range get silently filtered to keep focus selection valid."""
+    cfg = CutAcceptanceConfig(
+        **_kwargs(
+            energy_range=(500.0, 2000.0),
+            physics_peaks_kev=[1460.0, 2614.0],
+        )
+    )
+    assert cfg.physics_peaks_kev == [1460.0]  # 2614 is outside
+
+
+def test_out_dir_and_name_are_optional() -> None:
+    """Both can be left blank; pipeline auto-derives from paradigm + bin + class."""
+    cfg = CutAcceptanceConfig(
+        train_predictions_path="t.h5",
+        validation_predictions_path="v.h5",
+        target_class=1,
+        upstream_classifier_config="up.yaml",
+    )
+    assert cfg.out_dir is None
+    assert cfg.name is None

@@ -32,7 +32,14 @@ class CutAcceptanceConfig(_Frozen):
     # ------------------------------------------------------------------
     # Identity / IO
     # ------------------------------------------------------------------
-    name: str = Field(..., description="Run tag, used as the output subfolder.")
+    name: str | None = Field(
+        default=None,
+        description=(
+            "Run tag, used in checkpoint metadata and the saved "
+            "``run_summary.json``. Optional — when blank, the pipeline "
+            "derives it from the (model, paradigm, bin, class) tuple."
+        ),
+    )
     train_predictions_path: Path = Field(
         ...,
         description=(
@@ -51,7 +58,14 @@ class CutAcceptanceConfig(_Frozen):
             "during training."
         ),
     )
-    out_dir: Path = Field(..., description="Directory to write CNP + diagnostics into.")
+    out_dir: Path | None = Field(
+        default=None,
+        description=(
+            "Directory to write CNP + diagnostics into. Optional — when "
+            "blank, the pipeline derives "
+            "``results/cut_acceptance/<model>/<paradigm_suffix>/bin{N}/{class}``."
+        ),
+    )
     upstream_classifier_config: Path = Field(
         ...,
         description=(
@@ -158,6 +172,88 @@ class CutAcceptanceConfig(_Frozen):
     )
 
     # ------------------------------------------------------------------
+    # Hybrid-scale sampling — Axis A: trial size strategy.
+    # Decoupled from Axis B (spatial pattern) so any combination is valid.
+    # ------------------------------------------------------------------
+    trial_size_strategy: Literal["fixed", "variable_uniform"] = Field(
+        "fixed",
+        description=(
+            "How to choose N_total events per trial. ``fixed`` always "
+            "uses ``training.n_events_per_trial`` (back-compat default). "
+            "``variable_uniform`` resamples N per training step "
+            "uniformly from ``[n_trial_events_min, n_trial_events_max]``. "
+            "Per-step (not per-trial-within-batch) variation — within a "
+            "single batch all trials share the same N to satisfy "
+            "RESUM_FLEX's fixed-shape StandardBatch contract."
+        ),
+    )
+    n_trial_events_min: int = Field(
+        16,
+        ge=4,
+        description="Lower bound on N when trial_size_strategy='variable_uniform'.",
+    )
+    n_trial_events_max: int = Field(
+        64,
+        ge=4,
+        description="Upper bound on N when trial_size_strategy='variable_uniform'.",
+    )
+
+    # ------------------------------------------------------------------
+    # Hybrid-scale sampling — Axis B: spatial event-energy pattern.
+    # ------------------------------------------------------------------
+    sampling_pattern: Literal[
+        "flat_stratified",
+        "mixed_density",
+        "random_clusters",
+        "physics_anchored",
+    ] = Field(
+        "flat_stratified",
+        description=(
+            "Spatial distribution of context-event energies within one "
+            "trial. ``flat_stratified`` is the current bin-uniform draw. "
+            "The other three concentrate events near focus regions to "
+            "give the CNP local detail without losing global coverage."
+        ),
+    )
+    zoom_window_width_kev: float = Field(
+        50.0,
+        gt=0.0,
+        description=(
+            "Full width (keV) of the local zoom window used by "
+            "``mixed_density``, ``random_clusters``, and ``physics_anchored``. "
+            "Ignored for ``flat_stratified``."
+        ),
+    )
+    local_event_fraction: float = Field(
+        0.70,
+        gt=0.0,
+        lt=1.0,
+        description=(
+            "Fraction of a trial's events placed inside the focus window "
+            "(``mixed_density`` / ``physics_anchored``). The remainder is "
+            "drawn globally so the CNP still sees the full spectrum."
+        ),
+    )
+    n_clusters: int = Field(
+        2,
+        ge=1,
+        description=(
+            "Number of disjoint focus windows for ``random_clusters``. "
+            "Rejection sampling fails after 50 attempts if the requested "
+            "count won't fit non-overlapping inside ``energy_range``."
+        ),
+    )
+    physics_peaks_kev: list[float] = Field(
+        default_factory=lambda: [1460.0, 2614.0],
+        description=(
+            "Candidate focus energies for ``physics_anchored``. Defaults "
+            "are ⁴⁰K (1460 keV) and ²⁰⁸Tl FE (2614 keV) — both span the "
+            "high-information regions for cut-acceptance. Peaks outside "
+            "``energy_range`` are dropped at config-load time."
+        ),
+    )
+
+    # ------------------------------------------------------------------
     # Validators
     # ------------------------------------------------------------------
     @field_validator("energy_range", "threshold_range")
@@ -166,6 +262,29 @@ class CutAcceptanceConfig(_Frozen):
         if not v[1] > v[0]:
             raise ValueError(f"range must satisfy hi > lo, got {v}")
         return v
+
+    @field_validator("n_trial_events_max")
+    @classmethod
+    def _max_ge_min(cls, v: int, info) -> int:
+        n_min = info.data.get("n_trial_events_min")
+        if n_min is not None and v < n_min:
+            raise ValueError(
+                f"n_trial_events_max ({v}) must be >= n_trial_events_min ({n_min})"
+            )
+        return v
+
+    @field_validator("physics_peaks_kev")
+    @classmethod
+    def _peaks_inside_energy_range(cls, peaks: list[float], info) -> list[float]:
+        rng = info.data.get("energy_range")
+        if rng is None:
+            return peaks
+        lo, hi = rng
+        kept = [p for p in peaks if lo <= p <= hi]
+        # Silent filter is fine here (peaks outside range are just unusable
+        # focus candidates); validate at pipeline time that *some* peaks
+        # remain when sampling_pattern == "physics_anchored".
+        return kept
 
 
 def load_config(path: Path | str) -> CutAcceptanceConfig:
