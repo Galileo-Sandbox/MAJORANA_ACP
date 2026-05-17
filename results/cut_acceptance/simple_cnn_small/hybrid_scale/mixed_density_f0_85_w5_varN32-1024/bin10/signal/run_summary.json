@@ -1,0 +1,17 @@
+{
+  "name": "simple_cnn_small_bin10_signal__hybrid_scale__mixed_density_f0_85_w5_varN32-1024",
+  "target_class": 1,
+  "energy_bin_width": 10.0,
+  "out_dir": "results/cut_acceptance/simple_cnn_small/hybrid_scale/mixed_density_f0_85_w5_varN32-1024/bin10/signal",
+  "cnp_ckpt": "results/cut_acceptance/simple_cnn_small/hybrid_scale/mixed_density_f0_85_w5_varN32-1024/bin10/signal/cnp.ckpt",
+  "n_train_events": 6186,
+  "n_validation_events": 2304,
+  "n_bins_used": 200,
+  "cnp_final_train_loss": 0.1831679344177246,
+  "youden_T_star": 0.540643572807312,
+  "upstream_classifier_config": "configs/small_data_configs/simple_cnn_small.yaml",
+  "upstream_classifier_sha256": "ad8f147aabe1fcd13f79932eaaa2950a0054253120f10b175692420c0236429f",
+  "sampling_pattern": "mixed_density",
+  "trial_size_strategy": "variable_uniform",
+  "paradigm_path_suffix": "hybrid_scale/mixed_density_f0_85_w5_varN32-1024"
+}

@@ -19,9 +19,7 @@ wheels/
 /data/
 /checkpoints/
 /runs/
-/analysis/
 /wandb/
-/results/
 /mlruns/
 /lightning_logs/
 
@@ -32,9 +30,20 @@ wheels/
 # because git won't re-include a file under a fully-ignored parent
 # directory: we ignore every path at every depth, then re-allow
 # subdirectories so git descends, then re-allow the specific JSON.
+# (Do NOT add a blanket `/results/` above — it would shadow these
+# rules and block new run_summary.json files from being trackable.)
 results/**
 !results/**/
 !results/**/run_summary.json
+
+# Same idiom for analysis/: bulk sweep outputs (audit PNG/JSON/TXT
+# regenerated on every diagnostic pass) stay ignored, but the
+# top-level markdown summaries (file names prefixed `_`, e.g.
+# `_peak_comparison.md`) are tracked as the human-curated registry
+# of findings.
+analysis/**
+!analysis/**/
+!analysis/cnp_audit/_*.md
 
 # OS / editor
 .DS_Store
