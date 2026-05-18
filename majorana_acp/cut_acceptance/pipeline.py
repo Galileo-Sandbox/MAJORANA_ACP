@@ -47,6 +47,7 @@ from sklearn.metrics import roc_curve
 
 from majorana_acp.cut_acceptance.config import CutAcceptanceConfig
 from majorana_acp.cut_acceptance.event_sampler import EventSampler, load_events
+from majorana_acp.models.attentive_cnp import build_attentive_cnp
 
 
 @dataclass(frozen=True)
@@ -119,6 +120,7 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
         cfg.sampling_pattern == "flat_stratified"
         and cfg.trial_size_strategy == "fixed"
         and not cfg.positional_encoding.enabled
+        and cfg.aggregator.type == "mean"
     )
     if is_baseline:
         return "true_cnp"
@@ -139,6 +141,10 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
     # of an otherwise-identical sampling paradigm.
     if cfg.positional_encoding.enabled:
         bits.append(f"pe{cfg.positional_encoding.num_bands}")
+    # Append _attn<H>x<d> only for cross-attention. ``mean`` aggregator
+    # stays unsuffixed so legacy paths never collide.
+    if cfg.aggregator.type == "cross_attention":
+        bits.append(f"attn{cfg.aggregator.num_heads}x{cfg.aggregator.attention_dim}")
     return "hybrid_scale/" + "_".join(bits)
 
 
@@ -171,6 +177,42 @@ def resolve_name(cfg: CutAcceptanceConfig) -> str:
     model = _classifier_model_name(cfg)
     paradigm = paradigm_path_suffix(cfg).replace("/", "__")
     return f"{model}_bin{int(cfg.energy_bin_width)}_{_class_label(cfg.target_class)}__{paradigm}"
+
+
+# ---------------------------------------------------------------------------
+# CNP build dispatcher — selects the upstream mean-aggregator CNP or our
+# local ``AttentiveCNP`` based on ``cfg.aggregator.type``. The signature
+# returned in both cases satisfies the upstream ``train_cnp`` /
+# ``cnp_loss`` contract (``forward(ctx, tgt) → CnpOutput``), so the
+# trainer never sees the dispatch.
+# ---------------------------------------------------------------------------
+
+
+def build_local_cnp(cfg: CutAcceptanceConfig, *, dim_phi: int):
+    """Build a CNP whose aggregator matches ``cfg.aggregator.type``.
+
+    ``mean`` (default) routes through upstream ``core.build_cnp`` exactly
+    as the legacy code did — byte-identical to every pre-aggregator
+    checkpoint. ``cross_attention`` builds our local ``AttentiveCNP``
+    from ``majorana_acp.models.attentive_cnp.build_attentive_cnp``.
+    """
+    if cfg.aggregator.type == "mean":
+        return build_cnp(
+            cfg.encoder,
+            dim_theta=None,
+            dim_phi=dim_phi,
+            decoder_hidden_dims=list(cfg.decoder_hidden_dims),
+        )
+    if cfg.aggregator.type == "cross_attention":
+        return build_attentive_cnp(
+            cfg.encoder,
+            dim_theta=None,
+            dim_phi=dim_phi,
+            num_heads=cfg.aggregator.num_heads,
+            attention_dim=cfg.aggregator.attention_dim,
+            decoder_hidden_dims=list(cfg.decoder_hidden_dims),
+        )
+    raise ValueError(f"unknown aggregator.type: {cfg.aggregator.type!r}")
 
 
 # ---------------------------------------------------------------------------
@@ -333,13 +375,13 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
     # dim_phi is dynamic: 2 (default) when PE is off, 2*L + 1 when PE is on.
     # The sampler computed it during __init__; we read it back here so the
     # CNP architecture matches what the StandardBatch will carry.
+    # Dispatch by aggregator type — mean routes to upstream build_cnp
+    # (byte-identical to legacy), cross_attention routes to our local
+    # AttentiveCNP. Both return objects with the same
+    # ``forward(ctx, tgt) → CnpOutput`` contract so the trainer below
+    # is aggregator-agnostic.
     dim_phi = sampler.dim_phi
-    cnp = build_cnp(
-        cfg.encoder,
-        dim_theta=None,
-        dim_phi=dim_phi,
-        decoder_hidden_dims=list(cfg.decoder_hidden_dims),
-    )
+    cnp = build_local_cnp(cfg, dim_phi=dim_phi)
     if cfg.trial_size_strategy == "variable_uniform":
         history = train_cnp_variable_n_per_step(
             cnp,
@@ -376,6 +418,9 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             "paradigm_path_suffix": paradigm_path_suffix(cfg),
             "positional_encoding_enabled": cfg.positional_encoding.enabled,
             "positional_encoding_num_bands": cfg.positional_encoding.num_bands,
+            "aggregator_type": cfg.aggregator.type,
+            "aggregator_num_heads": cfg.aggregator.num_heads,
+            "aggregator_attention_dim": cfg.aggregator.attention_dim,
         },
     )
     final_train_loss = float(history["loss"][-1]) if history.get("loss") else float("nan")

@@ -267,19 +267,38 @@ def _bin_edges_from_centers(bin_centers: np.ndarray, bin_width: float) -> np.nda
 def _load_cnp(cfg: CutAcceptanceConfig, ckpt_path: Path) -> torch.nn.Module:
     """Reconstruct the EVENT_ONLY CNP architecture and load weights.
 
-    ``dim_phi`` matches what the training pipeline used:
-    ``phi_dim(cfg.positional_encoding)`` — i.e. ``2`` when PE is off (every
-    pre-PE checkpoint) and ``2 * num_bands + 1`` when PE is on.
+    Dispatches by ``cfg.aggregator.type`` so the test path mirrors the
+    training path exactly. ``dim_phi`` matches what the training
+    pipeline used: ``phi_dim(cfg.positional_encoding)`` — ``2`` when PE
+    is off (every pre-PE checkpoint) and ``2 * num_bands + 1`` when on.
+
+    Backward compat: pre-aggregator YAMLs (no ``aggregator`` block) get
+    ``cfg.aggregator.type == 'mean'`` from the pydantic default factory,
+    which routes through upstream ``build_cnp`` — byte-identical to
+    every legacy checkpoint.
     """
     from majorana_acp.cut_acceptance.positional_encoding import phi_dim
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
 
     dim_phi = phi_dim(cfg.positional_encoding)
-    cnp = build_cnp(
-        cfg.encoder,
-        dim_theta=None,
-        dim_phi=dim_phi,
-        decoder_hidden_dims=list(cfg.decoder_hidden_dims),
-    )
+    if cfg.aggregator.type == "mean":
+        cnp = build_cnp(
+            cfg.encoder,
+            dim_theta=None,
+            dim_phi=dim_phi,
+            decoder_hidden_dims=list(cfg.decoder_hidden_dims),
+        )
+    elif cfg.aggregator.type == "cross_attention":
+        cnp = build_attentive_cnp(
+            cfg.encoder,
+            dim_theta=None,
+            dim_phi=dim_phi,
+            num_heads=cfg.aggregator.num_heads,
+            attention_dim=cfg.aggregator.attention_dim,
+            decoder_hidden_dims=list(cfg.decoder_hidden_dims),
+        )
+    else:
+        raise ValueError(f"unknown aggregator.type: {cfg.aggregator.type!r}")
     state = torch.load(ckpt_path, map_location="cpu", weights_only=False)
     cnp.load_state_dict(state["model_state"])
     cnp.eval()

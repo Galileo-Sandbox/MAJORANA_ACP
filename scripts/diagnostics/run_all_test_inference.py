@@ -2,6 +2,7 @@
 
 Skips configs whose trained CNP isn't on disk yet.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -33,7 +34,9 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--n-dense", type=int, default=DEFAULT_N_DENSE)
     ap.add_argument(
-        "--max-context-per-pass", type=int, default=DEFAULT_MAX_CONTEXT_PER_PASS,
+        "--max-context-per-pass",
+        type=int,
+        default=DEFAULT_MAX_CONTEXT_PER_PASS,
     )
     args = ap.parse_args()
 
@@ -54,7 +57,8 @@ def main() -> None:
         rel = cfg_path.relative_to(CFG_ROOT)
         out_dir = OUT_ROOT / rel.parent / rel.stem
         run_cell(
-            cfg_path, out_dir,
+            cfg_path,
+            out_dir,
             test_fraction=args.test_fraction,
             context_fraction=args.context_fraction,
             n_mc=args.n_mc,

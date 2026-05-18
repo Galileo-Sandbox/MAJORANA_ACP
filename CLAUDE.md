@@ -98,6 +98,230 @@ Each item is a `dict` containing at least: `waveform` (float32 tensor), `label` 
 - **Be strict with the user and double-check**: what the user says is not always correct. If a statement seems wrong or an idea seems impractical, ask for clarification and state the objection clearly.
 - **Never directly continue right after conversation compression**: stop after compression. The user will re-supply the context, docs, and code to read. Do not start blindly.
 
+## Proposed Phase: Attentive CNP Aggregation Layers
+
+### Why now
+
+The PE10 experiment rescued the SE 2103 over-smoothing miss (Z_DT
+−19.6 → −0.7) but introduced visible high-frequency oscillation /
+ringing across the rest of the inclusive spectrum. This is a textbook
+failure mode of the `mean` aggregator: once the encoder can represent
+high-frequency modes (thanks to the Fourier features), the global
+arithmetic mean over context events forces those modes to leak
+uniformly across all target queries — the model has no mechanism to
+say "use the high-frequency component near SE but not in the smooth
+Compton continuum". We need a **target-conditioned, local-aware
+aggregator**. The standard fix from Kim et al. 2019 (Attentive Neural
+Processes) is to replace the mean with multi-head cross-attention from
+target queries onto context keys.
+
+### Upstream dependency audit — RESUM_FLEX (read-only verdict)
+
+Audited `/home/yuema137/RESUM_FLEX/core/` to determine whether
+pluggable aggregation requires touching the upstream repo.
+
+| Component                              | Location                                                   | Aggregator-relevant? |
+| -------------------------------------- | ---------------------------------------------------------- | -------------------- |
+| `UniversalEncoder`                     | `core/networks.py:87`                                      | No — produces `(z_θ, z_φ)`; aggregation-agnostic. |
+| `ContextPointEncoder`                  | `core/surrogate_cnp.py:46`                                 | No — MLP from `(z_θ, z_φ, X)` to per-event `r_i`; runs before aggregation. |
+| `ConditionalNeuralProcess.aggregate()` | `core/surrogate_cnp.py:160` (`r_per_event.mean(dim=1)`)    | **Yes — mean is hard-coded.** |
+| `ConditionalNeuralProcess.forward()`   | `core/surrogate_cnp.py:177`                                | Yes — calls `aggregate()` then broadcasts `r_trial` into the decoder. |
+| `CnpDecoder.forward()`                 | `core/surrogate_cnp.py:106` (`r_trial.unsqueeze(1).expand`) | Yes — assumes `r_trial: [B, agg]` and broadcasts to `[B, N_t, agg]`. |
+| `build_cnp()`                          | `core/surrogate_cnp.py:254`                                | Yes — fixed wiring; emits the mean-based CNP only. |
+| `core.training.train_cnp()`            | `core/training.py:58`                                      | No — calls `cnp(ctx, tgt) → CnpOutput`; aggregator-agnostic as long as our class returns the same dataclass. |
+
+**Verdict: zero upstream changes required.** The mean is hard-coded
+*inside* `ConditionalNeuralProcess`, not behind an abstract base
+class, so we cannot swap it via subclass override of `aggregate()`
+alone (cross-attention needs target queries, which `aggregate()`
+doesn't see). The cleanest cut is to write a **parallel local CNP
+class** in `majorana_acp/models/attentive_cnp.py` that:
+
+* reuses upstream `UniversalEncoder` (drop-in),
+* reuses upstream `ContextPointEncoder` to produce per-event values
+  `h_C = r_i` (the V tensor),
+* implements a local `CrossAttentionAggregator(nn.Module)` that
+  emits a target-conditioned `r(φ_T) ∈ [B, N_T, d_v]`,
+* reuses upstream `CnpDecoder` **as a stateless MLP** (call
+  `decoder.net` directly to bypass the `r_trial.unsqueeze(1)` line
+  that assumes mean aggregation),
+* returns the upstream `CnpOutput(mu_logit, log_sigma)` dataclass so
+  `core.training.train_cnp` and `core.surrogate_cnp.cnp_loss` work
+  unchanged.
+
+Aggregator selection lives in our local `pipeline.py::build_cnp(...)`
+which dispatches between upstream `build_cnp(...)` (mean) and the
+local `build_attentive_cnp(...)` based on `cfg.aggregator.type`. The
+upstream factory and the entire upstream tree stay byte-identical;
+every existing checkpoint loads through the same `build_cnp(...)`
+call it was saved with.
+
+### Config schema extension
+
+Add a nested `AggregatorConfig` to `CutAcceptanceConfig`:
+
+```yaml
+aggregator:
+  type: "mean"          # Literal["mean", "cross_attention"]; MUST default to "mean"
+  num_heads: 8          # H ∈ ℤ≥1; ignored when type == "mean"
+  attention_dim: 64     # d_k = d_v per-head total; ignored when type == "mean"
+```
+
+Validators:
+
+* `type` must be in `{"mean", "cross_attention"}` (pydantic `Literal`).
+* `num_heads ≥ 1`, `attention_dim ≥ 1`.
+* `attention_dim % num_heads == 0` (so per-head dim is integral).
+* When `type == "mean"`, `num_heads` / `attention_dim` are kept in the
+  config object (no override) but are unused — they're no-ops, not
+  errors, so flipping the flag back and forth doesn't require also
+  re-tuning them.
+
+Default factory: `AggregatorConfig(type="mean", num_heads=8,
+attention_dim=64)`. Every existing YAML parses unchanged with PE-style
+backward compatibility (`Field(default_factory=AggregatorConfig)`).
+
+### Mathematical contract & tensor topology
+
+Notation: batch size `B`, context size `N_C`, target queries `N_T`,
+encoder latent dim `Z = encoder.latent_dim`, aggregator-output dim
+`d_v` (equals `Z` by default so the decoder input dim is invariant
+across paths — the key trick that keeps the decoder shape-stable).
+
+**Path A — `type: "mean"` (legacy, upstream `ConditionalNeuralProcess`, UNCHANGED)**
+
+```
+z_φ_C   = phi_encoder(φ_C)                            [B, N_C, Z]
+z_φ_T   = phi_encoder(φ_T)                            [B, N_T, Z]
+h_C     = ContextPointEncoder(z_θ_pe, z_φ_C, X_C)     [B, N_C, agg]    # agg = Z
+r_trial = mean(h_C, dim=1)                            [B, agg]
+r_bcast = r_trial.unsqueeze(1).expand(-1, N_T, -1)    [B, N_T, agg]
+X_dec   = concat([r_bcast, z_φ_T], dim=-1)            [B, N_T, agg + Z]
+(μ, logσ) = CnpDecoder.net(X_dec)                     [B, N_T, 2]
+```
+
+**Path B — `type: "cross_attention"` (local `AttentiveCNP`)**
+
+```
+z_φ_C   = phi_encoder(φ_C)                            [B, N_C, Z]
+z_φ_T   = phi_encoder(φ_T)                            [B, N_T, Z]
+h_C     = ContextPointEncoder(z_θ_pe, z_φ_C, X_C)     [B, N_C, agg]    # agg = Z
+
+# Multi-head projections — keys/queries derived from the same latent
+# space (z_φ) the upstream encoder already trains end-to-end; values
+# from h_C so the attention can route the per-event context
+# representation that already absorbed the label X_C.
+Q = z_φ_T · W_Q                                       [B, N_T, attention_dim]
+K = z_φ_C · W_K                                       [B, N_C, attention_dim]
+V = h_C   · W_V                                       [B, N_C, attention_dim]
+
+# Reshape for H heads, each of width d = attention_dim / num_heads.
+Q' = reshape(Q, [B, N_T, H, d]).transpose(1, 2)       [B, H, N_T, d]
+K' = reshape(K, [B, N_C, H, d]).transpose(1, 2)       [B, H, N_C, d]
+V' = reshape(V, [B, N_C, H, d]).transpose(1, 2)       [B, H, N_C, d]
+
+# Scaled dot-product attention per head.
+α  = softmax(Q' @ K'.transpose(-2, -1) / √d, dim=-1)  [B, H, N_T, N_C]
+O' = α @ V'                                           [B, H, N_T, d]
+
+# Merge heads + final linear projection W_O back to d_v = agg = Z so
+# the decoder input dim equals the mean path's (no decoder changes).
+O = O'.transpose(1, 2).reshape(B, N_T, attention_dim) [B, N_T, attention_dim]
+r(φ_T) = O · W_O                                      [B, N_T, d_v=Z]
+
+X_dec   = concat([r(φ_T), z_φ_T], dim=-1)             [B, N_T, d_v + Z]
+(μ, logσ) = CnpDecoder.net(X_dec)                     [B, N_T, 2]
+```
+
+**Why this design**
+
+* `Q` and `K` derived from `z_φ` (post-encoder), not raw `φ` — keeps
+  attention operating in the same latent space the rest of the model
+  uses; consistent with upstream's "all downstream sees the latent"
+  philosophy and lets the PE features flow through naturally.
+* `V` derived from `h_C` (not `z_φ_C`) so the value carries the
+  per-event representation that already absorbed the binary label
+  `X_C` — same source of truth the mean aggregator uses.
+* `d_v = Z = agg_dim` by default → decoder input dim is **invariant**
+  across paths. Same `CnpDecoder` instance works for both. (The
+  factory still uses the upstream `CnpDecoder`; we only bypass its
+  `forward` to skip the unsqueeze-expand.)
+* Multi-head: each head can specialize on a different scale of the PE
+  basis (low-frequency global context vs high-frequency peak detail)
+  — exactly the gating we want.
+
+### Backward-compatibility guardrails
+
+1. **Default = legacy.** `AggregatorConfig(type="mean", ...)` is the
+   default factory. Every existing YAML and trained checkpoint runs
+   through upstream `build_cnp(...)` and upstream
+   `ConditionalNeuralProcess` — byte-identical to today.
+2. **`build_local_cnp(cfg)` dispatch lives in `pipeline.py`.** When
+   `cfg.aggregator.type == "mean"`, we call upstream `build_cnp(...)`
+   verbatim. Otherwise we call `majorana_acp.models.attentive_cnp.build_attentive_cnp(...)`.
+   The upstream factory signature is unchanged; pre-PE-feature
+   checkpoints continue to load via the same `core.build_cnp` import.
+3. **`_load_cnp` in `cnp_test_inference.py`** branches on
+   `cfg.aggregator.type` symmetrically. Pre-aggregator checkpoints
+   default to `mean` (the missing config field defaults in pydantic).
+4. **Parity unit tests (mandatory):**
+   * `test_aggregator_disabled_is_bitwise_identical.py`: build two
+     CNPs from the same encoder seed — one via upstream `build_cnp`,
+     one via our `build_local_cnp(cfg with type="mean")`. Assert
+     `state_dict()` equality (or, more precisely: same architecture
+     class is returned — `isinstance(cnp, ConditionalNeuralProcess)`
+     from upstream — and `forward(ctx, tgt)` outputs are equal
+     tensor-for-tensor under identical RNG).
+   * `test_load_legacy_checkpoint.py`: load any existing trained
+     `cnp.ckpt` (we'll point it at the `true_cnp/bin10/signal` ckpt
+     that ships in the registry) and assert `_load_cnp(cfg)` succeeds
+     with no architecture mismatch.
+5. **Paradigm path suffix.** Append `_attn<H>x<d>` only when
+   `type == "cross_attention"` (e.g.
+   `..._varN32-1024_pe10_attn8x64`). Mean stays unsuffixed so
+   existing paths never collide.
+6. **Checkpoint metadata.** Save
+   `aggregator_type / aggregator_num_heads / aggregator_attention_dim`
+   in the checkpoint's metadata dict so each artifact records the
+   exact aggregator it was trained under.
+
+### Phased execution plan (NOT YET AUTHORIZED — for sign-off)
+
+| # | Phase                                                                                                                | Files                                                                                                                                                          |
+| - | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Config schema + `AggregatorConfig` model + validators                                                                | `majorana_acp/cut_acceptance/config.py`, `tests/cut_acceptance/test_config.py`                                                                                 |
+| 2 | New module `majorana_acp/models/__init__.py` + `attentive_cnp.py` (CrossAttentionAggregator + AttentiveCNP class)    | `majorana_acp/models/attentive_cnp.py` (new), `tests/models/test_attentive_cnp.py` (new)                                                                       |
+| 3 | Pipeline dispatch — `build_local_cnp(cfg)` selecting mean vs attention; paradigm-suffix tag; checkpoint metadata     | `majorana_acp/cut_acceptance/pipeline.py`, `tests/cut_acceptance/test_pipeline.py`                                                                             |
+| 4 | Inference dispatch — `_load_cnp` branches on aggregator type                                                         | `scripts/diagnostics/cnp_test_inference.py`                                                                                                                    |
+| 5 | Parity regression — mean path bitwise-equal to legacy                                                                | `tests/cut_acceptance/test_aggregator_parity.py` (new)                                                                                                         |
+| 6 | Smoke YAML at `configs/.../hybrid_scale/mixed_density_f0_70_w10_varN32-1024_pe10_attn8x64/bin10/inclusive.yaml`       | new YAML inheriting w10_varN_pe10 + `aggregator: {type: cross_attention, num_heads: 8, attention_dim: 64}`                                                     |
+| 7 | Train + full-context infer + rebuild `_audit_inclusive.md` to include `w10_varN_pe10_attn`                            | `scripts/diagnostics/build_inclusive_audit.py` (add paradigm row), regenerate report                                                                           |
+
+### Settlements (LOCKED — user sign-off)
+
+1. **Dimension sizing: `d_v = Z`.** Locked. Decoder input shape stays
+   `[B, N_T, 2Z]`; upstream `CnpDecoder.net` is reused unchanged.
+2. **`Q / K` source: `z_φ` (post-phi-encoder).** Locked. With PE
+   enabled, the 21-dim Fourier feature flows through `phi_encoder`
+   first, then attention operates in the resulting latent.
+3. **Dropout: reuse `encoder_config.dropout`.** Locked. Applied to
+   attention weights `α` AND to the output projection `W_O`. No new
+   YAML knob.
+4. **Single cross-attention layer.** Locked. Stacking is a follow-up
+   only if a single layer wins decisively.
+5. **Smoke target: `bin10/inclusive`.** Locked. Direct A/B against
+   `w10_varN_pe10/bin10/inclusive` — the PE10 cell whose sawtooth
+   motivated this proposal.
+
+### What this will NOT touch
+
+* `/home/yuema137/RESUM_FLEX/` (read-only — confirmed by audit).
+* Existing `true_cnp` / `w10_*` paradigm tags.
+* Existing trained checkpoints — they continue to load and run via
+  the upstream `build_cnp` path with no aggregator key in their YAML
+  (pydantic defaults `aggregator.type="mean"`).
+* The notebook (per the standing rule).
+
 ## Cut-Acceptance · 1D Fourier Positional Encoding for Energy (PROPOSED)
 
 ### Why

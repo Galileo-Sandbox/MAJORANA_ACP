@@ -85,6 +85,64 @@ class PositionalEncodingConfig(_Frozen):
         return v
 
 
+class AggregatorConfig(_Frozen):
+    """Pluggable context-aggregator for the CNP.
+
+    The legacy ``mean`` aggregator (`r_trial = mean(h_C, dim=1)`) is
+    hard-coded inside RESUM_FLEX's ``ConditionalNeuralProcess``. To
+    add target-conditioned cross-attention without modifying upstream,
+    the pipeline dispatches to a local
+    ``majorana_acp.models.attentive_cnp.AttentiveCNP`` when
+    ``type == 'cross_attention'``. Defaulting to ``mean`` preserves
+    byte-for-byte backward compatibility — every existing YAML and
+    trained checkpoint routes through upstream unchanged.
+
+    See ``## Proposed Phase: Attentive CNP Aggregation Layers`` in
+    CLAUDE.md for the full math contract and the user-locked design
+    settlements (``d_v = Z``; ``Q/K`` from ``z_φ``; dropout reused
+    from ``encoder.dropout``; single attention layer).
+    """
+
+    type: Literal["mean", "cross_attention"] = Field(
+        "mean",
+        description=(
+            "Which aggregator to use. ``mean`` (default) hits the "
+            "upstream ``ConditionalNeuralProcess`` path verbatim — "
+            "bitwise-identical to every pre-aggregator checkpoint. "
+            "``cross_attention`` switches to the local ``AttentiveCNP`` "
+            "with multi-head cross-attention over context events."
+        ),
+    )
+    num_heads: int = Field(
+        8,
+        ge=1,
+        description=(
+            "Number of attention heads H. Used only when "
+            "``type == 'cross_attention'``; ignored (kept for "
+            "round-trip-safety) when ``type == 'mean'``. Must divide "
+            "``attention_dim`` evenly so each head is ``attention_dim/H``."
+        ),
+    )
+    attention_dim: int = Field(
+        64,
+        ge=1,
+        description=(
+            "Total Q/K/V projection width across all heads (per-head "
+            "dim = ``attention_dim / num_heads``). Used only under "
+            "cross-attention. Defaults to 64 to match the True-CNP "
+            "encoder ``latent_dim`` so per-head dim = 8."
+        ),
+    )
+
+    @field_validator("attention_dim")
+    @classmethod
+    def _divisible_by_heads(cls, v: int, info) -> int:
+        h = info.data.get("num_heads")
+        if h is not None and v % h != 0:
+            raise ValueError(f"attention_dim ({v}) must be divisible by num_heads ({h})")
+        return v
+
+
 class CutAcceptanceConfig(_Frozen):
     """Full config for one binned-CNP cut-acceptance run."""
 
@@ -321,6 +379,20 @@ class CutAcceptanceConfig(_Frozen):
         description=(
             "Fourier feature expansion of E before it enters the encoder/"
             "decoder MLPs. Off by default."
+        ),
+    )
+
+    # ------------------------------------------------------------------
+    # Pluggable context aggregator. Default ``type='mean'`` routes
+    # through the upstream ``ConditionalNeuralProcess`` unchanged.
+    # ``type='cross_attention'`` switches to the local AttentiveCNP.
+    # ------------------------------------------------------------------
+    aggregator: AggregatorConfig = Field(
+        default_factory=AggregatorConfig,
+        description=(
+            "Context aggregator. ``mean`` (default) is bit-for-bit "
+            "identical to the legacy CNP; ``cross_attention`` enables "
+            "target-conditioned multi-head attention."
         ),
     )
 

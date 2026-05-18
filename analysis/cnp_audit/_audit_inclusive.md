@@ -2,7 +2,7 @@
 
 Source: `analysis/cnp_audit/simple_cnn_small/<paradigm>/bin10/inclusive/test_set_audit.json` (regenerated via `python -m scripts.diagnostics.cnp_test_inference <cfg>` or the full sweep). The inclusive cell uses ``target_class="all"`` — every test event contributes to D_T, no label filter — so this is the spectrum-wide pass-rate view the experiment ultimately reports.
 
-Loaded cells: true_cnp, w10_fixed48, w10_varN_large, physics_w10_varN, hyper_zoom_w5, w10_varN_pe10
+Loaded cells: true_cnp, w10_fixed48, w10_varN_large, physics_w10_varN, hyper_zoom_w5, w10_varN_pe10, w10_varN_pe10_attn
 
 ## Coverage  (target: Gaussian 0.683 / 0.954 / 0.997)
 
@@ -16,6 +16,7 @@ Loaded cells: true_cnp, w10_fixed48, w10_varN_large, physics_w10_varN, hyper_zoo
 | physics_w10_varN | 0.546 | 0.815 | 0.917 | 0.102 | 0.176 | 0.254 | ↓ overconfident (σ too tight) |
 | hyper_zoom_w5 | 0.566 | 0.863 | 0.932 | 0.068 | 0.156 | 0.254 | ↓ overconfident (σ too tight) |
 | w10_varN_pe10 | 0.566 | 0.844 | 0.946 | 0.151 | 0.307 | 0.410 | ↓ overconfident (σ too tight) |
+| w10_varN_pe10_attn | 0.561 | 0.868 | 0.941 | 0.132 | 0.293 | 0.400 | ↓ overconfident (σ too tight) |
 
 ## Localized peak-region goodness-of-fit  (±5 keV window, held-out D_T)
 
@@ -31,6 +32,7 @@ Reduced χ²_DT target ≈ 1.0; p_DT > 0.5 = mean indistinguishable from sharp t
 | physics_w10_varN |   2.40 |  -2.04 | 0.042 | ✗ local miss |
 | hyper_zoom_w5 |   4.85 |  -2.52 | 0.012 | ✗ local miss |
 | w10_varN_pe10 |   6.12 |  -2.75 | 0.006 | ✗ local miss |
+| w10_varN_pe10_attn |   1.33 |  -1.24 | 0.217 | ~ marginal |
 
 ### SE 2103
 
@@ -42,6 +44,7 @@ Reduced χ²_DT target ≈ 1.0; p_DT > 0.5 = mean indistinguishable from sharp t
 | physics_w10_varN |  17.44 | -13.91 | 5.9e-44 | ✗ local miss |
 | hyper_zoom_w5 |  31.14 | -22.33 | 1.7e-110 | ✗ local miss |
 | w10_varN_pe10 |   0.37 |  -0.73 | 0.464 | ~ marginal |
+| w10_varN_pe10_attn |   1.91 |  -1.89 | 0.059 | ~ marginal |
 
 ### DEP 1592
 
@@ -53,6 +56,7 @@ Reduced χ²_DT target ≈ 1.0; p_DT > 0.5 = mean indistinguishable from sharp t
 | physics_w10_varN |  31.02 | +25.03 | 2.8e-138 | ✗ local miss |
 | hyper_zoom_w5 |  28.19 | +21.06 | 1.8e-98 | ✗ local miss |
 | w10_varN_pe10 |  17.76 | +10.27 | 9.2e-25 | ✗ local miss |
+| w10_varN_pe10_attn |  19.10 | +11.32 | 1.0e-29 | ✗ local miss |
 
 ### Bi 1620
 
@@ -64,6 +68,7 @@ Reduced χ²_DT target ≈ 1.0; p_DT > 0.5 = mean indistinguishable from sharp t
 | physics_w10_varN |   0.24 |  -0.04 | 0.966 | ✓ clean |
 | hyper_zoom_w5 |   0.31 |  -0.26 | 0.792 | ✓ clean |
 | w10_varN_pe10 |   1.98 |  +0.92 | 0.359 | ~ marginal |
+| w10_varN_pe10_attn |   1.12 |  +0.91 | 0.365 | ~ marginal |
 
 ## Per-peak ranking (held-out D_T)
 
@@ -72,26 +77,29 @@ Ranked by *p_DT* (high = mean indistinguishable from data). High p_DT with χ²_
 **FE 2614**
   1. `true_cnp` — p_DT=0.993, Z_DT= +0.01, χ²_DT=  0.00  ·  ✓ clean
   2. `w10_fixed48` — p_DT=0.692, Z_DT= +0.40, χ²_DT=  0.14  ·  ✓ clean
-  3. `w10_varN_large` — p_DT=0.108, Z_DT= -1.61, χ²_DT=  2.11  ·  ✗ local miss
-  4. `physics_w10_varN` — p_DT=0.042, Z_DT= -2.04, χ²_DT=  2.40  ·  ✗ local miss
-  5. `hyper_zoom_w5` — p_DT=0.012, Z_DT= -2.52, χ²_DT=  4.85  ·  ✗ local miss
-  6. `w10_varN_pe10` — p_DT=0.006, Z_DT= -2.75, χ²_DT=  6.12  ·  ✗ local miss
+  3. `w10_varN_pe10_attn` — p_DT=0.217, Z_DT= -1.24, χ²_DT=  1.33  ·  ~ marginal
+  4. `w10_varN_large` — p_DT=0.108, Z_DT= -1.61, χ²_DT=  2.11  ·  ✗ local miss
+  5. `physics_w10_varN` — p_DT=0.042, Z_DT= -2.04, χ²_DT=  2.40  ·  ✗ local miss
+  6. `hyper_zoom_w5` — p_DT=0.012, Z_DT= -2.52, χ²_DT=  4.85  ·  ✗ local miss
+  7. `w10_varN_pe10` — p_DT=0.006, Z_DT= -2.75, χ²_DT=  6.12  ·  ✗ local miss
 
 **SE 2103**
   1. `w10_varN_pe10` — p_DT=0.464, Z_DT= -0.73, χ²_DT=  0.37  ·  ~ marginal
-  2. `physics_w10_varN` — p_DT=5.9e-44, Z_DT=-13.91, χ²_DT= 17.44  ·  ✗ local miss
-  3. `w10_fixed48` — p_DT=2.2e-53, Z_DT=-15.38, χ²_DT= 31.34  ·  ✗ local miss
-  4. `true_cnp` — p_DT=2.0e-72, Z_DT=-18.00, χ²_DT= 39.87  ·  ✗ local miss
-  5. `w10_varN_large` — p_DT=1.7e-85, Z_DT=-19.60, χ²_DT= 41.25  ·  ✗ local miss
-  6. `hyper_zoom_w5` — p_DT=1.7e-110, Z_DT=-22.33, χ²_DT= 31.14  ·  ✗ local miss
+  2. `w10_varN_pe10_attn` — p_DT=0.059, Z_DT= -1.89, χ²_DT=  1.91  ·  ~ marginal
+  3. `physics_w10_varN` — p_DT=5.9e-44, Z_DT=-13.91, χ²_DT= 17.44  ·  ✗ local miss
+  4. `w10_fixed48` — p_DT=2.2e-53, Z_DT=-15.38, χ²_DT= 31.34  ·  ✗ local miss
+  5. `true_cnp` — p_DT=2.0e-72, Z_DT=-18.00, χ²_DT= 39.87  ·  ✗ local miss
+  6. `w10_varN_large` — p_DT=1.7e-85, Z_DT=-19.60, χ²_DT= 41.25  ·  ✗ local miss
+  7. `hyper_zoom_w5` — p_DT=1.7e-110, Z_DT=-22.33, χ²_DT= 31.14  ·  ✗ local miss
 
 **DEP 1592**
   1. `w10_varN_pe10` — p_DT=9.2e-25, Z_DT=+10.27, χ²_DT= 17.76  ·  ✗ local miss
-  2. `w10_varN_large` — p_DT=1.9e-59, Z_DT=+16.26, χ²_DT= 21.44  ·  ✗ local miss
-  3. `w10_fixed48` — p_DT=2.9e-85, Z_DT=+19.57, χ²_DT= 23.82  ·  ✗ local miss
-  4. `true_cnp` — p_DT=7.9e-93, Z_DT=+20.44, χ²_DT= 25.56  ·  ✗ local miss
-  5. `hyper_zoom_w5` — p_DT=1.8e-98, Z_DT=+21.06, χ²_DT= 28.19  ·  ✗ local miss
-  6. `physics_w10_varN` — p_DT=2.8e-138, Z_DT=+25.03, χ²_DT= 31.02  ·  ✗ local miss
+  2. `w10_varN_pe10_attn` — p_DT=1.0e-29, Z_DT=+11.32, χ²_DT= 19.10  ·  ✗ local miss
+  3. `w10_varN_large` — p_DT=1.9e-59, Z_DT=+16.26, χ²_DT= 21.44  ·  ✗ local miss
+  4. `w10_fixed48` — p_DT=2.9e-85, Z_DT=+19.57, χ²_DT= 23.82  ·  ✗ local miss
+  5. `true_cnp` — p_DT=7.9e-93, Z_DT=+20.44, χ²_DT= 25.56  ·  ✗ local miss
+  6. `hyper_zoom_w5` — p_DT=1.8e-98, Z_DT=+21.06, χ²_DT= 28.19  ·  ✗ local miss
+  7. `physics_w10_varN` — p_DT=2.8e-138, Z_DT=+25.03, χ²_DT= 31.02  ·  ✗ local miss
 
 **Bi 1620**
   1. `physics_w10_varN` — p_DT=0.966, Z_DT= -0.04, χ²_DT=  0.24  ·  ✓ clean
@@ -99,7 +107,8 @@ Ranked by *p_DT* (high = mean indistinguishable from data). High p_DT with χ²_
   3. `true_cnp` — p_DT=0.575, Z_DT= -0.56, χ²_DT=  0.48  ·  ✓ clean
   4. `w10_fixed48` — p_DT=0.518, Z_DT= -0.65, χ²_DT=  0.51  ·  ✓ clean
   5. `w10_varN_large` — p_DT=0.431, Z_DT= -0.79, χ²_DT=  0.64  ·  ~ marginal
-  6. `w10_varN_pe10` — p_DT=0.359, Z_DT= +0.92, χ²_DT=  1.98  ·  ~ marginal
+  6. `w10_varN_pe10_attn` — p_DT=0.365, Z_DT= +0.91, χ²_DT=  1.12  ·  ~ marginal
+  7. `w10_varN_pe10` — p_DT=0.359, Z_DT= +0.92, χ²_DT=  1.98  ·  ~ marginal
 
 ## Global sanity check
 
@@ -113,3 +122,4 @@ Spectrum-wide metrics. Pearson r close to +1 = CNP β(E) tracks D_T; mean offset
 | physics_w10_varN | 5659 | 1415 | +0.349 | +0.0390 | 0.546 |
 | hyper_zoom_w5 | 5659 | 1415 | +0.444 | +0.0155 | 0.566 |
 | w10_varN_pe10 | 5659 | 1415 | +0.419 | +0.0074 | 0.566 |
+| w10_varN_pe10_attn | 5659 | 1415 | +0.394 | +0.0129 | 0.561 |

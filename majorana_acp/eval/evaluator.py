@@ -85,9 +85,7 @@ def evaluate(
         )
 
         # ---- Build dataset for the requested split ----------------
-        indices = (
-            cfg.data.train_file_indices if split == "train" else cfg.data.test_file_indices
-        )
+        indices = cfg.data.train_file_indices if split == "train" else cfg.data.test_file_indices
         files = resolve_files(cfg.data.data_dir, split, indices)
         logger.info("loaded %d %s file(s)", len(files), split)
 

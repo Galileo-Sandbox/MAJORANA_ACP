@@ -32,6 +32,10 @@ PARADIGMS = [
     ("physics_w10_varN", "hybrid_scale/physics_anchored_f0_80_w10_varN32-1024"),
     ("hyper_zoom_w5", "hybrid_scale/mixed_density_f0_85_w5_varN32-1024"),
     ("w10_varN_pe10", "hybrid_scale/mixed_density_f0_70_w10_varN32-1024_pe10"),
+    (
+        "w10_varN_pe10_attn",
+        "hybrid_scale/mixed_density_f0_70_w10_varN32-1024_pe10_attn8x64",
+    ),
 ]
 
 PEAK_ORDER = [
