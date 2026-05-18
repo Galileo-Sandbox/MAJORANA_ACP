@@ -1,0 +1,71 @@
+# Hybrid-scale w10_varN_pe10 · bin10/inclusive: identical hyperparameters
+# to the golden w10_varN_large/bin10/inclusive cell, plus a 1D Fourier
+# positional encoding (L=10 bands) on the energy coordinate before it
+# enters the encoder/decoder MLPs.
+#
+# Hypothesis: the inclusive function's catastrophic over-smoothing at
+# Tl-208 SE (Z_DT ≈ -15σ) and Tl-208 DEP (Z_DT ≈ +18σ) is bound by the
+# representational bandwidth of the MLP's treatment of E, not by the
+# sampling. Lifting E into a 20-dim sinusoidal basis gives the network
+# access to high-frequency modes it cannot otherwise express from a 1D
+# input.
+#
+# dim_phi at training time: 2 * num_bands + 1 = 21
+# (20 sin/cos features for E, 1 scalar T appended at the end).
+#
+# out_dir / name are auto-derived; the paradigm tag becomes
+# ``hybrid_scale/mixed_density_f0_70_w10_varN32-1024_pe10`` because
+# paradigm_path_suffix appends ``_pe<L>`` when PE is enabled.
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: mixed_density
+zoom_window_width_kev: 10.0
+local_event_fraction: 0.70
+trial_size_strategy: variable_uniform
+n_trial_events_min: 32
+n_trial_events_max: 1024
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 2
+  n_context_max: 1023
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform; placeholder
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+# The PE block — explicitly enabled at L=10 bands. The PE energy window
+# matches energy_range; encode_phi is a no-op re-normalization in that
+# case but the fields are kept explicit for grep-ability.
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0

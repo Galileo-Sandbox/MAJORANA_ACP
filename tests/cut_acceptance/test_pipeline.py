@@ -113,6 +113,7 @@ def test_run_pipeline_end_to_end(tmp_path: Path) -> None:
     assert "coverage_cnp_1sigma" not in parsed  # legacy field removed
     # Lineage fields present + sha256 matches the stub file's content.
     import hashlib
+
     expected_sha = hashlib.sha256(upstream.read_bytes()).hexdigest()
     assert parsed["upstream_classifier_config"] == str(upstream)
     assert parsed["upstream_classifier_sha256"] == expected_sha
@@ -124,6 +125,7 @@ def test_run_pipeline_end_to_end(tmp_path: Path) -> None:
     # Checkpoint must record the new EVENT_ONLY mode (dim_phi=2, dim_theta=None)
     # and the hybrid-scale fingerprint (default = baseline True-CNP).
     import torch
+
     state = torch.load(out / "cnp.ckpt", map_location="cpu", weights_only=False)
     assert state["dim_theta"] is None
     assert state["dim_phi"] == 2
@@ -160,13 +162,20 @@ def test_pipeline_variable_n_and_auto_derived_paths(
         min_events_per_bin=2,
         encoder=EncoderConfig(type="mlp", latent_dim=8, hidden_dims=[16], dropout=0.1),
         cnp=CNPConfig(
-            n_context_min=2, n_context_max=6,
-            output_activation="sigmoid", mixup_alpha=0.01,
+            n_context_min=2,
+            n_context_max=6,
+            output_activation="sigmoid",
+            mixup_alpha=0.01,
         ),
         training=TrainingConfig(
-            n_steps=15, learning_rate=1e-3, batch_size=4,
+            n_steps=15,
+            learning_rate=1e-3,
+            batch_size=4,
             n_events_per_trial=8,  # ignored under variable_uniform
-            n_mc_samples=2, grad_clip=1.0, eval_every=0, seed=0,
+            n_mc_samples=2,
+            grad_clip=1.0,
+            eval_every=0,
+            seed=0,
         ),
         decoder_hidden_dims=[16, 16],
         mc_dropout_samples=4,
@@ -186,9 +195,7 @@ def test_pipeline_variable_n_and_auto_derived_paths(
     expected_suffix = "hybrid_scale/mixed_density_f0_70_w300_varN8-12"
     assert expected_suffix in summary.out_dir.replace("\\", "/")
     assert "__" + expected_suffix.replace("/", "__") in summary.name
-    parsed = json.loads(
-        (Path(summary.out_dir) / "run_summary.json").read_text()
-    )
+    parsed = json.loads((Path(summary.out_dir) / "run_summary.json").read_text())
     assert parsed["sampling_pattern"] == "mixed_density"
     assert parsed["trial_size_strategy"] == "variable_uniform"
     assert parsed["paradigm_path_suffix"] == expected_suffix
@@ -204,7 +211,11 @@ def test_pipeline_handles_inclusive_class(tmp_path: Path) -> None:
     _write_synthetic_predictions(train, seed=2)
     _write_synthetic_predictions(val, seed=3)
     cfg = _fast_cfg(
-        train, val, tmp_path / "inc", target_class="all", upstream_path=upstream,
+        train,
+        val,
+        tmp_path / "inc",
+        target_class="all",
+        upstream_path=upstream,
     )
     summary = run_pipeline(cfg, seed=0)
     assert summary.target_class == "all"

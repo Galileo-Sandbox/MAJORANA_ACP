@@ -31,6 +31,7 @@ PARADIGMS = [
     ("w10_varN_large", "hybrid_scale/mixed_density_f0_70_w10_varN32-1024"),
     ("physics_w10_varN", "hybrid_scale/physics_anchored_f0_80_w10_varN32-1024"),
     ("hyper_zoom_w5", "hybrid_scale/mixed_density_f0_85_w5_varN32-1024"),
+    ("w10_varN_pe10", "hybrid_scale/mixed_density_f0_70_w10_varN32-1024_pe10"),
 ]
 
 PEAK_ORDER = [
@@ -96,11 +97,21 @@ def _coverage_verdict(cov_1sigma: float | None) -> str:
 
 
 def _peak_verdict(p: float | None, chi2: float | None) -> str:
-    """Single-cell verdict from p-value + reduced χ² (held-out side)."""
+    """Single-cell verdict from p-value + reduced χ² (held-out side).
+
+    Tiers:
+        p > 0.5  & χ² < 2  → ✓ clean (mean within 1σ, χ² well-calibrated)
+        p > 0.05 & χ² < 2  → ~ marginal (not statistically significant, but
+                              not as tight as "clean")
+        p > 0.5            → △ mean OK, χ² high (oscillation)
+        otherwise          → ✗ local miss (p ≤ 0.05 → reject indistinguishability)
+    """
     if p is None or chi2 is None:
         return "—"
     if p > 0.5 and chi2 < 2:
         return "✓ clean"
+    if p > 0.05 and chi2 < 2:
+        return "~ marginal"
     if p > 0.5:
         return "△ mean OK, χ² high"
     return "✗ local miss"

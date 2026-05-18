@@ -12,7 +12,7 @@ Z is **signed**: ``Z > 0`` means the empirical rate is *above* the model (CNP un
 
 | paradigm | χ²_DC | Z_DC | p_DC | χ²_DT | Z_DT | p_DT | verdict (D_T) |
 |---|---|---|---|---|---|---|---|
-| true_cnp |   0.57 |  -4.55 | 5.4e-06 |   0.13 |  -0.82 | 0.412 | ✗ local miss |
+| true_cnp |   0.57 |  -4.55 | 5.4e-06 |   0.13 |  -0.82 | 0.412 | ~ marginal |
 | w10_fixed48 |   0.81 |  -6.84 | 8.1e-12 |   0.59 |  -2.11 | 0.035 | ✗ local miss |
 | w10_varN_large |   0.34 |  -3.47 | 5.3e-04 |   0.01 |  +0.22 | 0.824 | ✓ clean |
 | physics_w10_varN |   0.01 |  -0.67 | 0.501 |   2.36 |  +4.68 | 2.9e-06 | ✗ local miss |
@@ -63,7 +63,7 @@ Ranked by *p_DT* (high = mean indistinguishable from data). Note: p_DT measures 
 
 **FE 2614**
   1. `w10_varN_large` — p_DT=0.824, χ²_DT=  0.01  ·  ✓ clean
-  2. `true_cnp` — p_DT=0.412, χ²_DT=  0.13  ·  ✗ local miss
+  2. `true_cnp` — p_DT=0.412, χ²_DT=  0.13  ·  ~ marginal
   3. `w10_fixed48` — p_DT=0.035, χ²_DT=  0.59  ·  ✗ local miss
   4. `hyper_zoom_w5` — p_DT=1.1e-04, χ²_DT=  1.58  ·  ✗ local miss
   5. `physics_w10_varN` — p_DT=2.9e-06, χ²_DT=  2.36  ·  ✗ local miss

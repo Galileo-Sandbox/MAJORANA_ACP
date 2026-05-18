@@ -27,7 +27,8 @@ def _sampler(
 ) -> EventSampler:
     e, s = _pool(pool_n, seed=pool_seed)
     return EventSampler(
-        e, s,
+        e,
+        s,
         energy_range=(500.0, 3000.0),
         energy_bin_width=bin_width,
         threshold_range=(0.0, 1.0),
@@ -71,7 +72,7 @@ def test_t_constant_within_trial_varies_across_trials() -> None:
     """All events in trial k share T_k; different trials get different T_k."""
     s = _sampler()
     batch = s.generate(n_trials=20, n_events=8, seed=3)
-    t_per_event_per_trial = batch.phi[:, :, 1]   # [B, N]
+    t_per_event_per_trial = batch.phi[:, :, 1]  # [B, N]
     for k in range(batch.phi.shape[0]):
         assert np.allclose(t_per_event_per_trial[k], t_per_event_per_trial[k, 0])
     t_per_trial = t_per_event_per_trial[:, 0]
@@ -156,7 +157,8 @@ def test_bin_stratification_beats_natural_density() -> None:
     energy = np.concatenate([e_low, e_high])
     score = rng.uniform(0.0, 1.0, size=energy.size)
     s = EventSampler(
-        energy, score,
+        energy,
+        score,
         energy_range=(500.0, 3000.0),
         energy_bin_width=100.0,
         min_events_per_bin=4,
@@ -193,7 +195,8 @@ def test_rejects_unknown_t_sampling() -> None:
     e, s = _pool()
     with pytest.raises(ValueError, match="t_sampling"):
         EventSampler(
-            e, s,
+            e,
+            s,
             energy_range=(500.0, 3000.0),
             energy_bin_width=20.0,
             t_sampling="bogus",
@@ -204,7 +207,8 @@ def test_rejects_bad_threshold_range() -> None:
     e, s = _pool()
     with pytest.raises(ValueError, match="threshold_range"):
         EventSampler(
-            e, s,
+            e,
+            s,
             energy_range=(500.0, 3000.0),
             energy_bin_width=20.0,
             threshold_range=(1.0, 0.0),
@@ -242,7 +246,8 @@ def test_all_patterns_emit_valid_batches(pattern: str, kwargs: dict) -> None:
     """Every pattern produces an EVENT_ONLY batch with the right shape + dtypes."""
     e, s = _pool()
     sampler = EventSampler(
-        e, s,
+        e,
+        s,
         energy_range=(500.0, 3000.0),
         energy_bin_width=100.0,
         min_events_per_bin=4,
@@ -279,7 +284,8 @@ def test_all_patterns_reproducible(pattern: str, kwargs: dict) -> None:
     """Same seed → identical (phi, labels) per pattern."""
     e, s = _pool()
     sampler = EventSampler(
-        e, s,
+        e,
+        s,
         energy_range=(500.0, 3000.0),
         energy_bin_width=100.0,
         min_events_per_bin=4,
@@ -303,9 +309,10 @@ def test_mixed_density_concentrates_local_events() -> None:
     e, s = _pool(n=10_000)
     bin_width = 50.0
     half_w = 100.0  # zoom_window_width_kev / 2
-    eff_half = half_w + 0.5 * bin_width   # include the half-bin pad
+    eff_half = half_w + 0.5 * bin_width  # include the half-bin pad
     sampler = EventSampler(
-        e, s,
+        e,
+        s,
         energy_range=(500.0, 3000.0),
         energy_bin_width=bin_width,
         min_events_per_bin=4,
@@ -319,8 +326,9 @@ def test_mixed_density_concentrates_local_events() -> None:
     # The local pool dominates, so the median of the picked energies
     # is a robust estimator of the focus when ≥50% land local.
     focus_est = float(np.median(e_picked))
-    frac_local = float(((e_picked >= focus_est - eff_half) &
-                        (e_picked <= focus_est + eff_half)).mean())
+    frac_local = float(
+        ((e_picked >= focus_est - eff_half) & (e_picked <= focus_est + eff_half)).mean()
+    )
     # Target = 0.7. Allow 0.6 lower bound for RNG slack; the critical
     # comparison is against the natural-density baseline of ~0.08
     # (a 200-keV window covers 8% of the 2500-keV span).
@@ -339,7 +347,8 @@ def test_random_clusters_starves_outside_regions() -> None:
     bin_width = 50.0
     window = 200.0
     sampler = EventSampler(
-        e, s,
+        e,
+        s,
         energy_range=(500.0, 3000.0),
         energy_bin_width=bin_width,
         min_events_per_bin=4,
@@ -349,9 +358,7 @@ def test_random_clusters_starves_outside_regions() -> None:
     )
     batch = sampler.generate(n_trials=1, n_events=2000, seed=7)
     e_picked = batch.phi[0, :, 0] * (3000.0 - 500.0) + 500.0
-    counts, _ = np.histogram(
-        e_picked, bins=np.arange(500.0, 3000.0 + bin_width, bin_width)
-    )
+    counts, _ = np.histogram(e_picked, bins=np.arange(500.0, 3000.0 + bin_width, bin_width))
     nonzero = counts > 0
     # Count contiguous nonzero runs.
     runs: list[tuple[int, int]] = []
@@ -366,24 +373,21 @@ def test_random_clusters_starves_outside_regions() -> None:
     if in_run:
         runs.append((start, len(nonzero)))
 
-    assert len(runs) == 2, (
-        f"expected 2 islands, got {len(runs)} contiguous nonzero runs"
-    )
+    assert len(runs) == 2, f"expected 2 islands, got {len(runs)} contiguous nonzero runs"
     # Each island spans the window plus up to one bin of pad on each
     # side → (window + 2*bin_width) / bin_width.
     max_span_bins = int((window + 2.0 * bin_width) // bin_width)
     for s_idx, e_idx in runs:
         span = e_idx - s_idx
-        assert span <= max_span_bins, (
-            f"island spans {span} bins (> {max_span_bins} expected)"
-        )
+        assert span <= max_span_bins, f"island spans {span} bins (> {max_span_bins} expected)"
 
 
 def test_random_clusters_event_count_partitions_evenly() -> None:
     """N=48 with n_clusters=2 → 24+24; with n=49 → 24+25 (order randomized)."""
     e, s = _pool(n=5000)
     sampler = EventSampler(
-        e, s,
+        e,
+        s,
         energy_range=(500.0, 3000.0),
         energy_bin_width=50.0,
         min_events_per_bin=4,
@@ -401,7 +405,8 @@ def test_random_clusters_raises_when_unplaceable() -> None:
     """3 disjoint 1500-keV windows can't fit in 2500 keV — must raise."""
     e, s = _pool(n=5000)
     sampler = EventSampler(
-        e, s,
+        e,
+        s,
         energy_range=(500.0, 3000.0),
         energy_bin_width=50.0,
         min_events_per_bin=4,
@@ -418,7 +423,8 @@ def test_physics_anchored_focus_is_always_near_a_peak() -> None:
     e, s = _pool(n=10_000)
     peaks = [1500.0, 2614.0]
     sampler = EventSampler(
-        e, s,
+        e,
+        s,
         energy_range=(500.0, 3000.0),
         energy_bin_width=50.0,
         min_events_per_bin=4,
@@ -449,7 +455,8 @@ def test_physics_anchored_rejects_no_in_range_peaks() -> None:
     e, s = _pool()
     with pytest.raises(ValueError, match="physics_anchored"):
         EventSampler(
-            e, s,
+            e,
+            s,
             energy_range=(500.0, 1000.0),  # excludes both 1500 and 2614
             energy_bin_width=50.0,
             min_events_per_bin=4,
@@ -468,7 +475,8 @@ def test_flat_stratified_remains_bin_uniform_under_skew() -> None:
     energy = np.concatenate([e_low, e_high])
     score = rng.uniform(0.0, 1.0, size=energy.size)
     sampler = EventSampler(
-        energy, score,
+        energy,
+        score,
         energy_range=(500.0, 3000.0),
         energy_bin_width=100.0,
         min_events_per_bin=4,
@@ -478,3 +486,81 @@ def test_flat_stratified_remains_bin_uniform_under_skew() -> None:
     e_picked = batch.phi[0, :, 0] * (3000.0 - 500.0) + 500.0
     frac_low = (e_picked < 1500.0).mean()
     assert 0.35 <= frac_low <= 0.45
+
+
+# --- positional encoding gate ---------------------------------------
+# These tests pin the backward-compatibility contract: with PE disabled
+# the sampler is bit-for-bit identical to the pre-PE code path; with PE
+# enabled phi.shape[-1] grows to 2*L + 1 and the threshold tail is
+# preserved verbatim.
+
+
+def test_pe_disabled_default_keeps_dim_phi_two() -> None:
+    """The bare sampler (no PE arg) advertises dim_phi=2 like the legacy path."""
+    s = _sampler()
+    assert s.dim_phi == 2
+    batch = s.generate(n_trials=2, n_events=16, seed=0)
+    assert batch.phi.shape == (2, 16, 2)
+
+
+def test_pe_disabled_explicit_config_is_bitwise_identical() -> None:
+    """Explicit PositionalEncodingConfig(enabled=False) must produce an
+    array identical to the no-arg path. This is the parity guarantee."""
+    from majorana_acp.cut_acceptance.config import PositionalEncodingConfig
+
+    e, s = _pool(2000, seed=0)
+    kwargs = dict(
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=100.0,
+        min_events_per_bin=4,
+        t_sampling="boundary_mix",
+    )
+    legacy = EventSampler(e, s, **kwargs)
+    explicit = EventSampler(
+        e,
+        s,
+        positional_encoding=PositionalEncodingConfig(enabled=False),
+        **kwargs,
+    )
+    b_legacy = legacy.generate(n_trials=3, n_events=20, seed=42)
+    b_explicit = explicit.generate(n_trials=3, n_events=20, seed=42)
+    np.testing.assert_array_equal(b_legacy.phi, b_explicit.phi)
+    np.testing.assert_array_equal(b_legacy.labels, b_explicit.labels)
+    assert legacy.dim_phi == explicit.dim_phi == 2
+
+
+@pytest.mark.parametrize("L", [1, 4, 10])
+def test_pe_enabled_widens_phi_to_2L_plus_one(L: int) -> None:
+    """phi.shape[-1] = 2*L + 1; last column is the original T_norm."""
+    from majorana_acp.cut_acceptance.config import PositionalEncodingConfig
+
+    e, s = _pool(2000, seed=0)
+    pe = PositionalEncodingConfig(
+        enabled=True,
+        num_bands=L,
+        min_energy_kev=500.0,
+        max_energy_kev=3000.0,
+    )
+    sampler = EventSampler(
+        e,
+        s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=100.0,
+        min_events_per_bin=4,
+        t_sampling="boundary_mix",
+        positional_encoding=pe,
+    )
+    assert sampler.dim_phi == 2 * L + 1
+    batch = sampler.generate(n_trials=2, n_events=16, seed=0)
+    assert batch.phi.shape == (2, 16, 2 * L + 1)
+    # The last feature stays a constant within a trial (it's the threshold
+    # broadcast across all N events of that trial — same invariant as the
+    # raw T_norm column in the no-PE case).
+    for k in range(batch.phi.shape[0]):
+        t_col = batch.phi[k, :, -1]
+        assert np.all(t_col == t_col[0])
+    # The 2L energy features should sweep [-1, 1] (sin/cos range) and
+    # vary across events, in contrast to the threshold pass-through.
+    energy_features = batch.phi[..., : 2 * L]
+    assert energy_features.min() >= -1.0 - 1e-9
+    assert energy_features.max() <= 1.0 + 1e-9

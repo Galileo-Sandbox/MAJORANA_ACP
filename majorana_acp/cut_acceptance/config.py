@@ -26,6 +26,65 @@ class _Frozen(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
 
+class PositionalEncodingConfig(_Frozen):
+    """1D Fourier-feature expansion of the energy coordinate.
+
+    When ``enabled``, the per-event energy ``E`` is normalized into
+    ``[0, 1]`` against ``[min_energy_kev, max_energy_kev]`` and lifted
+    into a ``2 * num_bands``-dimensional sinusoidal basis:
+
+    ``γ(E_norm) = [sin(2^k π E_norm), cos(2^k π E_norm)
+                   for k in 0 .. num_bands-1]``
+
+    The threshold dimension ``T`` is kept as a single scalar appended
+    at the end of phi, so ``dim_phi = 2 * num_bands + 1`` when enabled
+    and ``dim_phi = 2`` when disabled.
+
+    Defaults to disabled — every existing YAML and trained checkpoint
+    runs identically.
+    """
+
+    enabled: bool = Field(
+        False,
+        description=(
+            "Master gate. MUST default false for backward compatibility "
+            "with existing YAMLs and trained checkpoints."
+        ),
+    )
+    num_bands: int = Field(
+        10,
+        ge=1,
+        description=(
+            "Number of frequency bands ``L``. The k-th band is "
+            "``(sin(2^k π E_norm), cos(2^k π E_norm))``. The highest "
+            "band has period ``2 / 2^(L-1)`` in the normalized "
+            "coordinate; at L=10 over a 2500-keV range that's ~9.8 keV "
+            "— deliberately matched to the bin10 grid scale."
+        ),
+    )
+    min_energy_kev: float = Field(
+        500.0,
+        description=(
+            "Lower bound for the energy normalization (E_norm = "
+            "(E - min) / (max - min)). Usually matches energy_range[0] "
+            "but kept independent so the PE window can be tuned "
+            "without retraining the broader sampling stack."
+        ),
+    )
+    max_energy_kev: float = Field(
+        3000.0,
+        description="Upper bound for the energy normalization.",
+    )
+
+    @field_validator("max_energy_kev")
+    @classmethod
+    def _max_gt_min(cls, v: float, info) -> float:
+        lo = info.data.get("min_energy_kev")
+        if lo is not None and v <= lo:
+            raise ValueError(f"max_energy_kev ({v}) must exceed min_energy_kev ({lo})")
+        return v
+
+
 class CutAcceptanceConfig(_Frozen):
     """Full config for one binned-CNP cut-acceptance run."""
 
@@ -254,6 +313,18 @@ class CutAcceptanceConfig(_Frozen):
     )
 
     # ------------------------------------------------------------------
+    # 1D Fourier positional encoding of the energy coordinate.
+    # Default-disabled — see PositionalEncodingConfig docstring.
+    # ------------------------------------------------------------------
+    positional_encoding: PositionalEncodingConfig = Field(
+        default_factory=PositionalEncodingConfig,
+        description=(
+            "Fourier feature expansion of E before it enters the encoder/"
+            "decoder MLPs. Off by default."
+        ),
+    )
+
+    # ------------------------------------------------------------------
     # Validators
     # ------------------------------------------------------------------
     @field_validator("energy_range", "threshold_range")
@@ -268,9 +339,7 @@ class CutAcceptanceConfig(_Frozen):
     def _max_ge_min(cls, v: int, info) -> int:
         n_min = info.data.get("n_trial_events_min")
         if n_min is not None and v < n_min:
-            raise ValueError(
-                f"n_trial_events_max ({v}) must be >= n_trial_events_min ({n_min})"
-            )
+            raise ValueError(f"n_trial_events_max ({v}) must be >= n_trial_events_min ({n_min})")
         return v
 
     @field_validator("physics_peaks_kev")

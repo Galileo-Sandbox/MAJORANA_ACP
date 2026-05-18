@@ -60,11 +60,13 @@ def _fmt_z(z: float | None) -> str:
 
 
 def _peak_verdict(p: float | None, chi2: float | None) -> str:
-    """Single-cell verdict from p-value + reduced χ²."""
+    """Single-cell verdict from p-value + reduced χ² (held-out side)."""
     if p is None or chi2 is None:
         return "—"
     if p > 0.5 and chi2 < 2:
         return "✓ clean"
+    if p > 0.05 and chi2 < 2:
+        return "~ marginal"
     if p > 0.5:
         return "△ mean OK, χ² high"
     return "✗ local miss"

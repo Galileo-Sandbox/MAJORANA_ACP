@@ -26,9 +26,13 @@ def test_perfect_match_gives_chi2_near_zero_and_p_near_one() -> None:
 
     # Use a single peak inside the grid.
     out = compute_peak_metrics(
-        centers, beta, beta_std,
-        rate_DC=rate, sigma_emp_DC=sigma_emp,
-        rate_DT=rate, sigma_emp_DT=sigma_emp,
+        centers,
+        beta,
+        beta_std,
+        rate_DC=rate,
+        sigma_emp_DC=sigma_emp,
+        rate_DT=rate,
+        sigma_emp_DT=sigma_emp,
         peak_markers=[("test_peak", 1500.0)],
     )
     pm = out[0]
@@ -44,14 +48,18 @@ def test_one_sigma_offset_gives_chi2_about_one() -> None:
     """Empirical 1σ above β with σ_stat dominating → χ² ≈ 1."""
     centers = _make_grid()
     beta = np.full(centers.size, 0.50)
-    beta_std = np.full(centers.size, 0.001)        # negligible model σ
-    sigma_emp = np.full(centers.size, 0.05)        # dominant binomial σ
-    rate = beta + sigma_emp                        # exactly +1σ
+    beta_std = np.full(centers.size, 0.001)  # negligible model σ
+    sigma_emp = np.full(centers.size, 0.05)  # dominant binomial σ
+    rate = beta + sigma_emp  # exactly +1σ
 
     out = compute_peak_metrics(
-        centers, beta, beta_std,
-        rate_DC=rate, sigma_emp_DC=sigma_emp,
-        rate_DT=rate, sigma_emp_DT=sigma_emp,
+        centers,
+        beta,
+        beta_std,
+        rate_DC=rate,
+        sigma_emp_DC=sigma_emp,
+        rate_DT=rate,
+        sigma_emp_DT=sigma_emp,
         peak_markers=[("test_peak", 1500.0)],
     )
     pm = out[0]
@@ -72,9 +80,13 @@ def test_nan_bins_are_excluded() -> None:
     rate[in_window] = np.nan
 
     out = compute_peak_metrics(
-        centers, beta, beta_std,
-        rate_DC=rate, sigma_emp_DC=sigma_emp,
-        rate_DT=rate, sigma_emp_DT=sigma_emp,
+        centers,
+        beta,
+        beta_std,
+        rate_DC=rate,
+        sigma_emp_DC=sigma_emp,
+        rate_DT=rate,
+        sigma_emp_DT=sigma_emp,
         peak_markers=[("test_peak", peak_e)],
     )
     pm = out[0]
@@ -93,9 +105,13 @@ def test_empty_window_yields_nan() -> None:
 
     # Pick a peak energy below the grid lo so no bin overlaps.
     out = compute_peak_metrics(
-        centers, beta, beta_std,
-        rate_DC=rate, sigma_emp_DC=sigma_emp,
-        rate_DT=rate, sigma_emp_DT=sigma_emp,
+        centers,
+        beta,
+        beta_std,
+        rate_DC=rate,
+        sigma_emp_DC=sigma_emp,
+        rate_DT=rate,
+        sigma_emp_DT=sigma_emp,
         peak_markers=[("below_grid", 100.0)],
     )
     pm = out[0]
@@ -113,9 +129,13 @@ def test_default_peak_list_runs_against_real_grid() -> None:
     rate = np.full(centers.size, 0.5)
     sigma_emp = np.full(centers.size, 0.05)
     out = compute_peak_metrics(
-        centers, beta, beta_std,
-        rate_DC=rate, sigma_emp_DC=sigma_emp,
-        rate_DT=rate, sigma_emp_DT=sigma_emp,
+        centers,
+        beta,
+        beta_std,
+        rate_DC=rate,
+        sigma_emp_DC=sigma_emp,
+        rate_DT=rate,
+        sigma_emp_DT=sigma_emp,
     )
     assert len(out) == 4
     names = [pm.peak_name for pm in out]
@@ -131,9 +151,18 @@ def test_default_peak_list_runs_against_real_grid() -> None:
 
 def test_dataclass_is_frozen() -> None:
     pm = PeakRegionMetrics(
-        peak_name="x", peak_energy_kev=1.0, half_window_kev=5.0, n_bins_in_window=1,
-        chi2_DC=0.5, z_DC=0.0, p_DC=1.0, n_valid_DC=1,
-        chi2_DT=0.5, z_DT=0.0, p_DT=1.0, n_valid_DT=1,
+        peak_name="x",
+        peak_energy_kev=1.0,
+        half_window_kev=5.0,
+        n_bins_in_window=1,
+        chi2_DC=0.5,
+        z_DC=0.0,
+        p_DC=1.0,
+        n_valid_DC=1,
+        chi2_DT=0.5,
+        z_DT=0.0,
+        p_DT=1.0,
+        n_valid_DT=1,
     )
     with pytest.raises(Exception):  # FrozenInstanceError, but be liberal
         pm.peak_name = "y"

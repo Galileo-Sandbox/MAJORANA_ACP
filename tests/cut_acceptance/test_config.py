@@ -111,9 +111,7 @@ def test_hybrid_defaults_reproduce_true_cnp() -> None:
 
 def test_n_trial_events_max_must_exceed_min() -> None:
     with pytest.raises(ValueError, match="n_trial_events_max"):
-        CutAcceptanceConfig(
-            **_kwargs(n_trial_events_min=32, n_trial_events_max=16)
-        )
+        CutAcceptanceConfig(**_kwargs(n_trial_events_min=32, n_trial_events_max=16))
 
 
 def test_physics_peaks_outside_energy_range_are_dropped() -> None:

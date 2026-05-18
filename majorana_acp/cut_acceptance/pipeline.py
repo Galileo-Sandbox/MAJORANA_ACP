@@ -118,6 +118,7 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
     is_baseline = (
         cfg.sampling_pattern == "flat_stratified"
         and cfg.trial_size_strategy == "fixed"
+        and not cfg.positional_encoding.enabled
     )
     if is_baseline:
         return "true_cnp"
@@ -133,6 +134,11 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
     # flat_stratified gets no extra tokens (only differs via trial size).
     if cfg.trial_size_strategy == "variable_uniform":
         bits.append(f"varN{cfg.n_trial_events_min}-{cfg.n_trial_events_max}")
+    # Append _pe<L> when the Fourier feature expansion is enabled so the
+    # canonical results path stays unique across PE-on / PE-off variants
+    # of an otherwise-identical sampling paradigm.
+    if cfg.positional_encoding.enabled:
+        bits.append(f"pe{cfg.positional_encoding.num_bands}")
     return "hybrid_scale/" + "_".join(bits)
 
 
@@ -149,7 +155,8 @@ def resolve_out_dir(cfg: CutAcceptanceConfig) -> Path:
     if cfg.out_dir is not None:
         return Path(cfg.out_dir)
     return Path(
-        "results", "cut_acceptance",
+        "results",
+        "cut_acceptance",
         _classifier_model_name(cfg),
         paradigm_path_suffix(cfg),
         f"bin{int(cfg.energy_bin_width)}",
@@ -163,10 +170,7 @@ def resolve_name(cfg: CutAcceptanceConfig) -> str:
         return cfg.name
     model = _classifier_model_name(cfg)
     paradigm = paradigm_path_suffix(cfg).replace("/", "__")
-    return (
-        f"{model}_bin{int(cfg.energy_bin_width)}_"
-        f"{_class_label(cfg.target_class)}__{paradigm}"
-    )
+    return f"{model}_bin{int(cfg.energy_bin_width)}_{_class_label(cfg.target_class)}__{paradigm}"
 
 
 # ---------------------------------------------------------------------------
@@ -208,7 +212,10 @@ def train_cnp_variable_n_per_step(
     optimizer = torch.optim.Adam(cnp.parameters(), lr=training_config.learning_rate)
 
     history: TrainingHistory = {
-        "step": [], "loss": [], "eval_step": [], "eval_mae": [],
+        "step": [],
+        "loss": [],
+        "eval_step": [],
+        "eval_mae": [],
     }
     cnp_n_ctx_min = max(1, cnp_config.n_context_min)
     cnp_n_ctx_max = cnp_config.n_context_max
@@ -299,7 +306,8 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
         energy_range=cfg.energy_range,
     )
     sampler = EventSampler(
-        train_e, train_s,
+        train_e,
+        train_s,
         energy_range=cfg.energy_range,
         energy_bin_width=cfg.energy_bin_width,
         threshold_range=cfg.threshold_range,
@@ -310,6 +318,7 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
         local_event_fraction=cfg.local_event_fraction,
         n_clusters=cfg.n_clusters,
         physics_peaks_kev=list(cfg.physics_peaks_kev),
+        positional_encoding=cfg.positional_encoding,
     )
     np.savez(
         out_dir / "training_pool.npz",
@@ -321,13 +330,20 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
     # 2. Train the CNP — EVENT_ONLY with per-event (E_i, T) in phi.
     #    Stock train_cnp for fixed N; variable-N wrapper otherwise.
     torch.manual_seed(cfg.training.seed)
+    # dim_phi is dynamic: 2 (default) when PE is off, 2*L + 1 when PE is on.
+    # The sampler computed it during __init__; we read it back here so the
+    # CNP architecture matches what the StandardBatch will carry.
+    dim_phi = sampler.dim_phi
     cnp = build_cnp(
-        cfg.encoder, dim_theta=None, dim_phi=2,
+        cfg.encoder,
+        dim_theta=None,
+        dim_phi=dim_phi,
         decoder_hidden_dims=list(cfg.decoder_hidden_dims),
     )
     if cfg.trial_size_strategy == "variable_uniform":
         history = train_cnp_variable_n_per_step(
-            cnp, sampler,
+            cnp,
+            sampler,
             cnp_config=cfg.cnp,
             training_config=cfg.training,
             n_min=cfg.n_trial_events_min,
@@ -335,14 +351,17 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
         )
     else:
         history = train_cnp(
-            cnp, sampler, cnp_config=cfg.cnp, training_config=cfg.training,
+            cnp,
+            sampler,
+            cnp_config=cfg.cnp,
+            training_config=cfg.training,
         )
     save_checkpoint(
         out_dir / "cnp.ckpt",
         cnp,
         encoder_config=cfg.encoder,
         dim_theta=None,
-        dim_phi=2,
+        dim_phi=dim_phi,
         history=history,
         metadata={
             "name": resolved_name,
@@ -355,6 +374,8 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             "sampling_pattern": cfg.sampling_pattern,
             "trial_size_strategy": cfg.trial_size_strategy,
             "paradigm_path_suffix": paradigm_path_suffix(cfg),
+            "positional_encoding_enabled": cfg.positional_encoding.enabled,
+            "positional_encoding_num_bands": cfg.positional_encoding.num_bands,
         },
     )
     final_train_loss = float(history["loss"][-1]) if history.get("loss") else float("nan")

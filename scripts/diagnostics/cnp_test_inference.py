@@ -56,6 +56,7 @@ from majorana_acp.cut_acceptance.pipeline import (
     resolve_out_dir,
     wilson_interval,
 )
+from majorana_acp.cut_acceptance.positional_encoding import encode_phi
 
 PEAK_MARKERS = [
     ("Tl-208 FE", 2614.0),
@@ -264,11 +265,19 @@ def _bin_edges_from_centers(bin_centers: np.ndarray, bin_width: float) -> np.nda
 
 
 def _load_cnp(cfg: CutAcceptanceConfig, ckpt_path: Path) -> torch.nn.Module:
-    """Reconstruct the EVENT_ONLY CNP architecture and load weights."""
+    """Reconstruct the EVENT_ONLY CNP architecture and load weights.
+
+    ``dim_phi`` matches what the training pipeline used:
+    ``phi_dim(cfg.positional_encoding)`` — i.e. ``2`` when PE is off (every
+    pre-PE checkpoint) and ``2 * num_bands + 1`` when PE is on.
+    """
+    from majorana_acp.cut_acceptance.positional_encoding import phi_dim
+
+    dim_phi = phi_dim(cfg.positional_encoding)
     cnp = build_cnp(
         cfg.encoder,
         dim_theta=None,
-        dim_phi=2,
+        dim_phi=dim_phi,
         decoder_hidden_dims=list(cfg.decoder_hidden_dims),
     )
     state = torch.load(ckpt_path, map_location="cpu", weights_only=False)
@@ -388,7 +397,15 @@ def _cnp_infer_global(
     # Target batch is identical for every MC pass: one trial, N_q
     # queries, each at (E*_i_norm, T_norm). Labels are unused at
     # inference but required by the StandardBatch validator.
+    # encode_phi is a no-op when positional_encoding.enabled is False
+    # (the default for every legacy checkpoint), so this branch is
+    # bitwise-identical to the pre-PE inference path.
     tgt_phi = np.stack([q_norm, np.full_like(q_norm, t_norm)], axis=-1)[None, :, :]
+    tgt_phi = encode_phi(
+        tgt_phi,
+        cfg.positional_encoding,
+        energy_range_kev=cfg.energy_range,
+    )
     tgt_labels = np.zeros((1, n_q), dtype=np.int8)
     tgt_batch = StandardBatch(
         mode=InputMode.EVENT_ONLY,
@@ -423,6 +440,13 @@ def _cnp_infer_global(
     def _make_ctx_batch(idx: np.ndarray) -> StandardBatch:
         ctx_e_norm = ctx_e_norm_all[idx]
         ctx_phi = np.stack([ctx_e_norm, np.full(idx.size, t_norm)], axis=-1)[None, :, :]
+        # Apply the same Fourier expansion the training sampler used.
+        # No-op (bitwise identity) when PE is disabled.
+        ctx_phi = encode_phi(
+            ctx_phi,
+            cfg.positional_encoding,
+            energy_range_kev=cfg.energy_range,
+        )
         ctx_labels = ctx_x_all[idx][None, :]
         return StandardBatch(
             mode=InputMode.EVENT_ONLY,

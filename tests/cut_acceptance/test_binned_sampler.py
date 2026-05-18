@@ -25,7 +25,8 @@ def test_bin_index_keeps_only_eligible_bins() -> None:
     energy = np.concatenate([rng.uniform(990, 1010, size=30), np.array([2500.0])])
     score = rng.uniform(0, 1, size=energy.size)
     idx = _BinIndex(
-        energy, score,
+        energy,
+        score,
         energy_range=(500.0, 3000.0),
         bin_width=10.0,
         min_events_per_bin=4,
@@ -42,7 +43,8 @@ def test_bin_index_rejects_empty_grid() -> None:
     score = rng.uniform(0, 1, size=3)
     with pytest.raises(ValueError, match="min_events_per_bin"):
         _BinIndex(
-            energy, score,
+            energy,
+            score,
             energy_range=(500.0, 3000.0),
             bin_width=10.0,
             min_events_per_bin=4,
@@ -55,7 +57,8 @@ def test_bin_index_rejects_empty_grid() -> None:
 def test_sampler_advertises_design_only() -> None:
     energy, score = _events()
     s = BinnedSampler(
-        energy, score,
+        energy,
+        score,
         energy_range=(500.0, 3000.0),
         energy_bin_width=10.0,
     )
@@ -67,7 +70,8 @@ def test_sampler_advertises_design_only() -> None:
 def test_generate_shapes_and_binary_labels() -> None:
     energy, score = _events(2000)
     s = BinnedSampler(
-        energy, score,
+        energy,
+        score,
         energy_range=(500.0, 3000.0),
         energy_bin_width=20.0,
         n_per_trial=16,
@@ -85,7 +89,8 @@ def test_thresholds_match_score_comparison() -> None:
     """Labels equal 1[score_i >= T_k] for the actual sampled events."""
     energy, score = _events(1000, seed=11)
     s = BinnedSampler(
-        energy, score,
+        energy,
+        score,
         energy_range=(500.0, 3000.0),
         energy_bin_width=50.0,
         n_per_trial=20,
@@ -105,7 +110,8 @@ def test_thresholds_match_score_comparison() -> None:
 def test_boundary_mix_concentrates_at_endpoints() -> None:
     energy, score = _events(4000)
     s = BinnedSampler(
-        energy, score,
+        energy,
+        score,
         energy_range=(500.0, 3000.0),
         energy_bin_width=20.0,
         n_per_trial=8,
@@ -121,7 +127,8 @@ def test_boundary_mix_concentrates_at_endpoints() -> None:
 def test_uniform_default_unchanged() -> None:
     energy, score = _events(4000)
     s = BinnedSampler(
-        energy, score,
+        energy,
+        score,
         energy_range=(500.0, 3000.0),
         energy_bin_width=20.0,
         t_sampling="uniform",
@@ -135,7 +142,8 @@ def test_uniform_default_unchanged() -> None:
 def test_reproducible_seed() -> None:
     energy, score = _events(1000)
     s = BinnedSampler(
-        energy, score,
+        energy,
+        score,
         energy_range=(500.0, 3000.0),
         energy_bin_width=20.0,
     )
@@ -156,7 +164,8 @@ def test_handles_sparse_bins_via_replacement() -> None:
     energy = np.concatenate([e_core, e_pad])
     score = np.concatenate([s_core, s_pad])
     s = BinnedSampler(
-        energy, score,
+        energy,
+        score,
         energy_range=(500.0, 3000.0),
         energy_bin_width=10.0,
         n_per_trial=64,  # > 5 → replacement must kick in
@@ -169,7 +178,8 @@ def test_rejects_unknown_t_sampling() -> None:
     energy, score = _events(1000)
     with pytest.raises(ValueError, match="t_sampling"):
         BinnedSampler(
-            energy, score,
+            energy,
+            score,
             energy_range=(500.0, 3000.0),
             energy_bin_width=20.0,
             t_sampling="bogus",

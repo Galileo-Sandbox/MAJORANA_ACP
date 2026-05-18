@@ -75,9 +75,7 @@ class _BinIndex:
         if not e_hi > e_lo:
             raise ValueError(f"energy_range must satisfy hi > lo, got {energy_range}")
         if energy.shape != score.shape:
-            raise ValueError(
-                f"energy / score shape mismatch: {energy.shape} vs {score.shape}"
-            )
+            raise ValueError(f"energy / score shape mismatch: {energy.shape} vs {score.shape}")
 
         edges = np.arange(e_lo, e_hi + 0.5 * bin_width, bin_width, dtype=np.float64)
         if edges[-1] < e_hi:
@@ -138,16 +136,13 @@ class BinnedSampler:
         if n_per_trial < 1:
             raise ValueError(f"n_per_trial must be >= 1, got {n_per_trial}")
         if not threshold_range[1] > threshold_range[0]:
-            raise ValueError(
-                f"threshold_range must satisfy hi > lo, got {threshold_range}"
-            )
+            raise ValueError(f"threshold_range must satisfy hi > lo, got {threshold_range}")
         if t_sampling not in ("uniform", "boundary_mix"):
-            raise ValueError(
-                f"t_sampling must be 'uniform' or 'boundary_mix', got {t_sampling!r}"
-            )
+            raise ValueError(f"t_sampling must be 'uniform' or 'boundary_mix', got {t_sampling!r}")
 
         self._index = _BinIndex(
-            energy, score,
+            energy,
+            score,
             energy_range=energy_range,
             bin_width=energy_bin_width,
             min_events_per_bin=min_events_per_bin,

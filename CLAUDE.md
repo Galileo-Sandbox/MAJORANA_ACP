@@ -98,6 +98,128 @@ Each item is a `dict` containing at least: `waveform` (float32 tensor), `label` 
 - **Be strict with the user and double-check**: what the user says is not always correct. If a statement seems wrong or an idea seems impractical, ask for clarification and state the objection clearly.
 - **Never directly continue right after conversation compression**: stop after compression. The user will re-supply the context, docs, and code to read. Do not start blindly.
 
+## Cut-Acceptance · 1D Fourier Positional Encoding for Energy (PROPOSED)
+
+### Why
+
+The inclusive-cell audit (`analysis/cnp_audit/_audit_inclusive.md`)
+shows every paradigm catastrophically over-smoothing the sharp
+acceptance features at Tl-208 SE (Z_DT ≈ −15σ) and Tl-208 DEP
+(Z_DT ≈ +18σ): the CNP's MLP-encoder + mean-aggregation pipeline
+acts as a strong low-pass filter on the 1D energy coordinate, and
+the inclusive function's peak structure is ~5× sharper than the
+signal function's. Hybrid sampling (focus windows, physics anchors,
+variable N) shifts the bias but cannot remove it — the limiting
+factor is the **representational bandwidth** of the network's
+treatment of `E`, not the sampling.
+
+The standard cure from NeRF / Tancik et al. is a 1D Fourier feature
+expansion: lift the scalar `E` into a high-dimensional sinusoidal
+basis before any MLP touches it. This is a *purely mathematical*
+inductive bias — no physical priors, no hand-crafted peaks — that
+gives the network access to high-frequency modes of `E` it cannot
+otherwise represent from a 1D input.
+
+### Formula
+
+Per-event normalization (same `E_min`, `E_max` as the energy range
+in the existing config):
+```
+E_norm = (E - E_min) / (E_max - E_min)        # E_norm ∈ [0, 1]
+```
+
+Multi-scale sinusoidal expansion with `L = num_bands` bands:
+```
+γ(E_norm) = [
+    sin(2⁰ π E_norm), cos(2⁰ π E_norm),
+    sin(2¹ π E_norm), cos(2¹ π E_norm),
+    ...,
+    sin(2^(L-1) π E_norm), cos(2^(L-1) π E_norm),
+]                                              # 2L-dim vector
+```
+
+The highest band (`2^(L-1) π`) has period `2 / 2^(L-1)` in the
+normalized coordinate; at `L=10` over a 2500-keV range that's
+`2500 / 256 ≈ 9.8 keV` — deliberately matched to the bin10 grid so
+the network can resolve bin-scale features.
+
+### Architectural placement
+
+Our CNP runs in `InputMode.EVENT_ONLY` with per-event
+`phi_i = (E_i_norm, T_norm)` ∈ ℝ². With PE enabled, replace `E_i_norm`
+with `γ(E_i_norm)` and keep `T_norm` as a single scalar appended at
+the end:
+```
+phi_i = [γ(E_i_norm), T_norm]                  # (2L + 1)-dim
+```
+Therefore `dim_phi = 2L + 1` when PE is enabled and `dim_phi = 2`
+when disabled. The transform is applied **at phi-construction time**
+(inside `EventSampler` for training and inside
+`scripts/diagnostics/cnp_test_inference.py` for evaluation) — this
+avoids modifying RESUM_FLEX upstream and keeps the CNP module
+oblivious to whether its input went through PE. Both the context
+phi and the target query phi are encoded identically.
+
+### Config schema
+
+```yaml
+positional_encoding:
+  enabled: false          # MUST default false (backward compat)
+  num_bands: 10           # L
+  min_energy_kev: 500.0   # = energy_range[0] in practice
+  max_energy_kev: 3000.0  # = energy_range[1] in practice
+```
+
+Defaults: `enabled=False`. Validators: `num_bands ≥ 1`,
+`max_energy_kev > min_energy_kev`. The `min_energy_kev` /
+`max_energy_kev` fields shadow `energy_range` so PE has its own
+explicit normalization window (we don't tie them by validator; if
+the user wants a different PE window than the training energy range,
+they can set it).
+
+### Backward compatibility contract
+
+* `positional_encoding: PositionalEncodingConfig = default(enabled=False)`
+  added to `CutAcceptanceConfig` via `Field(default_factory=…)`. All
+  existing YAMLs parse unchanged.
+* When `enabled=False`, the PE module is a no-op pass-through —
+  phi keeps shape `(B, N, 2)` and `dim_phi = 2`. Training,
+  inference, and reports are bit-for-bit identical.
+* Trained checkpoints (all PE-disabled) load and run unchanged
+  because the CNP architecture is rebuilt from the same YAML.
+* New PE cells get their own paradigm-tag suffix (`_pe<L>`) so the
+  canonical results path stays unique and registry stays clean.
+
+### Implementation plan
+
+| # | Phase                                          | Files                                                                                                                                |
+| - | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | Config schema + PositionalEncodingConfig model | `majorana_acp/cut_acceptance/config.py`, `tests/cut_acceptance/test_config.py`                                                       |
+| 2 | PE module (pure numpy `encode_phi`)            | `majorana_acp/cut_acceptance/positional_encoding.py`, `tests/cut_acceptance/test_positional_encoding.py`                             |
+| 3 | Sampler + pipeline hookup (`dim_phi` dynamic)  | `majorana_acp/cut_acceptance/event_sampler.py`, `majorana_acp/cut_acceptance/pipeline.py`, `tests/cut_acceptance/test_event_sampler.py` |
+| 4 | Inference hookup (encode context + query phi)  | `scripts/diagnostics/cnp_test_inference.py`                                                                                          |
+| 5 | Paradigm-suffix serializer (`_pe10` tag)       | `majorana_acp/cut_acceptance/pipeline.py::paradigm_path_suffix`                                                                      |
+| 6 | Smoke YAML at canonical path                   | `configs/cut_acceptance/simple_cnn_small/hybrid_scale/mixed_density_f0_70_w10_varN32-1024_pe10/bin10/inclusive.yaml`                  |
+| 7 | Train + infer + report                         | (sweep + `_audit_inclusive.md` rebuild; add `w10_varN_pe10` to `PARADIGMS`)                                                         |
+
+### Open decisions (flagging before execution)
+
+1. **PE on T (threshold) too?** Spec says energy only. The CNP
+   currently learns `β(E, T)` jointly via the encoder; PE on T
+   could similarly help if the model is also smoothing in T-space,
+   but no evidence of that yet. Default: leave T as a scalar.
+2. **Path-suffix encoding of `num_bands`**: include `_pe<L>` in the
+   paradigm path (e.g. `..._pe10`). With L=10 default we get one
+   string; if the user runs PE at L=6 and L=14 we get different
+   paths — good for registry hygiene.
+3. **Test fixture for parity**: we want a pytest assertion that
+   "PE disabled produces the same `phi` array as the pre-PE
+   sampler". Easiest implementation: parameterize an `encode_phi`
+   call with `enabled=False` and assert `np.array_equal(out, input)`.
+4. **Should existing inclusive YAMLs auto-gain PE?** No — the
+   point of the PE cell is to A/B against the existing
+   `w10_varN_large` golden. Keep PE opt-in.
+
 ## Cut-Acceptance · Localized Peak Evaluation + High-Capacity Hybrid Sweep (PROPOSED)
 
 ### Why now

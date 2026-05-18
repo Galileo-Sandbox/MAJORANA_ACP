@@ -47,6 +47,8 @@ from majorana_acp.cut_acceptance.binned_sampler import (
     _BinIndex,
     load_events,
 )
+from majorana_acp.cut_acceptance.config import PositionalEncodingConfig
+from majorana_acp.cut_acceptance.positional_encoding import encode_phi, phi_dim
 
 __all__ = ["EventSampler", "load_events"]
 
@@ -76,7 +78,6 @@ class EventSampler:
 
     mode = InputMode.EVENT_ONLY
     dim_theta: None = None
-    dim_phi: int = 2
 
     def __init__(
         self,
@@ -93,34 +94,29 @@ class EventSampler:
         local_event_fraction: float = 0.70,
         n_clusters: int = 2,
         physics_peaks_kev: list[float] | None = None,
+        positional_encoding: PositionalEncodingConfig | None = None,
     ) -> None:
         if not threshold_range[1] > threshold_range[0]:
-            raise ValueError(
-                f"threshold_range must satisfy hi > lo, got {threshold_range}"
-            )
+            raise ValueError(f"threshold_range must satisfy hi > lo, got {threshold_range}")
         if t_sampling not in ("uniform", "boundary_mix"):
-            raise ValueError(
-                f"t_sampling must be 'uniform' or 'boundary_mix', got {t_sampling!r}"
-            )
+            raise ValueError(f"t_sampling must be 'uniform' or 'boundary_mix', got {t_sampling!r}")
         if sampling_pattern not in (
-            "flat_stratified", "mixed_density", "random_clusters", "physics_anchored",
+            "flat_stratified",
+            "mixed_density",
+            "random_clusters",
+            "physics_anchored",
         ):
-            raise ValueError(
-                f"unknown sampling_pattern: {sampling_pattern!r}"
-            )
+            raise ValueError(f"unknown sampling_pattern: {sampling_pattern!r}")
         if zoom_window_width_kev <= 0.0:
-            raise ValueError(
-                f"zoom_window_width_kev must be > 0, got {zoom_window_width_kev}"
-            )
+            raise ValueError(f"zoom_window_width_kev must be > 0, got {zoom_window_width_kev}")
         if not 0.0 < local_event_fraction < 1.0:
-            raise ValueError(
-                f"local_event_fraction must be in (0, 1), got {local_event_fraction}"
-            )
+            raise ValueError(f"local_event_fraction must be in (0, 1), got {local_event_fraction}")
         if n_clusters < 1:
             raise ValueError(f"n_clusters must be >= 1, got {n_clusters}")
 
         self._index = _BinIndex(
-            energy, score,
+            energy,
+            score,
             energy_range=energy_range,
             bin_width=energy_bin_width,
             min_events_per_bin=min_events_per_bin,
@@ -136,16 +132,27 @@ class EventSampler:
         # Filter peaks to kept-bin range; assert non-empty at pipeline use time.
         peaks = physics_peaks_kev or []
         self.physics_peaks_kev = [
-            float(p) for p in peaks
+            float(p)
+            for p in peaks
             if self.bin_centers[0] - 0.5 * self.energy_bin_width
-               <= p
-               <= self.bin_centers[-1] + 0.5 * self.energy_bin_width
+            <= p
+            <= self.bin_centers[-1] + 0.5 * self.energy_bin_width
         ]
         if sampling_pattern == "physics_anchored" and not self.physics_peaks_kev:
             raise ValueError(
                 "sampling_pattern='physics_anchored' requires at least one peak "
                 "in physics_peaks_kev inside the kept-bin energy range"
             )
+
+        # Positional encoding (1D Fourier expansion of energy). Default
+        # to disabled when caller passes None so the sampler stays
+        # backward-compatible with the old 2-arg phi contract.
+        self.positional_encoding: PositionalEncodingConfig = (
+            positional_encoding or PositionalEncodingConfig()
+        )
+        # dim_phi is dynamic: 2*L + 1 when PE is on, 2 otherwise. The
+        # CNP encoder/decoder are built from this same number.
+        self.dim_phi: int = phi_dim(self.positional_encoding)
 
     # ----- introspection (used by pipeline + diagnostics) ---------------
 
@@ -215,26 +222,18 @@ class EventSampler:
 
     # ----- Pattern dispatch + 4 per-trial draw routines ----------------
 
-    def _draw_flat_stratified(
-        self, rng: np.random.Generator, n: int
-    ) -> np.ndarray:
+    def _draw_flat_stratified(self, rng: np.random.Generator, n: int) -> np.ndarray:
         return self._bin_stratified_draw(rng, n, np.arange(self.n_bins))
 
-    def _draw_mixed_density(
-        self, rng: np.random.Generator, n: int
-    ) -> np.ndarray:
+    def _draw_mixed_density(self, rng: np.random.Generator, n: int) -> np.ndarray:
         focus_idx = int(rng.integers(0, self.n_bins))
         return self._foveated_draw(rng, n, focus_e=float(self.bin_centers[focus_idx]))
 
-    def _draw_physics_anchored(
-        self, rng: np.random.Generator, n: int
-    ) -> np.ndarray:
+    def _draw_physics_anchored(self, rng: np.random.Generator, n: int) -> np.ndarray:
         focus_e = float(rng.choice(self.physics_peaks_kev))
         return self._foveated_draw(rng, n, focus_e=focus_e)
 
-    def _foveated_draw(
-        self, rng: np.random.Generator, n: int, *, focus_e: float
-    ) -> np.ndarray:
+    def _foveated_draw(self, rng: np.random.Generator, n: int, *, focus_e: float) -> np.ndarray:
         """Common engine for ``mixed_density`` and ``physics_anchored``:
         a fraction of events in a window around ``focus_e``, the rest
         drawn globally."""
@@ -253,9 +252,7 @@ class EventSampler:
         rng.shuffle(out)
         return out
 
-    def _draw_random_clusters(
-        self, rng: np.random.Generator, n: int
-    ) -> np.ndarray:
+    def _draw_random_clusters(self, rng: np.random.Generator, n: int) -> np.ndarray:
         """Pick ``n_clusters`` disjoint window centers via rejection
         sampling, then split ``n`` events evenly among them. Raise if
         the requested cluster count won't fit non-overlapping after
@@ -328,17 +325,18 @@ class EventSampler:
 
         # Per-event features carry the event's **real** energy, not the
         # bin center — bins are only a stratification grid.
-        energy_picked = self._index.energy[event_indices]   # [B, N]
-        score_picked = self._index.score[event_indices]     # [B, N]
+        energy_picked = self._index.energy[event_indices]  # [B, N]
+        score_picked = self._index.score[event_indices]  # [B, N]
         labels = (score_picked >= t_k[:, None]).astype(np.int8)
 
         e_lo, e_hi = self.energy_range
         t_lo, t_hi = self.threshold_range
-        e_norm = (energy_picked - e_lo) / (e_hi - e_lo)                  # [B, N]
-        t_norm = np.broadcast_to(
-            ((t_k - t_lo) / (t_hi - t_lo))[:, None], e_norm.shape
-        )                                                                # [B, N]
-        phi = np.stack([e_norm, t_norm], axis=-1).astype(np.float64)     # [B, N, 2]
+        e_norm = (energy_picked - e_lo) / (e_hi - e_lo)  # [B, N]
+        t_norm = np.broadcast_to(((t_k - t_lo) / (t_hi - t_lo))[:, None], e_norm.shape)  # [B, N]
+        phi = np.stack([e_norm, t_norm], axis=-1).astype(np.float64)  # [B, N, 2]
+        # 1D Fourier positional encoding of E (no-op when disabled →
+        # bitwise identity on the (..., 2) array).
+        phi = encode_phi(phi, self.positional_encoding, energy_range_kev=self.energy_range)
 
         return StandardBatch(
             mode=InputMode.EVENT_ONLY,
