@@ -95,6 +95,17 @@ def _coverage_verdict(cov_1sigma: float | None) -> str:
     return "↓ overconfident (σ too tight)"
 
 
+def _peak_verdict(p: float | None, chi2: float | None) -> str:
+    """Single-cell verdict from p-value + reduced χ² (held-out side)."""
+    if p is None or chi2 is None:
+        return "—"
+    if p > 0.5 and chi2 < 2:
+        return "✓ clean"
+    if p > 0.5:
+        return "△ mean OK, χ² high"
+    return "✗ local miss"
+
+
 def main() -> None:
     audits = {nick: _load(rel) for nick, rel in PARADIGMS}
     have = [nick for nick, a in audits.items() if a is not None]
@@ -157,37 +168,39 @@ def main() -> None:
     lines.append("")
 
     # ──────────────────────────────────────────────────────────────
-    # Per-peak χ² / Z / p table.
+    # Per-peak χ² / Z / p tables — one table per peak, one row per
+    # paradigm, one number per cell (mirrors the coverage table's
+    # readability).
     # ──────────────────────────────────────────────────────────────
-    lines.append("## Localized peak-region goodness-of-fit  (±5 keV window)")
+    lines.append("## Localized peak-region goodness-of-fit  (±5 keV window, held-out D_T)")
     lines.append("")
     lines.append(
-        "Each cell shows χ²_DT / Z_DT / p_DT (held-out target set, the "
-        "stricter of the two sides). Reduced χ² target ≈ 1.0; p_DT > 0.5 = "
-        "mean indistinguishable from sharp truth; p_DT < 0.05 = significant "
-        "local miss; |Z_DT| ≫ 3 = many-σ disagreement at the peak window."
+        "Reduced χ²_DT target ≈ 1.0; p_DT > 0.5 = mean indistinguishable from "
+        "sharp truth; p_DT < 0.05 = significant local miss; |Z_DT| ≫ 3 = "
+        "many-σ disagreement. Z_DT is **signed**: ``Z > 0`` means the "
+        "empirical rate is *above* the model (CNP under-predicts); "
+        "``Z < 0`` means *below* (CNP over-predicts)."
     )
     lines.append("")
-    header_cells = ["peak"] + [nick for nick, _ in PARADIGMS]
-    sub_cells = [""] + ["χ²_DT    Z_DT     p_DT" for _ in PARADIGMS]
-    lines.append("| " + " | ".join(header_cells) + " |")
-    lines.append("|" + "|".join(["---"] * len(header_cells)) + "|")
-    lines.append("| " + " | ".join(sub_cells) + " |")
-
     for peak_name, label in PEAK_ORDER:
-        row = [label]
+        lines.append(f"### {label}")
+        lines.append("")
+        lines.append("| paradigm | χ²_DT | Z_DT | p_DT | verdict |")
+        lines.append("|---|---|---|---|---|")
         for nick, _ in PARADIGMS:
             pm = _peak_lookup(audits[nick], peak_name)
             if pm is None:
-                row.append("—       —       —")
+                lines.append(f"| {nick} | — | — | — | — |")
                 continue
-            row.append(
-                f"{_fmt_chi2(pm.get('chi2_DT'))}  "
-                f"{_fmt_z(pm.get('z_DT'))}  "
-                f"{_fmt_p(pm.get('p_DT'))}"
+            verdict = _peak_verdict(pm.get("p_DT"), pm.get("chi2_DT"))
+            lines.append(
+                f"| {nick} | "
+                f"{_fmt_chi2(pm.get('chi2_DT'))} | "
+                f"{_fmt_z(pm.get('z_DT'))} | "
+                f"{_fmt_p(pm.get('p_DT'))} | "
+                f"{verdict} |"
             )
-        lines.append("| " + " | ".join(row) + " |")
-    lines.append("")
+        lines.append("")
 
     # ──────────────────────────────────────────────────────────────
     # Per-peak ranking by held-out p_DT (auto-verdict).
@@ -212,11 +225,7 @@ def main() -> None:
         entries.sort(key=lambda x: x[1], reverse=True)
         lines.append(f"**{label}**")
         for rank, (nick, p, chi2, z) in enumerate(entries, 1):
-            verdict = (
-                "✓ clean"
-                if p > 0.5 and chi2 < 2
-                else ("△ mean OK, χ² high (oscillation)" if p > 0.5 else "✗ local miss")
-            )
+            verdict = _peak_verdict(p, chi2)
             lines.append(
                 f"  {rank}. `{nick}` — p_DT={_fmt_p(p)}, "
                 f"Z_DT={_fmt_z(z)}, χ²_DT={_fmt_chi2(chi2)}  ·  {verdict}"

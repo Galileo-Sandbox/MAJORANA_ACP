@@ -16,17 +16,49 @@ Loaded cells: true_cnp, w10_fixed48, w10_varN_large, physics_w10_varN, hyper_zoo
 | physics_w10_varN | 0.546 | 0.815 | 0.917 | 0.102 | 0.176 | 0.254 | ↓ overconfident (σ too tight) |
 | hyper_zoom_w5 | 0.566 | 0.863 | 0.932 | 0.068 | 0.156 | 0.254 | ↓ overconfident (σ too tight) |
 
-## Localized peak-region goodness-of-fit  (±5 keV window)
+## Localized peak-region goodness-of-fit  (±5 keV window, held-out D_T)
 
-Each cell shows χ²_DT / Z_DT / p_DT (held-out target set, the stricter of the two sides). Reduced χ² target ≈ 1.0; p_DT > 0.5 = mean indistinguishable from sharp truth; p_DT < 0.05 = significant local miss; |Z_DT| ≫ 3 = many-σ disagreement at the peak window.
+Reduced χ²_DT target ≈ 1.0; p_DT > 0.5 = mean indistinguishable from sharp truth; p_DT < 0.05 = significant local miss; |Z_DT| ≫ 3 = many-σ disagreement. Z_DT is **signed**: ``Z > 0`` means the empirical rate is *above* the model (CNP under-predicts); ``Z < 0`` means *below* (CNP over-predicts).
 
-| peak | true_cnp | w10_fixed48 | w10_varN_large | physics_w10_varN | hyper_zoom_w5 |
-|---|---|---|---|---|---|
-|  | χ²_DT    Z_DT     p_DT | χ²_DT    Z_DT     p_DT | χ²_DT    Z_DT     p_DT | χ²_DT    Z_DT     p_DT | χ²_DT    Z_DT     p_DT |
-| FE 2614 |   0.01   +0.11  0.911 |   0.14   +0.40  0.692 |   2.11   -1.61  0.108 |   2.40   -2.04  0.042 |   4.85   -2.52  0.012 |
-| SE 2103 |  37.22  -15.48  4.9e-54 |  31.34  -15.38  2.2e-53 |  41.25  -19.60  1.7e-85 |  17.44  -13.91  5.9e-44 |  31.14  -22.33  1.7e-110 |
-| DEP 1592 |  24.77  +18.21  4.3e-74 |  23.82  +19.57  2.9e-85 |  21.44  +16.26  1.9e-59 |  31.02  +25.03  2.8e-138 |  28.19  +21.06  1.8e-98 |
-| Bi 1620 |   0.43   -0.54  0.591 |   0.51   -0.65  0.518 |   0.64   -0.79  0.431 |   0.24   -0.04  0.966 |   0.31   -0.26  0.792 |
+### FE 2614
+
+| paradigm | χ²_DT | Z_DT | p_DT | verdict |
+|---|---|---|---|---|
+| true_cnp |   0.01 |  +0.11 | 0.911 | ✓ clean |
+| w10_fixed48 |   0.14 |  +0.40 | 0.692 | ✓ clean |
+| w10_varN_large |   2.11 |  -1.61 | 0.108 | ✗ local miss |
+| physics_w10_varN |   2.40 |  -2.04 | 0.042 | ✗ local miss |
+| hyper_zoom_w5 |   4.85 |  -2.52 | 0.012 | ✗ local miss |
+
+### SE 2103
+
+| paradigm | χ²_DT | Z_DT | p_DT | verdict |
+|---|---|---|---|---|
+| true_cnp |  37.22 | -15.48 | 4.9e-54 | ✗ local miss |
+| w10_fixed48 |  31.34 | -15.38 | 2.2e-53 | ✗ local miss |
+| w10_varN_large |  41.25 | -19.60 | 1.7e-85 | ✗ local miss |
+| physics_w10_varN |  17.44 | -13.91 | 5.9e-44 | ✗ local miss |
+| hyper_zoom_w5 |  31.14 | -22.33 | 1.7e-110 | ✗ local miss |
+
+### DEP 1592
+
+| paradigm | χ²_DT | Z_DT | p_DT | verdict |
+|---|---|---|---|---|
+| true_cnp |  24.77 | +18.21 | 4.3e-74 | ✗ local miss |
+| w10_fixed48 |  23.82 | +19.57 | 2.9e-85 | ✗ local miss |
+| w10_varN_large |  21.44 | +16.26 | 1.9e-59 | ✗ local miss |
+| physics_w10_varN |  31.02 | +25.03 | 2.8e-138 | ✗ local miss |
+| hyper_zoom_w5 |  28.19 | +21.06 | 1.8e-98 | ✗ local miss |
+
+### Bi 1620
+
+| paradigm | χ²_DT | Z_DT | p_DT | verdict |
+|---|---|---|---|---|
+| true_cnp |   0.43 |  -0.54 | 0.591 | ✓ clean |
+| w10_fixed48 |   0.51 |  -0.65 | 0.518 | ✓ clean |
+| w10_varN_large |   0.64 |  -0.79 | 0.431 | ✗ local miss |
+| physics_w10_varN |   0.24 |  -0.04 | 0.966 | ✓ clean |
+| hyper_zoom_w5 |   0.31 |  -0.26 | 0.792 | ✓ clean |
 
 ## Per-peak ranking (held-out D_T)
 

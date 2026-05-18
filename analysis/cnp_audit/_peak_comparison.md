@@ -6,13 +6,48 @@ Half-window = ±5 keV around each γ-peak. Reduced χ² target ≈ 1.0; p_DT > 0
 
 Loaded cells: true_cnp, w10_fixed48, w10_varN_large, physics_w10_varN, hyper_zoom_w5
 
-| peak | true_cnp | w10_fixed48 | w10_varN_large | physics_w10_varN | hyper_zoom_w5 |
-|---|---|---|---|---|---|
-|  | χ²_DC  χ²_DT   p_DC    p_DT | χ²_DC  χ²_DT   p_DC    p_DT | χ²_DC  χ²_DT   p_DC    p_DT | χ²_DC  χ²_DT   p_DC    p_DT | χ²_DC  χ²_DT   p_DC    p_DT |
-| FE 2614 |   0.57   0.13  5.4e-06 0.412 |   0.81   0.59  8.1e-12 0.035 |   0.34   0.01  5.3e-04 0.824 |   0.01   2.36  0.501 2.9e-06 |   1.14   1.58  1.5e-20 1.1e-04 |
-| SE 2103 |   0.40   0.23  2.7e-09 2.5e-06 |   0.35   0.27  6.6e-07 4.2e-06 |   0.45   0.19  5.2e-10 1.8e-05 |   1.41   0.00  4.7e-24 0.650 |   0.12   0.57  3.1e-05 1.1e-21 |
-| DEP 1592 |   0.42   0.02  4.2e-11 0.642 |   0.50   0.00  9.9e-15 0.904 |   0.48   0.00  2.6e-20 0.900 |   0.10   1.51  0.003 2.3e-04 |   0.80   0.43  1.8e-55 5.6e-04 |
-| Bi 1620 |   7.60   1.85  0.202 0.807 |   7.67   1.59  0.198 0.779 |   7.58   1.84  0.203 0.810 |   6.55   4.57  0.248 0.880 |   8.27   1.20  0.178 0.629 |
+Z is **signed**: ``Z > 0`` means the empirical rate is *above* the model (CNP under-predicts); ``Z < 0`` means *below* (CNP over-predicts). p columns are two-tailed (use |Z|). The verdict column applies to D_T (held-out generalization) only.
+
+### FE 2614
+
+| paradigm | χ²_DC | Z_DC | p_DC | χ²_DT | Z_DT | p_DT | verdict (D_T) |
+|---|---|---|---|---|---|---|---|
+| true_cnp |   0.57 |  -4.55 | 5.4e-06 |   0.13 |  -0.82 | 0.412 | ✗ local miss |
+| w10_fixed48 |   0.81 |  -6.84 | 8.1e-12 |   0.59 |  -2.11 | 0.035 | ✗ local miss |
+| w10_varN_large |   0.34 |  -3.47 | 5.3e-04 |   0.01 |  +0.22 | 0.824 | ✓ clean |
+| physics_w10_varN |   0.01 |  -0.67 | 0.501 |   2.36 |  +4.68 | 2.9e-06 | ✗ local miss |
+| hyper_zoom_w5 |   1.14 |  -9.29 | 1.5e-20 |   1.58 |  -3.88 | 1.1e-04 | ✗ local miss |
+
+### SE 2103
+
+| paradigm | χ²_DC | Z_DC | p_DC | χ²_DT | Z_DT | p_DT | verdict (D_T) |
+|---|---|---|---|---|---|---|---|
+| true_cnp |   0.40 |  +5.95 | 2.7e-09 |   0.23 |  -4.71 | 2.5e-06 | ✗ local miss |
+| w10_fixed48 |   0.35 |  +4.97 | 6.6e-07 |   0.27 |  -4.60 | 4.2e-06 | ✗ local miss |
+| w10_varN_large |   0.45 |  +6.21 | 5.2e-10 |   0.19 |  -4.29 | 1.8e-05 | ✗ local miss |
+| physics_w10_varN |   1.41 | +10.12 | 4.7e-24 |   0.00 |  +0.45 | 0.650 | ✓ clean |
+| hyper_zoom_w5 |   0.12 |  +4.16 | 3.1e-05 |   0.57 |  -9.56 | 1.1e-21 | ✗ local miss |
+
+### DEP 1592
+
+| paradigm | χ²_DC | Z_DC | p_DC | χ²_DT | Z_DT | p_DT | verdict (D_T) |
+|---|---|---|---|---|---|---|---|
+| true_cnp |   0.42 |  -6.60 | 4.2e-11 |   0.02 |  +0.46 | 0.642 | ✓ clean |
+| w10_fixed48 |   0.50 |  -7.74 | 9.9e-15 |   0.00 |  -0.12 | 0.904 | ✓ clean |
+| w10_varN_large |   0.48 |  -9.23 | 2.6e-20 |   0.00 |  +0.13 | 0.900 | ✓ clean |
+| physics_w10_varN |   0.10 |  -2.98 | 0.003 |   1.51 |  +3.68 | 2.3e-04 | ✗ local miss |
+| hyper_zoom_w5 |   0.80 | -15.69 | 1.8e-55 |   0.43 |  -3.45 | 5.6e-04 | ✗ local miss |
+
+### Bi 1620
+
+| paradigm | χ²_DC | Z_DC | p_DC | χ²_DT | Z_DT | p_DT | verdict (D_T) |
+|---|---|---|---|---|---|---|---|
+| true_cnp |   7.60 |  -1.28 | 0.202 |   1.85 |  -0.24 | 0.807 | ✓ clean |
+| w10_fixed48 |   7.67 |  -1.29 | 0.198 |   1.59 |  -0.28 | 0.779 | ✓ clean |
+| w10_varN_large |   7.58 |  -1.27 | 0.203 |   1.84 |  -0.24 | 0.810 | ✓ clean |
+| physics_w10_varN |   6.55 |  -1.16 | 0.248 |   4.57 |  +0.15 | 0.880 | △ mean OK, χ² high |
+| hyper_zoom_w5 |   8.27 |  -1.35 | 0.178 |   1.20 |  -0.48 | 0.629 | ✓ clean |
+
 
 ## Paradigm legend
 
@@ -48,7 +83,7 @@ Ranked by *p_DT* (high = mean indistinguishable from data). Note: p_DT measures 
   5. `physics_w10_varN` — p_DT=2.3e-04, χ²_DT=  1.51  ·  ✗ local miss
 
 **Bi 1620**
-  1. `physics_w10_varN` — p_DT=0.880, χ²_DT=  4.57  ·  △ mean OK, χ² high (oscillation)
+  1. `physics_w10_varN` — p_DT=0.880, χ²_DT=  4.57  ·  △ mean OK, χ² high
   2. `w10_varN_large` — p_DT=0.810, χ²_DT=  1.84  ·  ✓ clean
   3. `true_cnp` — p_DT=0.807, χ²_DT=  1.85  ·  ✓ clean
   4. `w10_fixed48` — p_DT=0.779, χ²_DT=  1.59  ·  ✓ clean

@@ -55,6 +55,21 @@ def _fmt_chi2(x: float | None) -> str:
     return "—" if x is None else f"{x:6.2f}"
 
 
+def _fmt_z(z: float | None) -> str:
+    return "—" if z is None else f"{z:+6.2f}"
+
+
+def _peak_verdict(p: float | None, chi2: float | None) -> str:
+    """Single-cell verdict from p-value + reduced χ²."""
+    if p is None or chi2 is None:
+        return "—"
+    if p > 0.5 and chi2 < 2:
+        return "✓ clean"
+    if p > 0.5:
+        return "△ mean OK, χ² high"
+    return "✗ local miss"
+
+
 def _load(paradigm_rel: str) -> dict | None:
     p = AUDIT_ROOT / MODEL / paradigm_rel / BIN_DIR / CLS / "test_set_audit.json"
     if not p.is_file():
@@ -98,28 +113,38 @@ def main() -> None:
     lines.append(f"Loaded cells: {', '.join(have) if have else '(none)'}")
     lines.append("")
 
-    # Header row: peak | paradigm1 | paradigm2 | ...
-    header_cells = ["peak"] + [nick for nick, _ in PARADIGMS]
-    sub_cells = [""] + ["χ²_DC  χ²_DT   p_DC    p_DT" for _ in PARADIGMS]
-    lines.append("| " + " | ".join(header_cells) + " |")
-    lines.append("|" + "|".join(["---"] * len(header_cells)) + "|")
-    lines.append("| " + " | ".join(sub_cells) + " |")
-
+    # One table per peak — paradigms as rows, single number per cell.
+    # Each table carries both D_C (context match) and D_T (held-out
+    # generalization) sides plus a D_T verdict.
+    lines.append(
+        "Z is **signed**: ``Z > 0`` means the empirical rate is *above* the "
+        "model (CNP under-predicts); ``Z < 0`` means *below* (CNP over-predicts). "
+        "p columns are two-tailed (use |Z|). The verdict column applies to "
+        "D_T (held-out generalization) only."
+    )
+    lines.append("")
     for peak_name, _peak_e_kev, label in PEAK_ORDER:
-        row_cells = [label]
+        lines.append(f"### {label}")
+        lines.append("")
+        lines.append("| paradigm | χ²_DC | Z_DC | p_DC | χ²_DT | Z_DT | p_DT | verdict (D_T) |")
+        lines.append("|---|---|---|---|---|---|---|---|")
         for nick, _ in PARADIGMS:
             pm = _peak_lookup(audits[nick], peak_name)
             if pm is None:
-                row_cells.append("—  —     —     —")
+                lines.append(f"| {nick} | — | — | — | — | — | — | — |")
                 continue
-            cell = (
-                f"{_fmt_chi2(pm.get('chi2_DC'))} "
-                f"{_fmt_chi2(pm.get('chi2_DT'))}  "
-                f"{_fmt_p(pm.get('p_DC'))} "
-                f"{_fmt_p(pm.get('p_DT'))}"
+            verdict = _peak_verdict(pm.get("p_DT"), pm.get("chi2_DT"))
+            lines.append(
+                f"| {nick} | "
+                f"{_fmt_chi2(pm.get('chi2_DC'))} | "
+                f"{_fmt_z(pm.get('z_DC'))} | "
+                f"{_fmt_p(pm.get('p_DC'))} | "
+                f"{_fmt_chi2(pm.get('chi2_DT'))} | "
+                f"{_fmt_z(pm.get('z_DT'))} | "
+                f"{_fmt_p(pm.get('p_DT'))} | "
+                f"{verdict} |"
             )
-            row_cells.append(cell)
-        lines.append("| " + " | ".join(row_cells) + " |")
+        lines.append("")
 
     lines.append("")
     lines.append("## Paradigm legend")
@@ -165,11 +190,7 @@ def main() -> None:
         entries.sort(key=lambda x: x[1], reverse=True)
         lines.append(f"**{label}**")
         for rank, (nick, p, chi2) in enumerate(entries, 1):
-            verdict = (
-                "✓ clean"
-                if p > 0.5 and chi2 < 2
-                else ("△ mean OK, χ² high (oscillation)" if p > 0.5 else "✗ local miss")
-            )
+            verdict = _peak_verdict(p, chi2)
             lines.append(
                 f"  {rank}. `{nick}` — p_DT={_fmt_p(p)}, χ²_DT={_fmt_chi2(chi2)}  ·  {verdict}"
             )
