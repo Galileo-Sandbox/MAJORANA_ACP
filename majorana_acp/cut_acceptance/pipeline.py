@@ -184,6 +184,12 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
                     # decoder concat. Sits alongside the σ/τ heads.
                     if cfg.aggregator.pool_density_sfn.pe_gated_decoder:
                         bits.append("pegate")
+                    # Cell 14 — λ-head emitting per-band soft cutoffs
+                    # applied to the PE10 sin/cos pairs directly. The
+                    # decoder receives a SAPE(E_*) vector instead of
+                    # z_phi_T. Mutually exclusive with ``pegate``.
+                    if cfg.aggregator.pool_density_sfn.band_filter:
+                        bits.append("bandfilter")
                 else:
                     bits.append("pdsfn")
                 # Encode a non-default ``sigma_local_kev`` so different
@@ -328,6 +334,13 @@ def build_local_cnp(cfg: CutAcceptanceConfig, *, dim_phi: int):
             pool_density_sfn_tau_max=pdsfn.tau_max_value,
             pool_density_sfn_head_tied=pdsfn.head_tied,
             pool_density_sfn_pe_gated_decoder=pdsfn.pe_gated_decoder,
+            pool_density_sfn_band_filter=pdsfn.band_filter,
+            pool_density_sfn_band_filter_alpha=pdsfn.band_filter_alpha,
+            pool_density_sfn_num_bands=(
+                cfg.positional_encoding.num_bands
+                if cfg.positional_encoding.enabled
+                else 0
+            ),
             pe_detach_qk=cfg.aggregator.pe_detach_qk,
             pool_energies_kev=pool_energies_kev,
             energy_range_kev=cfg.energy_range if needs_range else None,
@@ -623,6 +636,8 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             "pool_density_sfn_tau_max_value": cfg.aggregator.pool_density_sfn.tau_max_value,
             "pool_density_sfn_head_tied": cfg.aggregator.pool_density_sfn.head_tied,
             "pool_density_sfn_pe_gated_decoder": cfg.aggregator.pool_density_sfn.pe_gated_decoder,
+            "pool_density_sfn_band_filter": cfg.aggregator.pool_density_sfn.band_filter,
+            "pool_density_sfn_band_filter_alpha": cfg.aggregator.pool_density_sfn.band_filter_alpha,
             "pe_detach_qk": cfg.aggregator.pe_detach_qk,
             "density_sampling": cfg.density_sampling,
             "density_kde_radius_kev": cfg.density_kde_radius_kev,

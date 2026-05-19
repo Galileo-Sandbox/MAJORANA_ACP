@@ -348,6 +348,13 @@ def _load_cnp(cfg: CutAcceptanceConfig, ckpt_path: Path) -> torch.nn.Module:
             pool_density_sfn_tau_max=pdsfn.tau_max_value,
             pool_density_sfn_head_tied=pdsfn.head_tied,
             pool_density_sfn_pe_gated_decoder=pdsfn.pe_gated_decoder,
+            pool_density_sfn_band_filter=pdsfn.band_filter,
+            pool_density_sfn_band_filter_alpha=pdsfn.band_filter_alpha,
+            pool_density_sfn_num_bands=(
+                cfg.positional_encoding.num_bands
+                if cfg.positional_encoding.enabled
+                else 0
+            ),
             pe_detach_qk=cfg.aggregator.pe_detach_qk,
             pool_energies_kev=pool_energies_kev,
             energy_range_kev=cfg.energy_range if needs_range else None,

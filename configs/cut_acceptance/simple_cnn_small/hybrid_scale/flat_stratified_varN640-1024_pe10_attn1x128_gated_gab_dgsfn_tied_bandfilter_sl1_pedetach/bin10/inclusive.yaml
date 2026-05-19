@@ -1,0 +1,117 @@
+# Cell 14 — Density-Guided Bandwidth Filter (DGBF / SAPE).
+#
+# Cell 13 (η-gated decoder concat) showed that a global scalar gate
+# on the wideband z_phi_T cannot separate peak fitting from continuum
+# sawtooth. The NBLL loss prefers a uniform moderate η ≈ 0.3 over a
+# bimodal {0, 1} switch — that lets the decoder use PE10 features at
+# modest amplitude *everywhere*, fitting peaks AND drawing bin-scale
+# fluctuations into the Compton continuum. See
+# analysis/cnp_audit/_cell13_diagnostic_inverted_polarity.md.
+#
+# Cell 14 moves the gate into frequency space. A third density-aware
+# SFN head emits a continuous frequency cutoff oracle
+#
+#     λ(E_*) = L · sigmoid(MLP_cutoff([log ρ_local, log ρ_global]))
+#                                                  ∈ [0, L]
+#
+# (L = num_bands = 10). Per-band soft cutoff weights are then applied
+# directly to the raw PE10 sin/cos pairs:
+#
+#     w_l(E_*) = sigmoid(α · (λ(E_*) − l)),    l = 0..L-1, α = 5
+#     SAPE_l(E_*) = w_l(E_*) · [sin(2^l π E_*), cos(2^l π E_*)]
+#
+# In the continuum (low log_l contrast under σ_local = 1 keV) the SFN
+# learns λ → 0 — every band l ≥ 1 gets w_l ≈ 0, the highest-frequency
+# basis waves are physically zeroed at the source. β̂ becomes
+# structurally incapable of drawing sub-bin sawtooth.
+#
+# At γ-peaks (high log_l contrast) the SFN learns λ → L — every band
+# w_l ≈ 1, the full Fourier basis is locally restored, β̂ can resolve
+# the 2-keV-wide SE / DEP lines.
+#
+# The decoder concat strips z_phi_T entirely:
+#
+#     decoder_input = [r_target, raw_phi (E_norm, T_norm), SAPE(E_*)]
+#                                                          ^^^^^^^^^
+#                                                          2L-dim
+#                                                          frequency-
+#                                                          filtered PE
+#
+# σ_local pushed from 2.0 → 1.0 keV to double the peak/continuum
+# density contrast in the SFN input. All other knobs preserved from
+# Cell 13.
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/flat_stratified_varN640-1024_pe10_attn1x128_gated_gab_dgsfn_tied_bandfilter_sl1_pedetach
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: flat_stratified
+trial_size_strategy: variable_uniform
+n_trial_events_min: 640
+n_trial_events_max: 1024
+
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 128
+  n_context_max: 512
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 1
+  attention_dim: 128
+  decoder_coordinate_gating: true
+  gaussian_attention_bias: true
+  pe_detach_qk: true
+  pool_density_sfn:
+    enabled: true
+    sigma_max_kev: 200.0
+    sigma_min_kev: 5.0
+    hidden_dim: 16
+    sigma_local_kev: 1.0           # ← Cell 14: sharper than Cell 12's 2 keV
+    sigma_global_kev: 150.0
+    epsilon: 1.0e-5
+    temperature_gating: true
+    tau_min_value: 1.0
+    tau_max_value: 10.0
+    head_tied: true
+    band_filter: true              # ← Cell 14 — frequency-domain cutoff oracle λ
+    band_filter_alpha: 5.0

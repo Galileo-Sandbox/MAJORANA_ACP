@@ -131,6 +131,9 @@ class CrossAttentionAggregator(nn.Module):
         pool_density_sfn_tau_max: float = 10.0,
         pool_density_sfn_head_tied: bool = False,
         pool_density_sfn_pe_gated_decoder: bool = False,
+        pool_density_sfn_band_filter: bool = False,
+        pool_density_sfn_band_filter_alpha: float = 5.0,
+        pool_density_sfn_num_bands: int = 0,
         pe_detach_qk: bool = False,
         raw_phi_dim: int = 2,
     ) -> None:
@@ -474,6 +477,51 @@ class CrossAttentionAggregator(nn.Module):
                     nn.GELU(),
                     nn.Linear(int(pool_density_sfn_hidden_dim), 1),
                 )
+            # Cell 14 — Density-Guided Bandwidth Filter (DGBF/SAPE).
+            # A third PE-free MLP head emits a continuous frequency-
+            # cutoff oracle ``λ(E_*) ∈ [0, L]`` where ``L`` is the number
+            # of PE10 bands. Per-band soft cutoff weights
+            # ``w_l = sigmoid(α · (λ − l))`` are applied directly to the
+            # raw PE10 sin/cos pairs *before* they enter the decoder.
+            # In the continuum λ → 0 zeros the highest bands at the
+            # source (no high-frequency content reaches β̂); at peaks
+            # λ → L restores the full Fourier basis locally.
+            self.pool_density_sfn_band_filter = bool(
+                pool_density_sfn_band_filter
+            )
+            if self.pool_density_sfn_band_filter:
+                if not self.pool_density_sfn_temperature_gating:
+                    raise ValueError(
+                        "pool_density_sfn_band_filter=True requires "
+                        "pool_density_sfn_temperature_gating=True — the "
+                        "λ-head sits on the same SFN family as σ/τ."
+                    )
+                if self.pool_density_sfn_pe_gated_decoder:
+                    raise ValueError(
+                        "pool_density_sfn_band_filter=True is mutually "
+                        "exclusive with pool_density_sfn_pe_gated_decoder=True "
+                        "— both wire a third head into the decoder concat."
+                    )
+                if int(pool_density_sfn_num_bands) < 1:
+                    raise ValueError(
+                        "pool_density_sfn_band_filter=True requires "
+                        "pool_density_sfn_num_bands >= 1 (the number of "
+                        "PE10 frequency bands ``L``)."
+                    )
+                self.pool_density_sfn_num_bands = int(pool_density_sfn_num_bands)
+                self.pool_density_sfn_band_filter_alpha = float(
+                    pool_density_sfn_band_filter_alpha
+                )
+                self.pool_lambda_net = nn.Sequential(
+                    nn.Linear(2, int(pool_density_sfn_hidden_dim)),
+                    nn.GELU(),
+                    nn.Linear(int(pool_density_sfn_hidden_dim), 1),
+                )
+            else:
+                self.pool_density_sfn_num_bands = 0
+                self.pool_density_sfn_band_filter_alpha = float(
+                    pool_density_sfn_band_filter_alpha
+                )
         else:
             self.pool_density_sfn_sigma_max_norm = 0.0  # unused
             self.pool_density_sfn_sigma_min_norm = 0.0
@@ -485,9 +533,19 @@ class CrossAttentionAggregator(nn.Module):
             self.pool_density_sfn_tau_max = float(pool_density_sfn_tau_max)
             self.pool_density_sfn_head_tied = False
             self.pool_density_sfn_pe_gated_decoder = False
+            self.pool_density_sfn_band_filter = False
+            self.pool_density_sfn_num_bands = 0
+            self.pool_density_sfn_band_filter_alpha = float(
+                pool_density_sfn_band_filter_alpha
+            )
             if pool_density_sfn_pe_gated_decoder:
                 raise ValueError(
                     "pool_density_sfn_pe_gated_decoder=True requires "
+                    "pool_density_sfn_enabled=True."
+                )
+            if pool_density_sfn_band_filter:
+                raise ValueError(
+                    "pool_density_sfn_band_filter=True requires "
                     "pool_density_sfn_enabled=True."
                 )
 
@@ -756,6 +814,47 @@ class CrossAttentionAggregator(nn.Module):
                 Z_eta = torch.stack([log_l, log_g], dim=-1)  # [B, N_T, 2]
             eta_logits = self.pool_eta_net(Z_eta)  # [B, N_T, 1]
             side_info["pe_gate"] = torch.sigmoid(eta_logits)
+        # Cell 14 — band-cutoff oracle λ(E_*) → per-band soft weights.
+        # Same pool-density features Z as σ/τ (no shared compute though
+        # — the σ-branch above runs under no_grad and binds ``Z`` only
+        # in the pool-density-SFN branch; here we recompute densities
+        # with a grad path for the λ MLP). Returns shape [B, N_T, L].
+        if (
+            getattr(self, "pool_density_sfn_band_filter", False)
+            and self.pool_density_sfn_enabled
+            and self.gaussian_attention_bias
+        ):
+            e_t = e_target_norm.unsqueeze(-1)  # [B, N_T, 1]
+            s_l = self.pool_density_sfn_sigma_local_norm
+            s_g = self.pool_density_sfn_sigma_global_norm
+            inv2_l = 1.0 / (2.0 * s_l * s_l)
+            inv2_g = 1.0 / (2.0 * s_g * s_g)
+            pool = self.pool_energies_norm
+            B_q, N_T_q = e_target_norm.shape
+            rho_l_b = torch.zeros(
+                (B_q, N_T_q), dtype=e_target_norm.dtype, device=e_target_norm.device
+            )
+            rho_g_b = torch.zeros_like(rho_l_b)
+            with torch.no_grad():
+                for start in range(0, int(pool.numel()), _POOL_DENSITY_KERNEL_CHUNK):
+                    e_pool_chunk = pool[
+                        start : start + _POOL_DENSITY_KERNEL_CHUNK
+                    ].view(1, 1, -1)
+                    d2_chunk = (e_t - e_pool_chunk).pow(2)
+                    rho_l_b = rho_l_b + torch.exp(-d2_chunk * inv2_l).sum(dim=-1)
+                    rho_g_b = rho_g_b + torch.exp(-d2_chunk * inv2_g).sum(dim=-1)
+                log_l = torch.log(rho_l_b + self.pool_density_sfn_epsilon)
+                log_g = torch.log(rho_g_b + self.pool_density_sfn_epsilon)
+                Z_lambda = torch.stack([log_l, log_g], dim=-1)  # [B, N_T, 2]
+            lam_logits = self.pool_lambda_net(Z_lambda)  # [B, N_T, 1]
+            L = self.pool_density_sfn_num_bands
+            alpha = self.pool_density_sfn_band_filter_alpha
+            lam = L * torch.sigmoid(lam_logits)  # [B, N_T, 1] ∈ [0, L]
+            band_idx = torch.arange(
+                L, dtype=lam.dtype, device=lam.device
+            ).view(1, 1, L)  # [1, 1, L]
+            band_weights = torch.sigmoid(alpha * (lam - band_idx))  # [B, N_T, L]
+            side_info["band_weights"] = band_weights
         return out, side_info
 
 
@@ -888,8 +987,41 @@ class AttentiveCNP(nn.Module):
         # the attention layer still benefits from PE bandwidth via Q/K,
         # but the decoder MLP no longer sees the bin-scale Fourier
         # features and therefore cannot fit bin-scale Bernoulli noise.
+        band_weights = side_info.get("band_weights")
         pe_gate = side_info.get("pe_gate")
-        if pe_gate is not None:
+        if band_weights is not None:
+            # Cell 14 — DGBF / SAPE decoder concat. The PE10 sin/cos
+            # bands at target queries are extracted directly from
+            # ``target_batch.phi`` (columns 0..2L-1, interleaved sin/cos
+            # under the PositionalEncodingConfig layout), filtered
+            # per-band by ``w_l(E_*)`` from the λ-head, and concatenated
+            # into the decoder input alongside the raw ``(E_norm, T_norm)``.
+            # Strips ``z_phi_T`` entirely: the only high-frequency
+            # channel reaching β̂ is the explicitly density-authorised
+            # SAPE vector.
+            phi_tgt_t = torch.as_tensor(
+                target_batch.phi,
+                dtype=z_phi_T.dtype,
+                device=z_phi_T.device,
+            )
+            raw_phi = _recover_raw_phi(phi_tgt_t)  # [B, N_T, 2]
+            L = int(band_weights.shape[-1])
+            two_L = 2 * L
+            if phi_tgt_t.shape[-1] < two_L + 1:
+                raise RuntimeError(
+                    "band_filter is on but target_batch.phi has only "
+                    f"{phi_tgt_t.shape[-1]} columns — expected at least "
+                    f"{two_L + 1} (= 2·L sin/cos pairs + T scalar with "
+                    f"L = {L}). Did you enable band_filter without PE10?"
+                )
+            pe_bands_flat = phi_tgt_t[..., :two_L]  # [B, N_T, 2L]
+            pe_bands = pe_bands_flat.reshape(
+                *phi_tgt_t.shape[:-1], L, 2
+            )  # [B, N_T, L, 2]
+            sape = pe_bands * band_weights.unsqueeze(-1)  # [B, N_T, L, 2]
+            sape_flat = sape.reshape(*phi_tgt_t.shape[:-1], two_L)  # [B, N_T, 2L]
+            coord_input = torch.cat([raw_phi, sape_flat], dim=-1)  # [B, N_T, 2+2L]
+        elif pe_gate is not None:
             # Cell 13 — PE-gated decoder concat. Requires
             # decoder_coordinate_gating=True (the raw_phi must be in
             # the mix); the decoder's input dim was built as
@@ -971,6 +1103,9 @@ def build_attentive_cnp(
     pool_density_sfn_tau_max: float = 10.0,
     pool_density_sfn_head_tied: bool = False,
     pool_density_sfn_pe_gated_decoder: bool = False,
+    pool_density_sfn_band_filter: bool = False,
+    pool_density_sfn_band_filter_alpha: float = 5.0,
+    pool_density_sfn_num_bands: int = 0,
     pe_detach_qk: bool = False,
     pool_energies_kev: "np.ndarray | torch.Tensor | None" = None,
     energy_range_kev: tuple[float, float] | None = None,
@@ -1171,17 +1306,37 @@ def build_attentive_cnp(
         pool_density_sfn_tau_max=pool_density_sfn_tau_max,
         pool_density_sfn_head_tied=pool_density_sfn_head_tied,
         pool_density_sfn_pe_gated_decoder=pool_density_sfn_pe_gated_decoder,
+        pool_density_sfn_band_filter=pool_density_sfn_band_filter,
+        pool_density_sfn_band_filter_alpha=pool_density_sfn_band_filter_alpha,
+        pool_density_sfn_num_bands=pool_density_sfn_num_bands,
         pe_detach_qk=pe_detach_qk,
     )
     # Decoder input dim is ``agg_dim + decoder_latent_dim`` where
     # decoder_latent_dim is the size of the second concat input.
-    # Three modes:
+    # Four modes:
+    #   * band_filter (Cell 14): coord input is
+    #     [raw_phi (2), SAPE (2L)] → latent_dim = 2 + 2L.
     #   * pe_gated_decoder (Cell 13): coord input is
     #     [raw_phi (2), η · z_phi_T (Z)] → latent_dim = 2 + Z.
     #   * decoder_coordinate_gating (Cell 9-style): coord input is
     #     raw (E_norm, T_norm) → latent_dim = 2.
     #   * default (legacy attentive): coord input is z_phi_T → Z.
-    if pool_density_sfn_pe_gated_decoder:
+    if pool_density_sfn_band_filter:
+        if not decoder_coordinate_gating:
+            raise ValueError(
+                "pool_density_sfn_band_filter=True requires "
+                "decoder_coordinate_gating=True — the raw_phi tensor "
+                "must remain in the decoder input alongside SAPE."
+            )
+        if int(pool_density_sfn_num_bands) < 1:
+            raise ValueError(
+                "pool_density_sfn_band_filter=True requires "
+                "pool_density_sfn_num_bands >= 1 (the L of the PE10 "
+                "expansion). Set positional_encoding.enabled=True and "
+                "pass num_bands through the factory call."
+            )
+        decoder_latent_dim = 2 + 2 * int(pool_density_sfn_num_bands)
+    elif pool_density_sfn_pe_gated_decoder:
         if not decoder_coordinate_gating:
             raise ValueError(
                 "pool_density_sfn_pe_gated_decoder=True requires "

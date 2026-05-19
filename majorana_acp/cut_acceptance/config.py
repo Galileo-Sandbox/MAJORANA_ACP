@@ -647,6 +647,66 @@ class PoolDensitySfnConfig(_Frozen):
             )
         return v
 
+    band_filter: bool = Field(
+        False,
+        description=(
+            "Enable the Density-Guided Bandwidth Filter (Cell 14). When "
+            "True, a THIRD PE-free MLP head (same input ``[log ρ_local, "
+            "log ρ_global]`` as σ and τ) emits a continuous frequency-"
+            "cutoff oracle ``λ(E_*) ∈ [0, L]`` where ``L`` is the number "
+            "of PE10 bands. Each Fourier band ``l ∈ {0..L-1}`` is then "
+            "scaled by a soft cutoff weight\n\n"
+            "    w_l(E_*) = sigmoid(α · (λ(E_*) − l))\n\n"
+            "with ``α = band_filter_alpha`` (default 5.0, architectural "
+            "constant). The filtered ``SAPE(E_*)`` vector replaces "
+            "``z_phi_T`` in the decoder concat lane:\n\n"
+            "    decoder_input = [r_target, raw_phi (E_norm, T_norm), SAPE(E_*)]\n\n"
+            "In low-density regions (continuum) the SFN learns λ → 0 "
+            "and every high-frequency band is physically zeroed at the "
+            "source → β̂ is structurally incapable of drawing sub-bin "
+            "sawtooth. At γ-peaks the SFN learns λ → L and the full "
+            "Fourier basis is restored locally → β̂ resolves sharp "
+            "single-bin features. Replaces (and is mutually exclusive "
+            "with) ``pe_gated_decoder`` — both wire a third density-"
+            "aware head into the decoder, but band_filter operates in "
+            "frequency space while pe_gated_decoder is a global "
+            "amplitude scalar.\n\n"
+            "Requires ``aggregator.decoder_coordinate_gating=True`` "
+            "(raw 2D coords stay in the decoder), "
+            "``temperature_gating=True`` (the SFN family dependency), "
+            "and ``positional_encoding.enabled=True`` (there must be "
+            "Fourier bands to filter)."
+        ),
+    )
+    band_filter_alpha: float = Field(
+        5.0,
+        gt=0.0,
+        description=(
+            "Sharpness constant α for the per-band cutoff sigmoid. "
+            "Defaults to 5.0 — gives a sharp yet differentiable fence: "
+            "one band above λ gets weight sigmoid(−5) ≈ 0.007 (zeroed), "
+            "one band below λ gets weight sigmoid(+5) ≈ 0.993 (passed)."
+        ),
+    )
+
+    @field_validator("band_filter")
+    @classmethod
+    def _band_filter_requirements(cls, v: bool, info) -> bool:
+        if not v:
+            return v
+        if not info.data.get("temperature_gating", False):
+            raise ValueError(
+                "band_filter=True requires temperature_gating=True — "
+                "the band-cutoff oracle sits on the same SFN family as σ/τ."
+            )
+        if info.data.get("pe_gated_decoder", False):
+            raise ValueError(
+                "band_filter=True is mutually exclusive with "
+                "pe_gated_decoder=True — both wire a third density-aware "
+                "head into the decoder concat. Enable at most one."
+            )
+        return v
+
     @field_validator("sigma_min_kev")
     @classmethod
     def _min_below_max(cls, v: float, info) -> float:

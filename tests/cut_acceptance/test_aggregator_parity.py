@@ -2108,3 +2108,215 @@ def test_paradigm_suffix_appends_pegate(tmp_path: Path) -> None:
     assert "_pegate" in suffix
     assert "_sl2" in suffix
     assert "_pedetach" in suffix
+
+
+# ---------------------------------------------------------------------- #
+# Density-Guided Bandwidth Filter / SAPE (Cell 14)
+# ---------------------------------------------------------------------- #
+
+
+def test_band_filter_defaults_off() -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    cfg = PoolDensitySfnConfig()
+    assert cfg.band_filter is False
+    assert cfg.band_filter_alpha == 5.0
+
+
+def test_band_filter_requires_temperature_gating_config() -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    with pytest.raises(ValueError, match="requires temperature_gating"):
+        PoolDensitySfnConfig(
+            enabled=True, temperature_gating=False, band_filter=True
+        )
+
+
+def test_band_filter_mutex_with_pe_gated_decoder() -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        PoolDensitySfnConfig(
+            enabled=True,
+            temperature_gating=True,
+            pe_gated_decoder=True,
+            band_filter=True,
+        )
+
+
+def test_band_filter_requires_decoder_coordinate_gating(
+    encoder_cfg: EncoderConfig,
+) -> None:
+    """Factory raises if band_filter is on without
+    decoder_coordinate_gating — raw_phi must remain in the decoder
+    input alongside SAPE."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+    with pytest.raises(ValueError, match="decoder_coordinate_gating"):
+        build_attentive_cnp(
+            encoder_cfg,
+            dim_theta=None,
+            dim_phi=21,
+            num_heads=1,
+            attention_dim=128,
+            decoder_coordinate_gating=False,
+            gaussian_attention_bias=True,
+            pool_density_sfn_enabled=True,
+            pool_density_sfn_sigma_max_kev=200.0,
+            pool_density_sfn_sigma_min_kev=5.0,
+            pool_density_sfn_sigma_local_kev=1.0,
+            pool_density_sfn_sigma_global_kev=150.0,
+            pool_density_sfn_temperature_gating=True,
+            pool_density_sfn_band_filter=True,
+            pool_density_sfn_num_bands=10,
+            pool_energies_kev=pool,
+            energy_range_kev=(500.0, 3000.0),
+        )
+
+
+def test_band_filter_requires_num_bands(encoder_cfg: EncoderConfig) -> None:
+    """num_bands < 1 is rejected at factory time so misconfigured
+    band_filter + PE-off never silently sneaks through."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+    with pytest.raises(ValueError, match="num_bands"):
+        build_attentive_cnp(
+            encoder_cfg,
+            dim_theta=None,
+            dim_phi=21,
+            num_heads=1,
+            attention_dim=128,
+            decoder_coordinate_gating=True,
+            gaussian_attention_bias=True,
+            pool_density_sfn_enabled=True,
+            pool_density_sfn_sigma_max_kev=200.0,
+            pool_density_sfn_sigma_min_kev=5.0,
+            pool_density_sfn_sigma_local_kev=1.0,
+            pool_density_sfn_sigma_global_kev=150.0,
+            pool_density_sfn_temperature_gating=True,
+            pool_density_sfn_band_filter=True,
+            pool_density_sfn_num_bands=0,  # missing
+            pool_energies_kev=pool,
+            energy_range_kev=(500.0, 3000.0),
+        )
+
+
+def test_band_filter_registers_lambda_net_and_widens_decoder(
+    encoder_cfg: EncoderConfig,
+) -> None:
+    """``pool_lambda_net`` appears in state_dict; decoder input dim is
+    agg_dim + (2 + 2L) = Z + 2 + 2L."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+    Z = encoder_cfg.latent_dim
+    L = 10
+    cnp = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=2 * L + 1,
+        num_heads=1,
+        attention_dim=128,
+        decoder_coordinate_gating=True,
+        gaussian_attention_bias=True,
+        pool_density_sfn_enabled=True,
+        pool_density_sfn_sigma_max_kev=200.0,
+        pool_density_sfn_sigma_min_kev=5.0,
+        pool_density_sfn_sigma_local_kev=1.0,
+        pool_density_sfn_sigma_global_kev=150.0,
+        pool_density_sfn_temperature_gating=True,
+        pool_density_sfn_head_tied=True,
+        pool_density_sfn_band_filter=True,
+        pool_density_sfn_num_bands=L,
+        pe_detach_qk=True,
+        pool_energies_kev=pool,
+        energy_range_kev=(500.0, 3000.0),
+    )
+    lam_keys = [k for k in cnp.state_dict() if k.startswith("attention.pool_lambda_net")]
+    assert len(lam_keys) == 4  # 2 Linear × (weight, bias)
+    # Final Linear emits 1 scalar logit per query (the cutoff oracle).
+    assert cnp.attention.pool_lambda_net[-1].out_features == 1
+    # Decoder input width: agg_dim (Z) + 2 + 2L.
+    assert cnp.decoder.net[0].in_features == Z + 2 + 2 * L
+    # η-net must NOT coexist with band_filter (mutex enforced).
+    eta_keys = [k for k in cnp.state_dict() if k.startswith("attention.pool_eta_net")]
+    assert eta_keys == []
+
+
+def test_band_filter_forward_shape_and_weights_bounded(
+    encoder_cfg: EncoderConfig,
+) -> None:
+    """End-to-end forward returns the expected [B, N_T] mu/log_sigma
+    shapes; band weights stay in [0, 1] (sigmoid output)."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+    L = 10
+    cnp = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=2 * L + 1,
+        num_heads=1,
+        attention_dim=128,
+        decoder_coordinate_gating=True,
+        gaussian_attention_bias=True,
+        pool_density_sfn_enabled=True,
+        pool_density_sfn_sigma_max_kev=200.0,
+        pool_density_sfn_sigma_min_kev=5.0,
+        pool_density_sfn_sigma_local_kev=1.0,
+        pool_density_sfn_sigma_global_kev=150.0,
+        pool_density_sfn_temperature_gating=True,
+        pool_density_sfn_head_tied=True,
+        pool_density_sfn_band_filter=True,
+        pool_density_sfn_num_bands=L,
+        pe_detach_qk=True,
+        pool_energies_kev=pool,
+        energy_range_kev=(500.0, 3000.0),
+    )
+    ctx = _random_batch(B=2, N=64, dim_phi=2 * L + 1, seed=0)
+    tgt = _random_batch(B=2, N=8, dim_phi=2 * L + 1, seed=1)
+    out = cnp(ctx, tgt)
+    assert out.mu_logit.shape == (2, 8)
+    assert out.log_sigma.shape == (2, 8)
+
+
+def test_paradigm_suffix_appends_bandfilter(tmp_path: Path) -> None:
+    from majorana_acp.cut_acceptance.config import (
+        PoolDensitySfnConfig,
+        PositionalEncodingConfig,
+    )
+
+    cfg = _make_cfg(
+        tmp_path,
+        sampling_pattern="flat_stratified",
+        trial_size_strategy="variable_uniform",
+        n_trial_events_min=640,
+        n_trial_events_max=1024,
+        positional_encoding=PositionalEncodingConfig(enabled=True, num_bands=10),
+        aggregator=AggregatorConfig(
+            type="cross_attention",
+            num_heads=1,
+            attention_dim=128,
+            decoder_coordinate_gating=True,
+            gaussian_attention_bias=True,
+            pe_detach_qk=True,
+            pool_density_sfn=PoolDensitySfnConfig(
+                enabled=True,
+                temperature_gating=True,
+                head_tied=True,
+                band_filter=True,
+                sigma_local_kev=1.0,
+            ),
+        ),
+    )
+    suffix = paradigm_path_suffix(cfg)
+    assert "_bandfilter" in suffix
+    assert "_sl1" in suffix
+    assert "_pegate" not in suffix
+    assert "_pedetach" in suffix
