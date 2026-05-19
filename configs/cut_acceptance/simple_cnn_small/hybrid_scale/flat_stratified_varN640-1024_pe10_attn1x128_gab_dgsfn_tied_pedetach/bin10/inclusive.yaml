@@ -1,0 +1,105 @@
+# Cell 10 — Single-Head PE-Detached DG-SFN.
+#
+# Architectural response to the Cell 9 trivial-gate diagnostic
+# (analysis/cnp_audit/_cell9_diagnostic_trivial_gate.md): Cells 8/9
+# both showed σ and τ collapsing to extreme no-op values because
+# PE10 features INSIDE the Q and K projections give Q·K^T enough
+# high-frequency bandwidth to fit the bin grid directly — leaving
+# the SFN gates as a decorative side path with no gradient pressure
+# to do anything. The Fourier features in Q/K are a "Trojan horse"
+# bypassing the spatial penalty entirely.
+#
+# Cell 10 blinds Q and K to PE10 by feeding them the raw 2D
+# (E_norm, T_norm) vector instead of the PE-encoded z_phi latent.
+# V keeps the PE10 latent via h_C (so the per-event value still
+# carries full bandwidth), and the decoder still receives z_phi_T
+# (so β̂(E) keeps the capacity to track sharp features). The result:
+#
+#   Q · K^T  =  smooth function of (E_target, E_ctx)
+#
+# Bin-scale sharpness can no longer be produced by the attention
+# inner product. If the model wants to resolve DEP 1592 (stored
+# in V via PE10), its ONLY remaining mathematical path is to drive
+# σ → σ_min = 5 keV and τ → τ_min = 1 at that energy through the
+# pool-density SFN. The SFN finally becomes the load-bearing wall.
+#
+# Multi-head attention is also dropped: with a smooth Q·K^T there
+# is no head-specialisation game to play, so Occam's Razor says one
+# head is enough. attn1x128 keeps the same projection capacity
+# (head_dim = 128) as the previous 8×64 layout.
+#
+# Everything else — pool buffer, flat_stratified sampling, PE10
+# in encoder/decoder, σ ∈ [5, 200] keV, τ ∈ [1, 10], head-tied σ/τ
+# — is identical to Cell 9 so the A/B isolates the PE-detach effect.
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/flat_stratified_varN640-1024_pe10_attn1x128_gab_dgsfn_tied_pedetach
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: flat_stratified
+trial_size_strategy: variable_uniform
+n_trial_events_min: 640
+n_trial_events_max: 1024
+
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 128
+  n_context_max: 512
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 1
+  attention_dim: 128
+  gaussian_attention_bias: true
+  pe_detach_qk: true
+  pool_density_sfn:
+    enabled: true
+    sigma_max_kev: 200.0
+    sigma_min_kev: 5.0
+    hidden_dim: 16
+    sigma_local_kev: 10.0
+    sigma_global_kev: 150.0
+    epsilon: 1.0e-5
+    temperature_gating: true
+    tau_min_value: 1.0
+    tau_max_value: 10.0
+    head_tied: true

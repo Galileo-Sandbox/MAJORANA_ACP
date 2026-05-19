@@ -186,6 +186,12 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
     # density draw instead of the legacy bin-stratified loop.
     if cfg.density_sampling == "continuous":
         bits.append("debinned")
+    # Append _pedetach (Cell 10) when the attention's Q/K projections
+    # are blinded to PE10 — Q·K^T becomes a smooth function of raw
+    # energy, forcing the SFN gates to be the only path to sharp
+    # localization.
+    if cfg.aggregator.type == "cross_attention" and cfg.aggregator.pe_detach_qk:
+        bits.append("pedetach")
     return "hybrid_scale/" + "_".join(bits)
 
 
@@ -304,6 +310,7 @@ def build_local_cnp(cfg: CutAcceptanceConfig, *, dim_phi: int):
             pool_density_sfn_tau_min=pdsfn.tau_min_value,
             pool_density_sfn_tau_max=pdsfn.tau_max_value,
             pool_density_sfn_head_tied=pdsfn.head_tied,
+            pe_detach_qk=cfg.aggregator.pe_detach_qk,
             pool_energies_kev=pool_energies_kev,
             energy_range_kev=cfg.energy_range if needs_range else None,
             decoder_hidden_dims=list(cfg.decoder_hidden_dims),
@@ -597,6 +604,7 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             "pool_density_sfn_tau_min_value": cfg.aggregator.pool_density_sfn.tau_min_value,
             "pool_density_sfn_tau_max_value": cfg.aggregator.pool_density_sfn.tau_max_value,
             "pool_density_sfn_head_tied": cfg.aggregator.pool_density_sfn.head_tied,
+            "pe_detach_qk": cfg.aggregator.pe_detach_qk,
             "density_sampling": cfg.density_sampling,
             "density_kde_radius_kev": cfg.density_kde_radius_kev,
             "device": str(device),

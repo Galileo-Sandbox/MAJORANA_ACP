@@ -1849,3 +1849,108 @@ def test_paradigm_suffix_uses_dgsfn_tied_when_head_tied(tmp_path: Path) -> None:
     )
     suffix = paradigm_path_suffix(cfg)
     assert suffix.endswith("_attn8x64_gab_dgsfn_tied"), suffix
+
+
+# ---------------------------------------------------------------------- #
+# PE-Detached Q/K projections (Cell 10)
+# ---------------------------------------------------------------------- #
+
+
+def test_pe_detach_qk_defaults_off() -> None:
+    cfg = AggregatorConfig()
+    assert cfg.pe_detach_qk is False
+
+
+def test_pe_detach_qk_narrows_w_q_w_k_input_dim(encoder_cfg: EncoderConfig) -> None:
+    """Under pe_detach_qk, W_q and W_k take raw 2D (E_norm, T_norm)
+    instead of the latent-dim z_phi. W_v is unchanged."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    cnp = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=21,
+        num_heads=1,
+        attention_dim=128,
+        pe_detach_qk=True,
+    )
+    Z = encoder_cfg.latent_dim
+    # Q/K take raw 2D phi.
+    assert cnp.attention.w_q.in_features == 2
+    assert cnp.attention.w_k.in_features == 2
+    # V still sources from h_C with width agg_dim = Z (default).
+    assert cnp.attention.w_v.in_features == Z
+
+
+def test_pe_detach_qk_off_keeps_zphi_inputs(encoder_cfg: EncoderConfig) -> None:
+    """When pe_detach_qk is off, W_q and W_k take z_phi (latent_dim)
+    — preserves every existing attentive checkpoint."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    cnp = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=21,
+        num_heads=4,
+        attention_dim=64,
+        pe_detach_qk=False,
+    )
+    Z = encoder_cfg.latent_dim
+    assert cnp.attention.w_q.in_features == Z
+    assert cnp.attention.w_k.in_features == Z
+
+
+def test_pe_detach_qk_single_head_forward(encoder_cfg: EncoderConfig) -> None:
+    """End-to-end forward with pe_detach + single-head + dgsfn_tied
+    (Cell 10's full config)."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+    cnp = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=21,
+        num_heads=1,
+        attention_dim=128,
+        gaussian_attention_bias=True,
+        pool_density_sfn_enabled=True,
+        pool_density_sfn_sigma_max_kev=200.0,
+        pool_density_sfn_sigma_min_kev=5.0,
+        pool_density_sfn_sigma_local_kev=10.0,
+        pool_density_sfn_sigma_global_kev=150.0,
+        pool_density_sfn_temperature_gating=True,
+        pool_density_sfn_head_tied=True,
+        pe_detach_qk=True,
+        pool_energies_kev=pool,
+        energy_range_kev=(500.0, 3000.0),
+    )
+    ctx = _random_batch(B=2, N=64, dim_phi=21, seed=0)
+    tgt = _random_batch(B=2, N=8, dim_phi=21, seed=1)
+    out = cnp(ctx, tgt)
+    assert out.mu_logit.shape == (2, 8)
+    assert out.log_sigma.shape == (2, 8)
+
+
+def test_paradigm_suffix_appends_pedetach(tmp_path: Path) -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    cfg = _make_cfg(
+        tmp_path,
+        sampling_pattern="flat_stratified",
+        trial_size_strategy="variable_uniform",
+        n_trial_events_min=640,
+        n_trial_events_max=1024,
+        aggregator=AggregatorConfig(
+            type="cross_attention",
+            num_heads=1,
+            attention_dim=128,
+            gaussian_attention_bias=True,
+            pe_detach_qk=True,
+            pool_density_sfn=PoolDensitySfnConfig(
+                enabled=True, temperature_gating=True, head_tied=True
+            ),
+        ),
+    )
+    suffix = paradigm_path_suffix(cfg)
+    assert suffix.endswith("_dgsfn_tied_pedetach"), suffix

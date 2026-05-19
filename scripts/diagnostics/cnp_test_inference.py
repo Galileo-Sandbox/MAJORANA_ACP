@@ -347,6 +347,7 @@ def _load_cnp(cfg: CutAcceptanceConfig, ckpt_path: Path) -> torch.nn.Module:
             pool_density_sfn_tau_min=pdsfn.tau_min_value,
             pool_density_sfn_tau_max=pdsfn.tau_max_value,
             pool_density_sfn_head_tied=pdsfn.head_tied,
+            pe_detach_qk=cfg.aggregator.pe_detach_qk,
             pool_energies_kev=pool_energies_kev,
             energy_range_kev=cfg.energy_range if needs_range else None,
             decoder_hidden_dims=list(cfg.decoder_hidden_dims),

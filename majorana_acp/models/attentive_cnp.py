@@ -130,6 +130,8 @@ class CrossAttentionAggregator(nn.Module):
         pool_density_sfn_tau_min: float = 1.0,
         pool_density_sfn_tau_max: float = 10.0,
         pool_density_sfn_head_tied: bool = False,
+        pe_detach_qk: bool = False,
+        raw_phi_dim: int = 2,
     ) -> None:
         super().__init__()
         if attention_dim % num_heads != 0:
@@ -141,10 +143,17 @@ class CrossAttentionAggregator(nn.Module):
         self.head_dim = self.attention_dim // self.num_heads
         self.scale = self.head_dim**-0.5
 
-        # Q / K source: z_φ (latent_dim wide). V source: h_C (agg_dim
-        # wide). All three project into ``attention_dim`` total.
-        self.w_q = nn.Linear(latent_dim, attention_dim, bias=False)
-        self.w_k = nn.Linear(latent_dim, attention_dim, bias=False)
+        # Q / K source: ``z_φ`` (latent_dim wide) under the default
+        # path. When ``pe_detach_qk`` is on (Cell 10), Q and K instead
+        # take the raw 2D ``(E_norm, T_norm)`` vector — by blinding
+        # them to PE10 the dot product ``Q·K^T`` becomes a smooth
+        # function of raw energy and can no longer produce bin-scale
+        # sharpness in the attention logits. V always sources from
+        # ``h_C`` (agg_dim wide; carries PE10 + binary label).
+        self.pe_detach_qk = bool(pe_detach_qk)
+        qk_in_dim = int(raw_phi_dim) if self.pe_detach_qk else int(latent_dim)
+        self.w_q = nn.Linear(qk_in_dim, attention_dim, bias=False)
+        self.w_k = nn.Linear(qk_in_dim, attention_dim, bias=False)
         self.w_v = nn.Linear(agg_dim, attention_dim, bias=False)
         # Final projection back to ``latent_dim`` (= d_v = Z), so the
         # decoder input dim stays 2Z whatever the aggregator.
@@ -463,13 +472,29 @@ class CrossAttentionAggregator(nn.Module):
         *,
         e_target_norm: torch.Tensor | None = None,  # [B, N_T] (optional)
         e_ctx_norm: torch.Tensor | None = None,  # [B, N_C] (optional)
+        phi_target_raw: torch.Tensor | None = None,  # [B, N_T, 2] (raw E_norm, T_norm)
+        phi_ctx_raw: torch.Tensor | None = None,  # [B, N_C, 2]
     ) -> torch.Tensor:
         B, N_T, _ = z_phi_target.shape
         N_C = z_phi_ctx.size(1)
         H, d = self.num_heads, self.head_dim
 
-        q = self.w_q(z_phi_target).reshape(B, N_T, H, d).transpose(1, 2)
-        k = self.w_k(z_phi_ctx).reshape(B, N_C, H, d).transpose(1, 2)
+        # Q/K source — z_phi by default, raw (E_norm, T_norm) under PE-detach.
+        if self.pe_detach_qk:
+            if phi_target_raw is None or phi_ctx_raw is None:
+                raise ValueError(
+                    "pe_detach_qk=True requires phi_target_raw and "
+                    "phi_ctx_raw to be passed (the raw 2D (E_norm, T_norm) "
+                    "tensors recovered from batch.phi)."
+                )
+            qk_target_src = phi_target_raw
+            qk_ctx_src = phi_ctx_raw
+        else:
+            qk_target_src = z_phi_target
+            qk_ctx_src = z_phi_ctx
+
+        q = self.w_q(qk_target_src).reshape(B, N_T, H, d).transpose(1, 2)
+        k = self.w_k(qk_ctx_src).reshape(B, N_C, H, d).transpose(1, 2)
         v = self.w_v(h_ctx).reshape(B, N_C, H, d).transpose(1, 2)
         # q, k, v: [B, H, *, d]
 
@@ -750,26 +775,33 @@ class AttentiveCNP(nn.Module):
         # Encode target (z_φ_T → Q AND decoder concat input).
         _, z_phi_T = self._encode_per_event(target_batch)  # [B, N_T, Z]
 
-        # Recover raw E_norm for the GAB penalty when the attention
-        # layer asked for it. Same atan2 inverse used by decoder
-        # coordinate gating — exact for E_norm ∈ [0, 1] under our PE
-        # layout, and a pass-through when PE is disabled (phi.shape[-1] == 2).
-        if getattr(self.attention, "gaussian_attention_bias", False):
+        # Recover raw (E_norm, T_norm) for any attention-layer feature
+        # that needs it. Same atan2 inverse used by decoder coordinate
+        # gating — exact for E_norm ∈ [0, 1] under our PE layout, and a
+        # pass-through when PE is disabled (phi.shape[-1] == 2). Two
+        # consumers:
+        #   * GAB / DM / BPBN / SFN / Pool-Density SFN: need scalar
+        #     ``e_target_norm`` / ``e_ctx_norm`` for the spatial penalty.
+        #   * pe_detach_qk (Cell 10): needs the full 2D raw phi tensors
+        #     so the Q and K projections can source from raw coords
+        #     instead of the PE-encoded z_phi.
+        wants_gab = getattr(self.attention, "gaussian_attention_bias", False)
+        wants_pe_detach = getattr(self.attention, "pe_detach_qk", False)
+        if wants_gab or wants_pe_detach:
             phi_t_raw = _recover_raw_phi(
                 torch.as_tensor(target_batch.phi, dtype=z_phi_T.dtype, device=z_phi_T.device)
             )
             phi_c_raw = _recover_raw_phi(
                 torch.as_tensor(ctx_batch.phi, dtype=z_phi_C.dtype, device=z_phi_C.device)
             )
-            e_target_norm = phi_t_raw[..., 0]  # [B, N_T]
-            e_ctx_norm = phi_c_raw[..., 0]  # [B, N_C]
-            r_target = self.attention(
-                z_phi_T,
-                z_phi_C,
-                h_C,
-                e_target_norm=e_target_norm,
-                e_ctx_norm=e_ctx_norm,
-            )
+            kwargs = {}
+            if wants_gab:
+                kwargs["e_target_norm"] = phi_t_raw[..., 0]
+                kwargs["e_ctx_norm"] = phi_c_raw[..., 0]
+            if wants_pe_detach:
+                kwargs["phi_target_raw"] = phi_t_raw
+                kwargs["phi_ctx_raw"] = phi_c_raw
+            r_target = self.attention(z_phi_T, z_phi_C, h_C, **kwargs)
         else:
             # Cross-attention → target-conditioned representation.
             r_target = self.attention(z_phi_T, z_phi_C, h_C)  # [B, N_T, Z]
@@ -849,6 +881,7 @@ def build_attentive_cnp(
     pool_density_sfn_tau_min: float = 1.0,
     pool_density_sfn_tau_max: float = 10.0,
     pool_density_sfn_head_tied: bool = False,
+    pe_detach_qk: bool = False,
     pool_energies_kev: "np.ndarray | torch.Tensor | None" = None,
     energy_range_kev: tuple[float, float] | None = None,
     aggregator_dim: int | None = None,
@@ -1047,6 +1080,7 @@ def build_attentive_cnp(
         pool_density_sfn_tau_min=pool_density_sfn_tau_min,
         pool_density_sfn_tau_max=pool_density_sfn_tau_max,
         pool_density_sfn_head_tied=pool_density_sfn_head_tied,
+        pe_detach_qk=pe_detach_qk,
     )
     # Decoder input dim is ``agg_dim + decoder_latent_dim`` where
     # decoder_latent_dim is the size of the second concat input. With

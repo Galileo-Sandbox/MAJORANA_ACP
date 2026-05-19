@@ -763,6 +763,24 @@ class AggregatorConfig(_Frozen):
             "with ``bounded_bandwidth`` (both replace the GAB parametrisation)."
         ),
     )
+    pe_detach_qk: bool = Field(
+        False,
+        description=(
+            "Blind the attention's Q and K projections to PE10. When "
+            "True (cross-attention only), the W_Q and W_K linear layers "
+            "take the **raw 2D (E_norm, T_norm) vector** as input "
+            "instead of the PE-encoded ``z_phi`` latent. V keeps the "
+            "PE10 latent via ``h_C`` from ``ContextPointEncoder``, and "
+            "the decoder still receives ``z_phi_T`` (or raw coords if "
+            "``decoder_coordinate_gating`` is on). Effect: ``Q · K^T`` "
+            "becomes a smooth function of raw energy — the PE10 Fourier "
+            "features can no longer produce bin-scale sharpness in the "
+            "attention logits. Removes the ``Trojan horse'' pathway "
+            "diagnosed in Cells 8/9 where σ/τ gates went trivial "
+            "because the model could fit the bin grid via PE10 inside "
+            "Q/K alone."
+        ),
+    )
     pool_density_sfn: PoolDensitySfnConfig = Field(
         default_factory=PoolDensitySfnConfig,
         description=(
