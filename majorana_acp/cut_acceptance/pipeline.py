@@ -193,9 +193,15 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
                     # Cell 15 — parameter-free hard-gated variant of
                     # band_filter. λ is an explicit closed-form
                     # function of the normalised density contrast,
-                    # threshold-locked at the 5× HPGe physics rule.
+                    # threshold-locked at the empirical HPGe rule.
                     if cfg.aggregator.pool_density_sfn.hard_filter:
                         bits.append("hardfilter")
+                        # Cell 15 re-run — explicit contrast-feature
+                        # injection. The scalar R(E_*) is appended to
+                        # the decoder concat so the decoder reads raw
+                        # peak intensity directly.
+                        if cfg.aggregator.pool_density_sfn.inject_contrast_feature:
+                            bits.append("xfeed")
                 else:
                     bits.append("pdsfn")
                 # Encode a non-default ``sigma_local_kev`` so different
@@ -211,6 +217,13 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
                         bits.append(f"sl{int(round(sl_kev))}")
                     else:
                         bits.append(f"sl{str(sl_kev).replace('.', 'p')}")
+                sg_default = 150.0
+                sg_kev = cfg.aggregator.pool_density_sfn.sigma_global_kev
+                if abs(sg_kev - sg_default) > 1e-9:
+                    if abs(sg_kev - round(sg_kev)) < 1e-9:
+                        bits.append(f"sg{int(round(sg_kev))}")
+                    else:
+                        bits.append(f"sg{str(sg_kev).replace('.', 'p')}")
     # Append _debinned when the sampler uses the continuous inverse-
     # density draw instead of the legacy bin-stratified loop.
     if cfg.density_sampling == "continuous":
@@ -350,6 +363,7 @@ def build_local_cnp(cfg: CutAcceptanceConfig, *, dim_phi: int):
             pool_density_sfn_hard_filter=pdsfn.hard_filter,
             pool_density_sfn_hard_filter_contrast_threshold=pdsfn.hard_filter_contrast_threshold,
             pool_density_sfn_hard_filter_sigmoid_steepness=pdsfn.hard_filter_sigmoid_steepness,
+            pool_density_sfn_inject_contrast_feature=pdsfn.inject_contrast_feature,
             pe_detach_qk=cfg.aggregator.pe_detach_qk,
             pool_energies_kev=pool_energies_kev,
             energy_range_kev=cfg.energy_range if needs_range else None,
@@ -650,6 +664,7 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             "pool_density_sfn_hard_filter": cfg.aggregator.pool_density_sfn.hard_filter,
             "pool_density_sfn_hard_filter_contrast_threshold": cfg.aggregator.pool_density_sfn.hard_filter_contrast_threshold,
             "pool_density_sfn_hard_filter_sigmoid_steepness": cfg.aggregator.pool_density_sfn.hard_filter_sigmoid_steepness,
+            "pool_density_sfn_inject_contrast_feature": cfg.aggregator.pool_density_sfn.inject_contrast_feature,
             "pe_detach_qk": cfg.aggregator.pe_detach_qk,
             "density_sampling": cfg.density_sampling,
             "density_kde_radius_kev": cfg.density_kde_radius_kev,

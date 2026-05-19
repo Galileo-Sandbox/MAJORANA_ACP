@@ -785,6 +785,39 @@ class PoolDensitySfnConfig(_Frozen):
             )
         return v
 
+    inject_contrast_feature: bool = Field(
+        False,
+        description=(
+            "Explicit Contrast-Feature Injection (Cell 15 re-run). When "
+            "True, the scalar density contrast ratio ``R(E_*) = "
+            "(σ_global/σ_local) · ρ_local/ρ_global`` is appended as an "
+            "extra coordinate to the decoder concat lane:\n\n"
+            "    decoder_input = [r_target, raw_phi (E,T), SAPE(E_*), R(E_*)]\n\n"
+            "Motivation: ρ_local and ρ_global are computed over the "
+            "**raw full spectrum** event pool (no PSD cut), so R(E_*) "
+            "reads the *raw* peak intensity at E_*. The hard filter "
+            "uses R only to decide bandwidth (λ → 10 if R > T). The "
+            "decoder otherwise has no way to know HOW strong the raw "
+            "peak is at any given query — it only sees that some bands "
+            "are open. Injecting R gives the decoder an explicit "
+            "magnitude signal so it can distinguish FE (R ≈ 40+) from "
+            "SE / DEP (R ≈ 5-10) and map each raw-peak intensity to "
+            "its specific post-cut β value.\n\n"
+            "Requires ``hard_filter=True`` (R is only computed there). "
+            "Adds 1 to the decoder input dim."
+        ),
+    )
+
+    @field_validator("inject_contrast_feature")
+    @classmethod
+    def _inject_contrast_requires_hard_filter(cls, v: bool, info) -> bool:
+        if v and not info.data.get("hard_filter", False):
+            raise ValueError(
+                "inject_contrast_feature=True requires hard_filter=True — "
+                "R(E_*) is only computed inside the hard-filter branch."
+            )
+        return v
+
     @field_validator("sigma_min_kev")
     @classmethod
     def _min_below_max(cls, v: float, info) -> float:

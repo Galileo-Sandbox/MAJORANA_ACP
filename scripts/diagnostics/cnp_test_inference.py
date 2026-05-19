@@ -358,6 +358,7 @@ def _load_cnp(cfg: CutAcceptanceConfig, ckpt_path: Path) -> torch.nn.Module:
             pool_density_sfn_hard_filter=pdsfn.hard_filter,
             pool_density_sfn_hard_filter_contrast_threshold=pdsfn.hard_filter_contrast_threshold,
             pool_density_sfn_hard_filter_sigmoid_steepness=pdsfn.hard_filter_sigmoid_steepness,
+            pool_density_sfn_inject_contrast_feature=pdsfn.inject_contrast_feature,
             pe_detach_qk=cfg.aggregator.pe_detach_qk,
             pool_energies_kev=pool_energies_kev,
             energy_range_kev=cfg.energy_range if needs_range else None,

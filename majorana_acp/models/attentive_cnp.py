@@ -964,6 +964,13 @@ class CrossAttentionAggregator(nn.Module):
                     alpha * (lam.unsqueeze(-1) - band_idx)
                 )  # [B, N_T, L]
             side_info["band_weights"] = band_weights_h
+            # Cell 15 re-run — expose R as a scalar per-query feature
+            # so the decoder can read raw peak intensity directly.
+            # ``contrast_ratio`` is forwarded to AttentiveCNP.forward,
+            # which decides (via the ``inject_contrast_feature`` flag
+            # encoded in decoder_latent_dim at factory time) whether to
+            # concat it into the decoder input.
+            side_info["contrast_ratio"] = R_contrast.detach()  # [B, N_T]
         return out, side_info
 
 
@@ -1019,6 +1026,7 @@ class AttentiveCNP(nn.Module):
         decoder: CnpDecoder,
         *,
         decoder_coordinate_gating: bool = False,
+        inject_contrast_feature: bool = False,
     ) -> None:
         super().__init__()
         self.encoder = encoder
@@ -1026,6 +1034,7 @@ class AttentiveCNP(nn.Module):
         self.attention = attention
         self.decoder = decoder
         self.decoder_coordinate_gating = bool(decoder_coordinate_gating)
+        self.inject_contrast_feature = bool(inject_contrast_feature)
 
     def _encode_per_event(self, batch: StandardBatch) -> tuple[torch.Tensor, torch.Tensor]:
         z_theta, z_phi = self.encoder(batch)  # [B, Z], [B, N, Z]
@@ -1097,6 +1106,7 @@ class AttentiveCNP(nn.Module):
         # but the decoder MLP no longer sees the bin-scale Fourier
         # features and therefore cannot fit bin-scale Bernoulli noise.
         band_weights = side_info.get("band_weights")
+        contrast_ratio = side_info.get("contrast_ratio")
         pe_gate = side_info.get("pe_gate")
         if band_weights is not None:
             # Cell 14 — DGBF / SAPE decoder concat. The PE10 sin/cos
@@ -1130,6 +1140,18 @@ class AttentiveCNP(nn.Module):
             sape = pe_bands * band_weights.unsqueeze(-1)  # [B, N_T, L, 2]
             sape_flat = sape.reshape(*phi_tgt_t.shape[:-1], two_L)  # [B, N_T, 2L]
             coord_input = torch.cat([raw_phi, sape_flat], dim=-1)  # [B, N_T, 2+2L]
+            # Cell 15 re-run — explicit contrast-feature injection.
+            # When ``inject_contrast_feature`` was on at factory time
+            # (the decoder was built with latent_dim = 2 + 2L + 1),
+            # append the scalar R(E_*) so the decoder can read raw
+            # peak intensity directly.
+            if (
+                getattr(self, "inject_contrast_feature", False)
+                and contrast_ratio is not None
+            ):
+                coord_input = torch.cat(
+                    [coord_input, contrast_ratio.unsqueeze(-1)], dim=-1
+                )  # [B, N_T, 2+2L+1]
         elif pe_gate is not None:
             # Cell 13 — PE-gated decoder concat. Requires
             # decoder_coordinate_gating=True (the raw_phi must be in
@@ -1218,6 +1240,7 @@ def build_attentive_cnp(
     pool_density_sfn_hard_filter: bool = False,
     pool_density_sfn_hard_filter_contrast_threshold: float = 5.0,
     pool_density_sfn_hard_filter_sigmoid_steepness: float = 10.0,
+    pool_density_sfn_inject_contrast_feature: bool = False,
     pe_detach_qk: bool = False,
     pool_energies_kev: "np.ndarray | torch.Tensor | None" = None,
     energy_range_kev: tuple[float, float] | None = None,
@@ -1454,6 +1477,8 @@ def build_attentive_cnp(
                 "pass num_bands through the factory call."
             )
         decoder_latent_dim = 2 + 2 * int(pool_density_sfn_num_bands)
+        if pool_density_sfn_inject_contrast_feature:
+            decoder_latent_dim += 1  # appended R(E_*) scalar
     elif pool_density_sfn_band_filter:
         if not decoder_coordinate_gating:
             raise ValueError(
@@ -1487,10 +1512,19 @@ def build_attentive_cnp(
         hidden_dims=dec_hidden,
         dropout=encoder_config.dropout,
     )
+    # Reject inject_contrast_feature without hard_filter — R is only
+    # produced inside the hard-filter branch of the aggregator.
+    if pool_density_sfn_inject_contrast_feature and not pool_density_sfn_hard_filter:
+        raise ValueError(
+            "pool_density_sfn_inject_contrast_feature=True requires "
+            "pool_density_sfn_hard_filter=True — R(E_*) is only "
+            "computed inside the hard-filter branch."
+        )
     return AttentiveCNP(
         encoder=encoder,
         context_encoder=context_encoder,
         attention=attention,
         decoder=decoder,
         decoder_coordinate_gating=decoder_coordinate_gating,
+        inject_contrast_feature=pool_density_sfn_inject_contrast_feature,
     )
