@@ -172,10 +172,14 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
             # absolute-density pool-based SFN replaces log_gamma.
             # ``_dgsfn`` (Dual-Gated SFN, Cell 8) when the same
             # pool-based bandwidth is paired with the dual-output
-            # temperature head. Mutually exclusive with BPBN and SFN.
+            # temperature head. ``_dgsfn_tied`` (Tied-Head, Cell 9)
+            # when both σ and τ are shared across all attention heads.
+            # All mutually exclusive with BPBN and SFN.
             if cfg.aggregator.pool_density_sfn.enabled:
                 if cfg.aggregator.pool_density_sfn.temperature_gating:
                     bits.append("dgsfn")
+                    if cfg.aggregator.pool_density_sfn.head_tied:
+                        bits.append("tied")
                 else:
                     bits.append("pdsfn")
     # Append _debinned when the sampler uses the continuous inverse-
@@ -299,6 +303,7 @@ def build_local_cnp(cfg: CutAcceptanceConfig, *, dim_phi: int):
             pool_density_sfn_temperature_gating=pdsfn.temperature_gating,
             pool_density_sfn_tau_min=pdsfn.tau_min_value,
             pool_density_sfn_tau_max=pdsfn.tau_max_value,
+            pool_density_sfn_head_tied=pdsfn.head_tied,
             pool_energies_kev=pool_energies_kev,
             energy_range_kev=cfg.energy_range if needs_range else None,
             decoder_hidden_dims=list(cfg.decoder_hidden_dims),
@@ -591,6 +596,7 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             "pool_density_sfn_temperature_gating": cfg.aggregator.pool_density_sfn.temperature_gating,
             "pool_density_sfn_tau_min_value": cfg.aggregator.pool_density_sfn.tau_min_value,
             "pool_density_sfn_tau_max_value": cfg.aggregator.pool_density_sfn.tau_max_value,
+            "pool_density_sfn_head_tied": cfg.aggregator.pool_density_sfn.head_tied,
             "density_sampling": cfg.density_sampling,
             "density_kde_radius_kev": cfg.density_kde_radius_kev,
             "device": str(device),

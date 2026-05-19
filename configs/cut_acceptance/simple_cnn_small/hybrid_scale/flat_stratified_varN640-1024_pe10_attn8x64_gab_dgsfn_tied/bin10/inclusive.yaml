@@ -1,0 +1,93 @@
+# Cell 9 — Tied-Head Dual-Gated SFN.
+#
+# Architectural response to the Cell 8 head-collapse diagnostic
+# (see analysis/cnp_audit/_cell8_diagnostic_head_collapse.md):
+# with head-wise σ/τ, training carved out a single narrow head
+# (σ → σ_min = 5 keV, uniformly across the spectrum) acting as a
+# 1-NN bin-grid assassin, while seven other heads saturated at
+# σ_max — leaving σ_head with zero position dependence and τ_head
+# pinned at τ_min. NBLL gave zero gradient pressure to escape this
+# basin.
+#
+# Cell 9 strips the model of head-wise specialisation: each MLP
+# outputs ONE scalar per target query, broadcast across all H
+# attention heads. The 1-NN escape route is removed by construction
+# — a narrow σ now penalises every head simultaneously. NBLL in the
+# continuum should therefore reward the model for growing σ AND τ
+# jointly when ρ_local is low, providing the gradient signal that
+# Cells 7/8 lacked.
+#
+# Everything else — pool buffer, flat_stratified sampling, PE10,
+# σ ∈ [5, 200] keV, τ ∈ [1, 10] — is identical to Cell 8, so the
+# A/B isolates the head-tying intervention.
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/flat_stratified_varN640-1024_pe10_attn8x64_gab_dgsfn_tied
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: flat_stratified
+trial_size_strategy: variable_uniform
+n_trial_events_min: 640
+n_trial_events_max: 1024
+
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 128
+  n_context_max: 512
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 8
+  attention_dim: 64
+  gaussian_attention_bias: true
+  pool_density_sfn:
+    enabled: true
+    sigma_max_kev: 200.0
+    sigma_min_kev: 5.0
+    hidden_dim: 16
+    sigma_local_kev: 10.0
+    sigma_global_kev: 150.0
+    epsilon: 1.0e-5
+    temperature_gating: true
+    tau_min_value: 1.0
+    tau_max_value: 10.0
+    head_tied: true

@@ -129,6 +129,7 @@ class CrossAttentionAggregator(nn.Module):
         pool_density_sfn_temperature_gating: bool = False,
         pool_density_sfn_tau_min: float = 1.0,
         pool_density_sfn_tau_max: float = 10.0,
+        pool_density_sfn_head_tied: bool = False,
     ) -> None:
         super().__init__()
         if attention_dim % num_heads != 0:
@@ -396,10 +397,17 @@ class CrossAttentionAggregator(nn.Module):
             self.pool_density_sfn_sigma_global_norm = float(pool_density_sfn_sigma_global_norm)
             self.pool_density_sfn_epsilon = float(pool_density_sfn_epsilon)
             # PE-free MLP. Input: 2D ``[log(ρ_local + ε), log(ρ_global + ε)]``.
+            # Output width = num_heads under per-head specialisation, OR
+            # 1 under Tied-Head (Cell 9). The tied variant strips the
+            # 1-NN single-head escape route observed in Cell 8: with one
+            # shared σ and τ per target, a narrow σ now penalises every
+            # head simultaneously in the continuum.
+            self.pool_density_sfn_head_tied = bool(pool_density_sfn_head_tied)
+            sfn_out_dim = 1 if self.pool_density_sfn_head_tied else self.num_heads
             self.pool_sfn_net = nn.Sequential(
                 nn.Linear(2, int(pool_density_sfn_hidden_dim)),
                 nn.GELU(),
-                nn.Linear(int(pool_density_sfn_hidden_dim), self.num_heads),
+                nn.Linear(int(pool_density_sfn_hidden_dim), sfn_out_dim),
             )
             # Cell 8 — Dual-Gated SFN. A second PE-free MLP head emits a
             # per-target temperature τ_head ∈ [τ_min, τ_max] that scales
@@ -420,12 +428,20 @@ class CrossAttentionAggregator(nn.Module):
                     )
                 self.pool_density_sfn_tau_min = float(pool_density_sfn_tau_min)
                 self.pool_density_sfn_tau_max = float(pool_density_sfn_tau_max)
+                # Same head-tying contract as the σ head.
+                tau_out_dim = 1 if self.pool_density_sfn_head_tied else self.num_heads
                 self.pool_tau_net = nn.Sequential(
                     nn.Linear(2, int(pool_density_sfn_hidden_dim)),
                     nn.GELU(),
-                    nn.Linear(int(pool_density_sfn_hidden_dim), self.num_heads),
+                    nn.Linear(int(pool_density_sfn_hidden_dim), tau_out_dim),
                 )
             else:
+                if self.pool_density_sfn_head_tied:
+                    raise ValueError(
+                        "pool_density_sfn_head_tied=True requires "
+                        "pool_density_sfn_temperature_gating=True — head "
+                        "tying is meaningful only for the dual-gated variant."
+                    )
                 self.pool_density_sfn_tau_min = float(pool_density_sfn_tau_min)
                 self.pool_density_sfn_tau_max = float(pool_density_sfn_tau_max)
         else:
@@ -437,6 +453,7 @@ class CrossAttentionAggregator(nn.Module):
             self.pool_density_sfn_temperature_gating = False
             self.pool_density_sfn_tau_min = float(pool_density_sfn_tau_min)
             self.pool_density_sfn_tau_max = float(pool_density_sfn_tau_max)
+            self.pool_density_sfn_head_tied = False
 
     def forward(
         self,
@@ -542,8 +559,16 @@ class CrossAttentionAggregator(nn.Module):
                     Z = torch.stack([log_l, log_g], dim=-1)  # [B, N_T, 2]
                 # MLP forward keeps a graph — its weights are the
                 # learnable parameters of this branch.
-                logits = self.pool_sfn_net(Z)  # [B, N_T, H]
-                logits = logits.transpose(1, 2).unsqueeze(-1)  # [B, H, N_T, 1]
+                # When ``head_tied`` (Cell 9): output is [B, N_T, 1] and
+                # is reshaped to [B, 1, N_T, 1] so the same σ broadcasts
+                # over all H heads in the attention score tensor.
+                # When per-head (Cell 8): output is [B, N_T, H] →
+                # [B, H, N_T, 1] (one σ per head, per target).
+                logits = self.pool_sfn_net(Z)  # [B, N_T, sfn_out]
+                if self.pool_density_sfn_head_tied:
+                    logits = logits.unsqueeze(1)  # [B, 1, N_T, 1]
+                else:
+                    logits = logits.transpose(1, 2).unsqueeze(-1)  # [B, H, N_T, 1]
                 sigma_range = (
                     self.pool_density_sfn_sigma_max_norm
                     - self.pool_density_sfn_sigma_min_norm
@@ -561,8 +586,11 @@ class CrossAttentionAggregator(nn.Module):
                 # PE10's bin-scale Fourier features cannot push the
                 # post-softmax distribution into single-event attention.
                 if self.pool_density_sfn_temperature_gating:
-                    tau_logits = self.pool_tau_net(Z)  # [B, N_T, H]
-                    tau_logits = tau_logits.transpose(1, 2).unsqueeze(-1)  # [B, H, N_T, 1]
+                    tau_logits = self.pool_tau_net(Z)  # [B, N_T, tau_out]
+                    if self.pool_density_sfn_head_tied:
+                        tau_logits = tau_logits.unsqueeze(1)  # [B, 1, N_T, 1]
+                    else:
+                        tau_logits = tau_logits.transpose(1, 2).unsqueeze(-1)  # [B, H, N_T, 1]
                     tau_range = (
                         self.pool_density_sfn_tau_max - self.pool_density_sfn_tau_min
                     )
@@ -820,6 +848,7 @@ def build_attentive_cnp(
     pool_density_sfn_temperature_gating: bool = False,
     pool_density_sfn_tau_min: float = 1.0,
     pool_density_sfn_tau_max: float = 10.0,
+    pool_density_sfn_head_tied: bool = False,
     pool_energies_kev: "np.ndarray | torch.Tensor | None" = None,
     energy_range_kev: tuple[float, float] | None = None,
     aggregator_dim: int | None = None,
@@ -1017,6 +1046,7 @@ def build_attentive_cnp(
         pool_density_sfn_temperature_gating=pool_density_sfn_temperature_gating,
         pool_density_sfn_tau_min=pool_density_sfn_tau_min,
         pool_density_sfn_tau_max=pool_density_sfn_tau_max,
+        pool_density_sfn_head_tied=pool_density_sfn_head_tied,
     )
     # Decoder input dim is ``agg_dim + decoder_latent_dim`` where
     # decoder_latent_dim is the size of the second concat input. With

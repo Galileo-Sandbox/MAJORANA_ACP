@@ -579,6 +579,38 @@ class PoolDensitySfnConfig(_Frozen):
             "without zeroing the attention entirely."
         ),
     )
+    head_tied: bool = Field(
+        False,
+        description=(
+            "Enable the Tied-Head DG-SFN (Cell 9). When True, the σ-MLP "
+            "and τ-MLP each output a *single scalar* per target query "
+            "instead of one scalar per attention head — the shared σ "
+            "and τ are then broadcast across all H heads:\n\n"
+            "    Scores_{h,*,i} = (Q_h · K_h^T) / (√d_k · τ(E_*))\n"
+            "                       − Δ²_{*,i} / (2 σ(E_*)²)\n\n"
+            "Closes the head-collapse escape route observed in Cell 8 "
+            "(see analysis/cnp_audit/_cell8_diagnostic_head_collapse.md): "
+            "with head-wise σ, training carved out a single narrow head "
+            "doing effective 1-NN lookup while six others did global "
+            "averaging — leaving σ_head with no position dependence and "
+            "τ_head pinned at τ_min. Forcing head-consensus removes the "
+            "single-narrow-head escape: a small σ now penalises every "
+            "head simultaneously in the continuum, providing the NBLL "
+            "gradient signal needed to drive σ AND τ upward jointly "
+            "in vacuum regions.\n\n"
+            "Requires ``temperature_gating=True``; raises otherwise."
+        ),
+    )
+
+    @field_validator("head_tied")
+    @classmethod
+    def _head_tied_requires_temperature_gating(cls, v: bool, info) -> bool:
+        if v and not info.data.get("temperature_gating", False):
+            raise ValueError(
+                "head_tied=True requires temperature_gating=True — head "
+                "tying is meaningful only for the dual-gated variant."
+            )
+        return v
 
     @field_validator("sigma_min_kev")
     @classmethod

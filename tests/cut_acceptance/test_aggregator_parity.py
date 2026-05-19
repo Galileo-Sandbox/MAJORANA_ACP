@@ -1694,3 +1694,158 @@ def test_paradigm_suffix_uses_dgsfn_when_temperature_gating(tmp_path: Path) -> N
     suffix = paradigm_path_suffix(cfg)
     assert suffix.endswith("_attn8x64_gab_dgsfn"), suffix
     assert "_pdsfn" not in suffix
+
+
+# ---------------------------------------------------------------------- #
+# Tied-Head DG-SFN (Cell 9)
+# ---------------------------------------------------------------------- #
+
+
+def test_head_tied_defaults_off() -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    pdsfn = PoolDensitySfnConfig()
+    assert pdsfn.head_tied is False
+
+
+def test_head_tied_requires_temperature_gating_config() -> None:
+    """Config-level: head_tied without temperature_gating is invalid."""
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    with pytest.raises(ValueError, match="requires temperature_gating"):
+        PoolDensitySfnConfig(
+            enabled=True, temperature_gating=False, head_tied=True
+        )
+
+
+def test_head_tied_requires_temperature_gating_factory(
+    encoder_cfg: EncoderConfig,
+) -> None:
+    """Factory-level: same constraint, surfaced at build time too."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+    with pytest.raises(ValueError, match="requires"):
+        build_attentive_cnp(
+            encoder_cfg,
+            dim_theta=None,
+            dim_phi=2,
+            num_heads=4,
+            attention_dim=64,
+            gaussian_attention_bias=True,
+            pool_density_sfn_enabled=True,
+            pool_density_sfn_sigma_max_kev=200.0,
+            pool_density_sfn_sigma_min_kev=5.0,
+            pool_density_sfn_sigma_local_kev=10.0,
+            pool_density_sfn_sigma_global_kev=150.0,
+            pool_density_sfn_temperature_gating=False,
+            pool_density_sfn_head_tied=True,
+            pool_energies_kev=pool,
+            energy_range_kev=(500.0, 3000.0),
+        )
+
+
+def test_head_tied_sfn_mlp_output_dim_is_one(encoder_cfg: EncoderConfig) -> None:
+    """Tied output: final Linear of each MLP has out_features == 1
+    (single shared σ / τ per target query)."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+    cnp = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=2,
+        num_heads=8,
+        attention_dim=64,
+        gaussian_attention_bias=True,
+        pool_density_sfn_enabled=True,
+        pool_density_sfn_sigma_max_kev=200.0,
+        pool_density_sfn_sigma_min_kev=5.0,
+        pool_density_sfn_sigma_local_kev=10.0,
+        pool_density_sfn_sigma_global_kev=150.0,
+        pool_density_sfn_temperature_gating=True,
+        pool_density_sfn_head_tied=True,
+        pool_energies_kev=pool,
+        energy_range_kev=(500.0, 3000.0),
+    )
+    # Final Linear of σ MLP — out_features == 1, not 8.
+    assert cnp.attention.pool_sfn_net[-1].out_features == 1
+    # Final Linear of τ MLP — same.
+    assert cnp.attention.pool_tau_net[-1].out_features == 1
+    # By contrast, the un-tied path keeps out_features == num_heads.
+    cnp_untied = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=2,
+        num_heads=8,
+        attention_dim=64,
+        gaussian_attention_bias=True,
+        pool_density_sfn_enabled=True,
+        pool_density_sfn_sigma_max_kev=200.0,
+        pool_density_sfn_sigma_min_kev=5.0,
+        pool_density_sfn_sigma_local_kev=10.0,
+        pool_density_sfn_sigma_global_kev=150.0,
+        pool_density_sfn_temperature_gating=True,
+        pool_density_sfn_head_tied=False,
+        pool_energies_kev=pool,
+        energy_range_kev=(500.0, 3000.0),
+    )
+    assert cnp_untied.attention.pool_sfn_net[-1].out_features == 8
+    assert cnp_untied.attention.pool_tau_net[-1].out_features == 8
+
+
+def test_head_tied_forward_shape(encoder_cfg: EncoderConfig) -> None:
+    """Tied σ/τ must broadcast cleanly across H — output stays [B, N_T]."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+    cnp = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=2,
+        num_heads=8,
+        attention_dim=64,
+        gaussian_attention_bias=True,
+        pool_density_sfn_enabled=True,
+        pool_density_sfn_sigma_max_kev=200.0,
+        pool_density_sfn_sigma_min_kev=5.0,
+        pool_density_sfn_sigma_local_kev=10.0,
+        pool_density_sfn_sigma_global_kev=150.0,
+        pool_density_sfn_temperature_gating=True,
+        pool_density_sfn_head_tied=True,
+        pool_energies_kev=pool,
+        energy_range_kev=(500.0, 3000.0),
+    )
+    ctx = _random_batch(B=2, N=64, dim_phi=2, seed=0)
+    tgt = _random_batch(B=2, N=8, dim_phi=2, seed=1)
+    out = cnp(ctx, tgt)
+    assert out.mu_logit.shape == (2, 8)
+    assert out.log_sigma.shape == (2, 8)
+
+
+def test_paradigm_suffix_uses_dgsfn_tied_when_head_tied(tmp_path: Path) -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    cfg = _make_cfg(
+        tmp_path,
+        sampling_pattern="flat_stratified",
+        trial_size_strategy="variable_uniform",
+        n_trial_events_min=640,
+        n_trial_events_max=1024,
+        aggregator=AggregatorConfig(
+            type="cross_attention",
+            num_heads=8,
+            attention_dim=64,
+            gaussian_attention_bias=True,
+            pool_density_sfn=PoolDensitySfnConfig(
+                enabled=True,
+                temperature_gating=True,
+                head_tied=True,
+            ),
+        ),
+    )
+    suffix = paradigm_path_suffix(cfg)
+    assert suffix.endswith("_attn8x64_gab_dgsfn_tied"), suffix
