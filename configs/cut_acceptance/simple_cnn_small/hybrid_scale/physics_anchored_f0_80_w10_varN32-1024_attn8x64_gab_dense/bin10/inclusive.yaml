@@ -1,0 +1,83 @@
+# Cell 4 — PE10 **off** + cross-attention + GAB + DM + ungated decoder.
+# Direct A/B against Cell 3 (..._pe10_attn8x64_gab_dense) — same
+# everything except positional_encoding.enabled.
+#
+# Question: with the density-aware Gaussian attention bias driving a
+# data-adaptive receptive field per head, can the model resolve sharp
+# γ-peak structure (e.g. SE 2103) without leaning on PE10's 21-dim
+# Fourier basis? In earlier experiments, switching PE off (the pure-
+# attention cell ..._attn4x64) catastrophically regressed SE 2103
+# (Z=−15.28). The hypothesis here is that DM's explicit local-vs-
+# global density ratio R_* gives the attention layer a direct
+# substitute for PE's "where am I" signal, possibly recovering the
+# SE rescue without inheriting PE's bin-scale-noise pathology.
+#
+# Architecture (PE off ⇒ phi_encoder = MLP(2 → 128 → 128 → 64)):
+#   * Encoder: 2D raw (E_norm, T_norm) → 64-dim latent
+#   * Cross-attention: 8 heads × d_head=8, Q/K from z_phi (64-dim)
+#   * GAB: per-head log_gamma (init zeros), Δ² penalty
+#   * DM: R_* = ρ̂_local / ρ̂_global with σ_l=10 keV, σ_g=150 keV
+#   * Decoder: ungated concat [r_target(64), z_phi_T(64)] = 128-dim
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_attn8x64_gab_dense
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: physics_anchored
+zoom_window_width_kev: 10.0
+local_event_fraction: 0.80
+physics_peaks_kev: [1592.0, 1620.0, 2103.0, 2614.0]
+trial_size_strategy: variable_uniform
+n_trial_events_min: 32
+n_trial_events_max: 1024
+
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 2
+  n_context_max: 1023
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: false
+
+aggregator:
+  type: cross_attention
+  num_heads: 8
+  attention_dim: 64
+  gaussian_attention_bias: true
+  density_modulation:
+    enabled: true
+    sigma_local_kev: 10.0
+    sigma_global_kev: 150.0

@@ -50,6 +50,7 @@ from core import build_cnp
 from schemas.data_models import InputMode, StandardBatch
 from sklearn.metrics import roc_curve
 
+from majorana_acp.analysis.metrics import analyze_sawtooth_suite
 from majorana_acp.cut_acceptance.config import CutAcceptanceConfig, load_config
 from majorana_acp.cut_acceptance.pipeline import (
     resolve_name,
@@ -289,12 +290,61 @@ def _load_cnp(cfg: CutAcceptanceConfig, ckpt_path: Path) -> torch.nn.Module:
             decoder_hidden_dims=list(cfg.decoder_hidden_dims),
         )
     elif cfg.aggregator.type == "cross_attention":
+        dm = cfg.aggregator.density_modulation
+        bb = cfg.aggregator.bounded_bandwidth
+        sfn = cfg.aggregator.sfn_modulation
+        pdsfn = cfg.aggregator.pool_density_sfn
+        needs_range = dm.enabled or bb.enabled or sfn.enabled or pdsfn.enabled
+        # Pool-Density SFN: reconstruct the same pool buffer the training
+        # pipeline used by re-running ``load_events`` against the SAME
+        # train predictions file + class + energy filter. Deterministic →
+        # byte-for-byte identical buffer at train and inference.
+        pool_energies_kev = None
+        if pdsfn.enabled:
+            from majorana_acp.cut_acceptance.binned_sampler import load_events
+
+            pool_e, _ = load_events(
+                cfg.train_predictions_path,
+                target_class=cfg.target_class,
+                energy_range=cfg.energy_range,
+            )
+            pool_energies_kev = pool_e
         cnp = build_attentive_cnp(
             cfg.encoder,
             dim_theta=None,
             dim_phi=dim_phi,
             num_heads=cfg.aggregator.num_heads,
             attention_dim=cfg.aggregator.attention_dim,
+            decoder_coordinate_gating=cfg.aggregator.decoder_coordinate_gating,
+            gaussian_attention_bias=cfg.aggregator.gaussian_attention_bias,
+            density_modulation_enabled=dm.enabled,
+            density_sigma_local_kev=dm.sigma_local_kev if dm.enabled else None,
+            density_sigma_global_kev=dm.sigma_global_kev if dm.enabled else None,
+            density_epsilon=dm.epsilon,
+            bounded_bandwidth_enabled=bb.enabled,
+            bounded_sigma_max_kev=bb.sigma_max_kev if bb.enabled else None,
+            bounded_sigma_min_kev=bb.sigma_min_kev if bb.enabled else None,
+            bounded_alpha_max=bb.alpha_max if bb.enabled else None,
+            bounded_sensitivity_hidden_dim=bb.sensitivity_hidden_dim,
+            bounded_sigma_local_kev=bb.sigma_local_kev if bb.enabled else None,
+            bounded_sigma_global_kev=bb.sigma_global_kev if bb.enabled else None,
+            bounded_epsilon=bb.epsilon,
+            sfn_modulation_enabled=sfn.enabled,
+            sfn_sigma_max_kev=sfn.sigma_max_kev if sfn.enabled else None,
+            sfn_sigma_min_kev=sfn.sigma_min_kev if sfn.enabled else None,
+            sfn_hidden_dim=sfn.hidden_dim,
+            sfn_sigma_local_kev=sfn.sigma_local_kev if sfn.enabled else None,
+            sfn_sigma_global_kev=sfn.sigma_global_kev if sfn.enabled else None,
+            sfn_epsilon=sfn.epsilon,
+            pool_density_sfn_enabled=pdsfn.enabled,
+            pool_density_sfn_sigma_max_kev=pdsfn.sigma_max_kev if pdsfn.enabled else None,
+            pool_density_sfn_sigma_min_kev=pdsfn.sigma_min_kev if pdsfn.enabled else None,
+            pool_density_sfn_hidden_dim=pdsfn.hidden_dim,
+            pool_density_sfn_sigma_local_kev=pdsfn.sigma_local_kev if pdsfn.enabled else None,
+            pool_density_sfn_sigma_global_kev=pdsfn.sigma_global_kev if pdsfn.enabled else None,
+            pool_density_sfn_epsilon=pdsfn.epsilon,
+            pool_energies_kev=pool_energies_kev,
+            energy_range_kev=cfg.energy_range if needs_range else None,
             decoder_hidden_dims=list(cfg.decoder_hidden_dims),
         )
     else:
@@ -303,8 +353,11 @@ def _load_cnp(cfg: CutAcceptanceConfig, ckpt_path: Path) -> torch.nn.Module:
     cnp.load_state_dict(state["model_state"])
     cnp.eval()
     # Honor the config's device preference at inference too — running
-    # MC Dropout × n_mc passes × N_T queries on GPU pulls a multi-minute
-    # CPU job down to seconds.
+    # MC Dropout × n_mc passes × N_T queries × (possibly chunked pool)
+    # on GPU pulls a 4 min CPU job down to ~10 s. The training-time
+    # pool buffer is non-persistent, so it was rebuilt CPU-side inside
+    # the factory above; ``.to(device)`` moves it onto GPU along with
+    # the model parameters in one shot.
     from majorana_acp.cut_acceptance.pipeline import _resolve_device
 
     device = _resolve_device(getattr(cfg, "device", "auto"))
@@ -895,6 +948,19 @@ def write_report(
     text = "\n".join(lines) + "\n"
     (out_dir / "test_set_audit.txt").write_text(text)
 
+    # Sawtooth-diagnostic suite — three roughness metrics evaluated
+    # in two pristine Compton-continuum windows clear of any γ-peaks.
+    # MASD = amplitude axis, ED = frequency axis, ACF1 = pattern axis.
+    # Computed on the same dense β̂(E) curve that drives the red trace
+    # in the audit PNG so the numbers correspond directly to what we
+    # see visually.
+    sawtooth_metrics = {
+        f"region_{int(lo)}_{int(hi)}": analyze_sawtooth_suite(
+            res.dense_energies, res.dense_beta, (lo, hi)
+        )
+        for (lo, hi) in [(1700.0, 2000.0), (2200.0, 2400.0)]
+    }
+
     metrics = dict(
         config=resolve_name(cfg),
         target_class=str(cfg.target_class),
@@ -914,6 +980,7 @@ def write_report(
         mean_offset=res.mean_offset,
         coverage_cnp=res.coverage_cnp,
         coverage_combined=res.coverage_combined,
+        sawtooth_metrics=sawtooth_metrics,
         peak_metrics=[
             {
                 "peak_name": pm.peak_name,

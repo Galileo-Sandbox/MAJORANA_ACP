@@ -144,6 +144,39 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
     # stays unsuffixed so legacy paths never collide.
     if cfg.aggregator.type == "cross_attention":
         bits.append(f"attn{cfg.aggregator.num_heads}x{cfg.aggregator.attention_dim}")
+        # Append _gated when the decoder receives raw 2D coords instead
+        # of the high-frequency z_phi — keeps the path unique vs the
+        # un-gated attentive variant.
+        if cfg.aggregator.decoder_coordinate_gating:
+            bits.append("gated")
+        # Append _gab when the attention layer carries the learnable
+        # continuous Gaussian relative-distance bias.
+        if cfg.aggregator.gaussian_attention_bias:
+            bits.append("gab")
+            # Append _dense when DM modulates the GAB penalty by the
+            # local-vs-global density ratio R_*. DM without GAB is a
+            # no-op so the suffix only fires when both are on.
+            if cfg.aggregator.density_modulation.enabled:
+                bits.append("dense")
+            # Append _bpbn when the Bounded Physical Bandwidth Network
+            # replaces the GAB scalar with an explicit clamped σ_head.
+            # Mutually exclusive with the un-bounded log_gamma path —
+            # the suffix flags the architectural divergence.
+            if cfg.aggregator.bounded_bandwidth.enabled:
+                bits.append("bpbn")
+            # Append _sfn when the 2D Spectral Filter Network replaces
+            # log_gamma. Mutually exclusive with BPBN.
+            if cfg.aggregator.sfn_modulation.enabled:
+                bits.append("sfn")
+            # Append _pdsfn (Pool-Density SFN, Cell 7) when the
+            # absolute-density pool-based SFN replaces log_gamma.
+            # Mutually exclusive with BPBN and SFN.
+            if cfg.aggregator.pool_density_sfn.enabled:
+                bits.append("pdsfn")
+    # Append _debinned when the sampler uses the continuous inverse-
+    # density draw instead of the legacy bin-stratified loop.
+    if cfg.density_sampling == "continuous":
+        bits.append("debinned")
     return "hybrid_scale/" + "_".join(bits)
 
 
@@ -203,12 +236,63 @@ def build_local_cnp(cfg: CutAcceptanceConfig, *, dim_phi: int):
             decoder_hidden_dims=list(cfg.decoder_hidden_dims),
         )
     if cfg.aggregator.type == "cross_attention":
+        dm = cfg.aggregator.density_modulation
+        bb = cfg.aggregator.bounded_bandwidth
+        sfn = cfg.aggregator.sfn_modulation
+        pdsfn = cfg.aggregator.pool_density_sfn
+        # ``energy_range_kev`` is needed by DM / BPBN / SFN / PD-SFN for
+        # the keV → normalised σ conversion. Provide it whenever any
+        # feature is on; the factory raises if missing when required.
+        needs_range = dm.enabled or bb.enabled or sfn.enabled or pdsfn.enabled
+        # Pool-Density SFN needs the kept-event energies of the training
+        # pool as a fixed buffer. Re-load via the same call the sampler
+        # uses (target_class + energy_range filter) so the buffer
+        # reconstructs identically at train and inference time without
+        # being shipped in the checkpoint.
+        pool_energies_kev = None
+        if pdsfn.enabled:
+            pool_e, _ = load_events(
+                cfg.train_predictions_path,
+                target_class=cfg.target_class,
+                energy_range=cfg.energy_range,
+            )
+            pool_energies_kev = pool_e
         return build_attentive_cnp(
             cfg.encoder,
             dim_theta=None,
             dim_phi=dim_phi,
             num_heads=cfg.aggregator.num_heads,
             attention_dim=cfg.aggregator.attention_dim,
+            decoder_coordinate_gating=cfg.aggregator.decoder_coordinate_gating,
+            gaussian_attention_bias=cfg.aggregator.gaussian_attention_bias,
+            density_modulation_enabled=dm.enabled,
+            density_sigma_local_kev=dm.sigma_local_kev if dm.enabled else None,
+            density_sigma_global_kev=dm.sigma_global_kev if dm.enabled else None,
+            density_epsilon=dm.epsilon,
+            bounded_bandwidth_enabled=bb.enabled,
+            bounded_sigma_max_kev=bb.sigma_max_kev if bb.enabled else None,
+            bounded_sigma_min_kev=bb.sigma_min_kev if bb.enabled else None,
+            bounded_alpha_max=bb.alpha_max if bb.enabled else None,
+            bounded_sensitivity_hidden_dim=bb.sensitivity_hidden_dim,
+            bounded_sigma_local_kev=bb.sigma_local_kev if bb.enabled else None,
+            bounded_sigma_global_kev=bb.sigma_global_kev if bb.enabled else None,
+            bounded_epsilon=bb.epsilon,
+            sfn_modulation_enabled=sfn.enabled,
+            sfn_sigma_max_kev=sfn.sigma_max_kev if sfn.enabled else None,
+            sfn_sigma_min_kev=sfn.sigma_min_kev if sfn.enabled else None,
+            sfn_hidden_dim=sfn.hidden_dim,
+            sfn_sigma_local_kev=sfn.sigma_local_kev if sfn.enabled else None,
+            sfn_sigma_global_kev=sfn.sigma_global_kev if sfn.enabled else None,
+            sfn_epsilon=sfn.epsilon,
+            pool_density_sfn_enabled=pdsfn.enabled,
+            pool_density_sfn_sigma_max_kev=pdsfn.sigma_max_kev if pdsfn.enabled else None,
+            pool_density_sfn_sigma_min_kev=pdsfn.sigma_min_kev if pdsfn.enabled else None,
+            pool_density_sfn_hidden_dim=pdsfn.hidden_dim,
+            pool_density_sfn_sigma_local_kev=pdsfn.sigma_local_kev if pdsfn.enabled else None,
+            pool_density_sfn_sigma_global_kev=pdsfn.sigma_global_kev if pdsfn.enabled else None,
+            pool_density_sfn_epsilon=pdsfn.epsilon,
+            pool_energies_kev=pool_energies_kev,
+            energy_range_kev=cfg.energy_range if needs_range else None,
             decoder_hidden_dims=list(cfg.decoder_hidden_dims),
         )
     raise ValueError(f"unknown aggregator.type: {cfg.aggregator.type!r}")
@@ -410,6 +494,8 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
         n_clusters=cfg.n_clusters,
         physics_peaks_kev=list(cfg.physics_peaks_kev),
         positional_encoding=cfg.positional_encoding,
+        density_sampling=cfg.density_sampling,
+        density_kde_radius_kev=cfg.density_kde_radius_kev,
     )
     np.savez(
         out_dir / "training_pool.npz",
@@ -431,9 +517,10 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
     # is aggregator-agnostic.
     dim_phi = sampler.dim_phi
     cnp = build_local_cnp(cfg, dim_phi=dim_phi)
-    # Resolve device once per run. The factory always builds CPU-side;
-    # ``.to(device)`` moves params (and any non-persistent buffers) to
-    # GPU in one shot. Same call is a no-op on CPU-only machines.
+    # Resolve device once per run. The factory always builds CPU-side
+    # so the optional pool buffer (register_buffer) is created CPU-side
+    # too; ``.to(device)`` then moves params AND non-persistent buffers
+    # together to GPU in one shot. Same call works on CPU-only machines.
     device = _resolve_device(getattr(cfg, "device", "auto"))
     cnp.to(device)
     variable_n = cfg.trial_size_strategy == "variable_uniform"
@@ -473,6 +560,28 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             "aggregator_type": cfg.aggregator.type,
             "aggregator_num_heads": cfg.aggregator.num_heads,
             "aggregator_attention_dim": cfg.aggregator.attention_dim,
+            "decoder_coordinate_gating": cfg.aggregator.decoder_coordinate_gating,
+            "gaussian_attention_bias": cfg.aggregator.gaussian_attention_bias,
+            "density_modulation_enabled": cfg.aggregator.density_modulation.enabled,
+            "density_modulation_sigma_local_kev": cfg.aggregator.density_modulation.sigma_local_kev,
+            "density_modulation_sigma_global_kev": cfg.aggregator.density_modulation.sigma_global_kev,
+            "bounded_bandwidth_enabled": cfg.aggregator.bounded_bandwidth.enabled,
+            "bounded_sigma_max_kev": cfg.aggregator.bounded_bandwidth.sigma_max_kev,
+            "bounded_sigma_min_kev": cfg.aggregator.bounded_bandwidth.sigma_min_kev,
+            "bounded_alpha_max": cfg.aggregator.bounded_bandwidth.alpha_max,
+            "sfn_modulation_enabled": cfg.aggregator.sfn_modulation.enabled,
+            "sfn_sigma_max_kev": cfg.aggregator.sfn_modulation.sigma_max_kev,
+            "sfn_sigma_min_kev": cfg.aggregator.sfn_modulation.sigma_min_kev,
+            "sfn_hidden_dim": cfg.aggregator.sfn_modulation.hidden_dim,
+            "pool_density_sfn_enabled": cfg.aggregator.pool_density_sfn.enabled,
+            "pool_density_sfn_sigma_max_kev": cfg.aggregator.pool_density_sfn.sigma_max_kev,
+            "pool_density_sfn_sigma_min_kev": cfg.aggregator.pool_density_sfn.sigma_min_kev,
+            "pool_density_sfn_hidden_dim": cfg.aggregator.pool_density_sfn.hidden_dim,
+            "pool_density_sfn_sigma_local_kev": cfg.aggregator.pool_density_sfn.sigma_local_kev,
+            "pool_density_sfn_sigma_global_kev": cfg.aggregator.pool_density_sfn.sigma_global_kev,
+            "pool_density_sfn_epsilon": cfg.aggregator.pool_density_sfn.epsilon,
+            "density_sampling": cfg.density_sampling,
+            "density_kde_radius_kev": cfg.density_kde_radius_kev,
             "device": str(device),
         },
     )

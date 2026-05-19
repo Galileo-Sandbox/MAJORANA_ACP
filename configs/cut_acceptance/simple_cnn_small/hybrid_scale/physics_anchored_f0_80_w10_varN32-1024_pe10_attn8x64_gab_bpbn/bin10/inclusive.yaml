@@ -1,0 +1,102 @@
+# Cell 5 — PE10 + cross-attention + GAB + Bounded Physical Bandwidth
+# Network (BPBN) + ungated decoder + bin-stratified physics-anchored
+# sampling.
+#
+# BPBN replaces the un-clamped GAB scalar ``exp(log_gamma_h) · Δ²``
+# with an explicit physical kernel:
+#
+#   score = QK^T/√d_k − Δ²_{*, i} / (2 σ_head²(E_*))
+#
+#   σ_head(E_*) = clamp(σ_max / (1 + λ_head(E_*) · (R_* − 1)_+),
+#                       σ_min=5 keV, σ_max=200 keV)
+#   λ_head(E_*) = α_max · sigmoid( MLP_head(E_*) ), α_max = 40
+#   R_*         = ρ̂_local(E_*) / ρ̂_global(E_*)  (σ_l=10, σ_g=150 keV)
+#
+# Motivation: the un-bounded GAB was diagnosed as collapsing toward
+# 1-NN lookup (γ → ∞), which encouraged the decoder to fit individual
+# Bernoulli noise events in the context. BPBN replaces the abstract
+# log-space scalar with a clamped, learnable kernel width in raw keV
+# space. The model literally cannot contract its attention below
+# the σ_min = 5 keV detector-resolution floor, so it can no longer
+# resolve sub-bin noise fluctuations. In smooth continuum (R ≈ 1),
+# σ_head → σ_max = 200 keV: a wide averaging window naturally
+# suppresses bin-scale wiggles via large-number averaging.
+#
+# Direct A/B vs Cell 1 (..._pe10_attn8x64_gab — current best at SE
+# 2103) — same everything except the GAB penalty parametrisation.
+#
+# Note: when BPBN is enabled the ``log_gamma`` parameter is NOT
+# registered; checkpoints from this cell have ``sensitivity_mlp.*``
+# in their state_dict instead. Loading a plain-GAB checkpoint here
+# (or vice versa) will fail with a missing-key error — that's
+# intentional, the architecture is genuinely different.
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_pe10_attn8x64_gab_bpbn
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: physics_anchored
+zoom_window_width_kev: 10.0
+local_event_fraction: 0.80
+physics_peaks_kev: [1592.0, 1620.0, 2103.0, 2614.0]
+trial_size_strategy: variable_uniform
+n_trial_events_min: 32
+n_trial_events_max: 1024
+
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 2
+  n_context_max: 1023
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 8
+  attention_dim: 64
+  gaussian_attention_bias: true
+  bounded_bandwidth:
+    enabled: true
+    sigma_max_kev: 200.0
+    sigma_min_kev: 5.0
+    alpha_max: 40.0
+    sensitivity_hidden_dim: 16
+    sigma_local_kev: 10.0
+    sigma_global_kev: 150.0

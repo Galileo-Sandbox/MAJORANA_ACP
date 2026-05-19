@@ -1,0 +1,116 @@
+# Cell 7 — Pool-Based Absolute Density SFN (PD-SFN).
+#
+# Direct structural response to the Cell 5/6 audit: the residual
+# continuum sawtooth (Cell 5 ACF1 = −0.55, Cell 6 ACF1 = −0.43)
+# is driven by the *per-trial* R_* signal the σ_head MLP saw —
+# bimodal under physics_anchored, shot-noise-dominated under any
+# flat draw with N_C ≪ pool size.
+#
+# Cell 7 cuts that signal at its source. Three changes vs Cell 6:
+#
+#   1. Sampler: physics_anchored → flat_stratified. With absolute
+#      pool densities the model no longer needs artificial anchoring
+#      to highlight peaks. Variable-N with n_trial ∈ [640, 1024]
+#      and n_context ∈ [128, 512] keeps the encoder well-fed at
+#      every step.
+#
+#   2. SFN input: 1D ratio R_* → 2D absolute log-density tensor.
+#      The MLP now sees
+#         Z_*  =  [log(ρ_local + ε), log(ρ_global + ε)]
+#      where ρ_local / ρ_global are **un-normalised** Gaussian kernel
+#      sums (absolute event counts) against a FIXED buffer of all
+#      kept training-pool events (σ_local = 10 keV, σ_global = 150
+#      keV). The buffer is built once via load_events(target_class=
+#      "all", energy_range) and is identical at training and at
+#      inference (deterministic from the same file), so the σ_head
+#      decision becomes a function of the position-on-spectrum only,
+#      not of which trial happens to be in the batch.
+#
+#   3. PE10 retained. The user-locked rejection of PE9: bandwidth
+#      truncation acts as a blind global low-pass filter that would
+#      cripple the model's ability to resolve sharp, high-energy
+#      peaks (DEP 1592 was Cell 5's biggest win). Fix the corrupted
+#      input signal, not the model's expressive power.
+#
+# σ_head clamp identical to Cell 5/6: σ_head ∈ [5, 200] keV via
+# sigmoid bound. Penalty Δ² / (2 σ_head²) injected into the cross-
+# attention score matrix exactly as before.
+#
+# Expected outcome:
+#   * Continuum vacuum: log ρ_local and log ρ_global both moderate,
+#     MLP learns σ_head → σ_max (broad averaging, kills sawtooth).
+#   * Real γ-peaks: log ρ_local ≫ log ρ_global, MLP learns σ_head
+#     → σ_min (sharp focus, DEP/SE/FE resolution preserved).
+#   * Data-sparse high-E: log ρ_local → very negative; MLP learns
+#     "no local evidence, widen the window" — the cue Cell 6's
+#     self-normalised R_* erases.
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/flat_stratified_varN640-1024_pe10_attn8x64_gab_pdsfn
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: flat_stratified
+trial_size_strategy: variable_uniform
+n_trial_events_min: 640
+n_trial_events_max: 1024
+
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  # User-locked N_C ∈ [128, 512] uniform per step. Combined with
+  # n_trial ∈ [640, 1024] this leaves ≥ 128 target queries per
+  # trial so the loss is well-defined.
+  n_context_min: 128
+  n_context_max: 512
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 8
+  attention_dim: 64
+  gaussian_attention_bias: true
+  pool_density_sfn:
+    enabled: true
+    sigma_max_kev: 200.0
+    sigma_min_kev: 5.0
+    hidden_dim: 16
+    sigma_local_kev: 10.0
+    sigma_global_kev: 150.0
+    epsilon: 1.0e-5

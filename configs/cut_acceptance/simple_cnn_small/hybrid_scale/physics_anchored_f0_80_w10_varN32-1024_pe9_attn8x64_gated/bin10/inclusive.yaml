@@ -1,0 +1,73 @@
+# Identical to the PE10 gated/physics cell except for one knob:
+# positional_encoding.num_bands: 9 (highest band period ~19.5 keV in
+# the normalized coord = ~2× the 10 keV bin grid). This deliberately
+# pushes the highest PE frequency *below* the bin-scale Bernoulli
+# noise wavelength so that even if coordinate gating proved
+# insufficient on its own, the attention layer would have no
+# bandwidth left to localize sub-bin features.
+#
+# A/B against Cell A (PE10 + gated) tells us whether the gate alone
+# tames the sawtooth (then PE9 and PE10 should look similar — both
+# smooth, with PE10 sharper at SE 2103) or whether dropping a band
+# matters too (PE9 strictly smoother but possibly under-fitting the
+# sharpest peaks).
+#
+# Paradigm tag:
+#   hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_pe9_attn8x64_gated
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: physics_anchored
+zoom_window_width_kev: 10.0
+local_event_fraction: 0.80
+physics_peaks_kev: [1592.0, 1620.0, 2103.0, 2614.0]
+trial_size_strategy: variable_uniform
+n_trial_events_min: 32
+n_trial_events_max: 1024
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 2
+  n_context_max: 1023
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 9
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 8
+  attention_dim: 64
+  decoder_coordinate_gating: true

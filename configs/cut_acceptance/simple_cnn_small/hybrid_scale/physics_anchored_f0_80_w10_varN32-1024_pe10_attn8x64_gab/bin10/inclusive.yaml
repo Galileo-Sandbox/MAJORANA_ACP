@@ -1,0 +1,86 @@
+# Cell 1 — PE10 + cross-attention + Gaussian Attention Bias (GAB) +
+# bin-stratified physics-anchored sampling. Decoder gating is **off**
+# (legacy un-gated 128-dim decoder concat [r_target(64), z_phi_T(64)]).
+#
+# The single architectural intervention vs ``w10_varN_pe10_attn`` is
+# the addition of the per-head learnable Gaussian relative-distance
+# penalty inside the attention layer:
+#
+#   scores = (Q·K^T) / √d_k − exp(log_gamma_h) · (E_t_norm − E_c_norm)²
+#
+# log_gamma is initialised to zeros (shape ``[num_heads=8, 1, 1]``),
+# so at init the penalty is just Δ² (≤ 1) — comparable in magnitude to
+# the un-biased softmax logits, and the head dynamics start close to
+# the un-biased attentive baseline. Each head learns its own
+# effective receptive-field width over the continuous E-axis.
+#
+# Sampler stays on the **bin-stratified** path so this cell isolates
+# the GAB intervention. Cell 2 (gab_debinned) adds the continuous
+# inverse-density sampler as a second controlled axis.
+#
+# Hypothesis: the GAB gives the attention layer an explicit smooth,
+# continuous relative-distance prior, which should suppress high-
+# energy (>2.6 MeV) sawtooth wiggles without removing PE10's load-
+# bearing role at SE 2103.
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_pe10_attn8x64_gab
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: physics_anchored
+zoom_window_width_kev: 10.0
+local_event_fraction: 0.80
+physics_peaks_kev: [1592.0, 1620.0, 2103.0, 2614.0]
+trial_size_strategy: variable_uniform
+n_trial_events_min: 32
+n_trial_events_max: 1024
+
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 2
+  n_context_max: 1023
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 8
+  attention_dim: 64
+  gaussian_attention_bias: true

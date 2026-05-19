@@ -1,0 +1,87 @@
+# Pure Attentive CNP — Positional Encoding **disabled**, expanded
+# per-head capacity. The previous diagnostic identified two coupled
+# pathologies in the PE10_attn family:
+#   1. PE10's highest band period (~9.8 keV) matched the bin grid and
+#      the Bernoulli noise floor, giving the network bandwidth to fit
+#      bin-scale wiggles as real structure.
+#   2. attention_dim=64 / num_heads=8 ⇒ d_head=8 — narrow head capacity.
+#
+# This cell drops PE entirely and widens each head:
+#   * phi reverts to raw [E_norm, T_norm] (dim_phi=2). The phi_encoder
+#     (a 3-layer MLP) still learns a 64-dim latent from 2 inputs, so the
+#     cross-attention layer keeps its 64-dim Q/K/V interface — but those
+#     latents are now smooth functions of (E, T) with no sub-bin Fourier
+#     basis to amplify.
+#   * num_heads=4 with attention_dim=64 → d_head=16 (2× wider than the
+#     PE10_attn cells).
+#
+# decoder_coordinate_gating remains FALSE (default): with PE off there
+# is no high-frequency channel to gate against, so the legacy
+# concat [r_target(64), z_phi_T(64)] (128-dim decoder input) is used.
+# physics_anchored sampling boosts peak training exposure ~60× vs
+# mixed_density and is retained.
+#
+# Hypothesis: pure cross-attention on smooth latents behaves as a
+# data-density-driven adaptive kernel — wide σ_CNP in sparse regions,
+# tight tracking where data is dense — without any incentive to fit
+# bin-scale noise. Expected outcome: smooth global β(E) (no sawtooth
+# above 2.6 MeV) plus retained peak resolution from physics_anchored
+# exposure.
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_attn4x64
+# Out_dir lands under
+#   results/cut_acceptance/simple_cnn_small/<paradigm>/bin10/inclusive/.
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: physics_anchored
+zoom_window_width_kev: 10.0
+local_event_fraction: 0.80
+physics_peaks_kev: [1592.0, 1620.0, 2103.0, 2614.0]
+trial_size_strategy: variable_uniform
+n_trial_events_min: 32
+n_trial_events_max: 1024
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 2
+  n_context_max: 1023
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: false
+
+aggregator:
+  type: cross_attention
+  num_heads: 4
+  attention_dim: 64

@@ -1,0 +1,86 @@
+# Physics-anchored + PE10 + cross-attention + DECODER COORDINATE GATING.
+# bin10/inclusive cell. Two-pronged remedy for the persistent
+# inclusive failures observed in earlier paradigms:
+#
+#   1. Coordinate gating decouples the high-frequency PE channel from
+#      the decoder MLP. The attention layer still computes Q/K with
+#      the full PE10 bandwidth (highest band period ~9.8 keV) so the
+#      target-conditioned aggregator can localize sharply, but the
+#      decoder's final concat input is the **raw** 2D (E_norm, T_norm)
+#      coordinate — recovered via atan2(sin0, cos0)/π on the k=0 PE
+#      band. Goal: kill the global sawtooth observed in the un-gated
+#      PE10_attn cell. Diagnostic: PE10's highest-band period (~9.8 keV)
+#      matches the 10 keV bin grid and the Bernoulli noise floor
+#      (σ ≈ √(p(1−p)/N) ≈ 0.11 at the median bin N≈20). The un-gated
+#      decoder has both the bandwidth and the loss incentive to fit
+#      bin-scale noise; gating removes the bandwidth.
+#
+#   2. physics_anchored sampling boosts DEP 1592 training exposure
+#      ~60× vs mixed_density (0.4% → 25%). Combined with variable-N
+#      [32, 1024], this gives the cross-attention layer enough
+#      density at the sharp transitions for the radar to actually
+#      lock on. Without this, the gated decoder would just produce
+#      a smoothly-wrong β(E) at 1592 — the gate is necessary but not
+#      sufficient.
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_pe10_attn8x64_gated
+# Out_dir lands under
+#   results/cut_acceptance/simple_cnn_small/<paradigm>/bin10/inclusive/.
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: physics_anchored
+zoom_window_width_kev: 10.0
+local_event_fraction: 0.80
+physics_peaks_kev: [1592.0, 1620.0, 2103.0, 2614.0]
+trial_size_strategy: variable_uniform
+n_trial_events_min: 32
+n_trial_events_max: 1024
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 2
+  n_context_max: 1023
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 8
+  attention_dim: 64
+  decoder_coordinate_gating: true

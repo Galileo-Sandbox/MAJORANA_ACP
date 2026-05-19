@@ -1,0 +1,109 @@
+# Cell 6 — PE10 + cross-attention + GAB + Bounded 2D Spectral Filter
+# Network (SFN) + ungated decoder + bin-stratified physics-anchored
+# sampling.
+#
+# SFN replaces both the un-bounded GAB scalar ``exp(log_gamma_h) · Δ²``
+# and the BPBN closed-form ``σ_max / (1 + λ · (R−1)_+)`` with a learned
+# 2D MLP:
+#
+#   Z_*  = [E_target_norm, log(R_* + ε)]
+#   σ_head(E_*, R_*) = σ_min + (σ_max − σ_min) · sigmoid(SFN_head(Z_*))
+#   score_{*, i, h}  = (Q_* K_i^T) / √d_k − Δ²_{*, i} / (2 σ_head²)
+#
+# SFN architecture: Linear(2 → 16) → GELU → Linear(16 → H).
+# σ_max = 200 keV, σ_min = 5 keV (hard physical bounds via sigmoid).
+# R_* = ρ̂_local / ρ̂_global with σ_l = 10 keV, σ_g = 150 keV (same dual-
+# σ KDE as DM/BPBN — directly comparable to Cell 5).
+#
+# Motivation (vs Cell 5 BPBN): BPBN's closed-form ``1 / (1 + λ(R−1))``
+# is **algebraically sensitive to R_*'s shot noise**. Small stochastic
+# fluctuations in the local kernel sum pass straight through to
+# σ_head, contracting the window erratically and preserving the
+# continuum sawtooth (Cell 5: ACF1 = −0.55 in region 1.7–2.0 MeV).
+#
+# SFN wraps the same coordinates ``[E_*, log R_*]`` in a small MLP
+# whose **spectral bias** preferentially learns smooth (low-frequency)
+# functions of its inputs. The network acts as a non-linear low-pass
+# filter: it tracks persistent macro signatures of real γ-peaks (where
+# E_* anchors at a known peak energy AND R_* surges consistently)
+# while ignoring the bin-scale R_* wiggles in the continuum. The
+# sigmoid bound is smooth and differentiable everywhere — no clamp
+# deadzone vs BPBN's torch.clamp.
+#
+# Expected outcome:
+#   * Continuum vacuum: σ_head → σ_max = 200 keV (broad averaging
+#     window crushes PE10's bin-scale wiggles to noise floor).
+#   * Real γ-peaks: σ_head → σ_min = 5 keV (PE10's full localised
+#     sharpness unlocked for DEP 1592 + SE 2103).
+#
+# Direct A/B vs Cell 5 (..._pe10_attn8x64_gab_bpbn) — same physical
+# bounds, same dual-σ KDE; only the parametrisation differs.
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_pe10_attn8x64_gab_sfn
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: physics_anchored
+zoom_window_width_kev: 10.0
+local_event_fraction: 0.80
+physics_peaks_kev: [1592.0, 1620.0, 2103.0, 2614.0]
+trial_size_strategy: variable_uniform
+n_trial_events_min: 32
+n_trial_events_max: 1024
+
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 2
+  n_context_max: 1023
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 8
+  attention_dim: 64
+  gaussian_attention_bias: true
+  sfn_modulation:
+    enabled: true
+    sigma_max_kev: 200.0
+    sigma_min_kev: 5.0
+    hidden_dim: 16
+    sigma_local_kev: 10.0
+    sigma_global_kev: 150.0

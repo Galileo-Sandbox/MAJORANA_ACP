@@ -1,0 +1,93 @@
+# Cell 3 — PE10 + cross-attention + Gaussian Attention Bias (GAB) +
+# Density Modulation (DM) of the GAB penalty + bin-stratified
+# physics-anchored sampling. Decoder gating off.
+#
+# Builds on Cell 1 (..._pe10_attn8x64_gab — the current best
+# inclusive cell at SE 2103) by adding the per-target density ratio:
+#
+#   penalty(*, j, h) = exp(log_gamma_h) · R_* · Δ²_{*, j}
+#
+#   R_* = ρ̂_local(E_*) / ρ̂_global(E_*)
+#       = (Σ_j K_σ_l(E_*, E_j)/(σ_l √(2π)))
+#       / (Σ_j K_σ_g(E_*, E_j)/(σ_g √(2π)) + ε)
+#
+# σ_local = 10 keV (matches HPGe peak FWHM at our energy scale).
+# σ_global = 150 keV (spans the broad Compton continuum around any
+#                     single peak).
+#
+# Physical reading: at a γ-peak query, the local kernel sum is
+# dominated by the peak cluster while the global kernel sees the
+# broader continuum, driving R_* ≫ 1 → strong penalty → tight
+# attention window → peak resolution. In a smooth continuum, R_* is
+# small → weak penalty → wider attention window → continuum noise
+# is smoothed. Each head still owns its log_gamma so the absolute
+# scale is learnable.
+#
+# Direct A/B against Cell 1 (..._pe10_attn8x64_gab) — same
+# everything except DM.enabled.
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_pe10_attn8x64_gab_dense
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: physics_anchored
+zoom_window_width_kev: 10.0
+local_event_fraction: 0.80
+physics_peaks_kev: [1592.0, 1620.0, 2103.0, 2614.0]
+trial_size_strategy: variable_uniform
+n_trial_events_min: 32
+n_trial_events_max: 1024
+
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 2
+  n_context_max: 1023
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 8
+  attention_dim: 64
+  gaussian_attention_bias: true
+  density_modulation:
+    enabled: true
+    sigma_local_kev: 10.0
+    sigma_global_kev: 150.0
