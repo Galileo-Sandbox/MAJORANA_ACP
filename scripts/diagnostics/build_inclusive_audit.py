@@ -36,6 +36,46 @@ PARADIGMS = [
         "w10_varN_pe10_attn",
         "hybrid_scale/mixed_density_f0_70_w10_varN32-1024_pe10_attn8x64",
     ),
+    (
+        "physics_pe10_attn_gated",
+        "hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_pe10_attn8x64_gated",
+    ),
+    (
+        "physics_pe9_attn_gated",
+        "hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_pe9_attn8x64_gated",
+    ),
+    (
+        "physics_pure_attn4x64",
+        "hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_attn4x64",
+    ),
+    (
+        "physics_pe10_attn_gab",
+        "hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_pe10_attn8x64_gab",
+    ),
+    (
+        "physics_pe10_attn_gab_debinned",
+        "hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_pe10_attn8x64_gab_debinned",
+    ),
+    (
+        "physics_pe10_attn_gab_dense",
+        "hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_pe10_attn8x64_gab_dense",
+    ),
+    (
+        "physics_peOff_attn_gab_dense",
+        "hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_attn8x64_gab_dense",
+    ),
+    (
+        "physics_pe10_attn_gab_bpbn",
+        "hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_pe10_attn8x64_gab_bpbn",
+    ),
+    (
+        "physics_pe10_attn_gab_sfn",
+        "hybrid_scale/physics_anchored_f0_80_w10_varN32-1024_pe10_attn8x64_gab_sfn",
+    ),
+    (
+        "flat_pe10_attn_gab_pdsfn",
+        "hybrid_scale/flat_stratified_varN640-1024_pe10_attn8x64_gab_pdsfn",
+    ),
 ]
 
 PEAK_ORDER = [
@@ -43,6 +83,15 @@ PEAK_ORDER = [
     ("Tl-208 SE", "SE 2103"),
     ("Tl-208 DEP", "DEP 1592"),
     ("Bi-214 1620", "Bi 1620"),
+]
+
+# Pristine Compton-continuum control regions for the sawtooth-diagnostic
+# suite. Both windows are deliberately clear of any γ-peak so we measure
+# the model's behaviour on flat physics where the truth is "smooth slope"
+# — any roughness here is the model's fault.
+SAWTOOTH_REGIONS = [
+    ("1.7–2.0 MeV", "region_1700_2000"),
+    ("2.2–2.4 MeV", "region_2200_2400"),
 ]
 
 AUDIT_ROOT = Path("analysis/cnp_audit")
@@ -245,6 +294,50 @@ def main() -> None:
                 f"  {rank}. `{nick}` — p_DT={_fmt_p(p)}, "
                 f"Z_DT={_fmt_z(z)}, χ²_DT={_fmt_chi2(chi2)}  ·  {verdict}"
             )
+        lines.append("")
+
+    # ──────────────────────────────────────────────────────────────
+    # Sawtooth-diagnostic suite — three roughness axes evaluated in
+    # two pristine Compton-continuum windows clear of any γ-peak.
+    # ──────────────────────────────────────────────────────────────
+    lines.append("## Sawtooth diagnostic suite  (control regions, no γ-peaks)")
+    lines.append("")
+    lines.append(
+        "Three complementary roughness metrics computed on the dense "
+        "predicted β̂(E) curve inside two control windows. **MASD** = "
+        "amplitude axis (mean |2nd difference|, scales with the size of "
+        "the wiggles); **ED** = frequency axis (local extrema per keV); "
+        "**ACF1** = pattern axis (Pearson correlation of successive "
+        "first-differences). A smooth slope gives MASD ≈ 0, ED ≈ 0, "
+        "ACF1 ≥ 0; random noise lands ACF1 ≈ −0.5; a deterministic "
+        "up-down-up-down sawtooth drives ACF1 → −1. The two "
+        "complementary axes (amplitude vs frequency vs pattern) "
+        "distinguish structured oscillation from random wiggle even "
+        "when individual metrics agree."
+    )
+    lines.append("")
+    for label, key in SAWTOOTH_REGIONS:
+        lines.append(f"### Control region {label}")
+        lines.append("")
+        lines.append("| paradigm | MASD | ED (keV⁻¹) | ACF1 |")
+        lines.append("|---|---|---|---|")
+        for nick, _ in PARADIGMS:
+            a = audits[nick]
+            if a is None:
+                lines.append(f"| {nick} | — | — | — |")
+                continue
+            sw = a.get("sawtooth_metrics", {}).get(key)
+            if sw is None:
+                # Cell trained before the diagnostic suite was wired in —
+                # JSON predates the metric write. Run inference again to
+                # populate (or the inference script saved an empty dict
+                # for some structural reason).
+                lines.append(f"| {nick} | — | — | — |")
+                continue
+            masd = sw.get("masd")
+            ed = sw.get("extrema_density")
+            acf = sw.get("lag1_acf")
+            lines.append(f"| {nick} | {masd:.4f} | {ed:.3f} | {acf:+.3f} |")
         lines.append("")
 
     # ──────────────────────────────────────────────────────────────

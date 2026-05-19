@@ -14,6 +14,7 @@ import matplotlib  # noqa: E402
 matplotlib.use("Agg")
 
 from majorana_acp.cut_acceptance.config import load_config  # noqa: E402
+from majorana_acp.cut_acceptance.pipeline import resolve_out_dir  # noqa: E402
 from scripts.diagnostics.cnp_test_inference import (  # noqa: E402
     DEFAULT_MAX_CONTEXT_PER_PASS,
     DEFAULT_N_DENSE,
@@ -50,8 +51,9 @@ def main() -> None:
             print(f"[skip] {cfg_path}: cfg parse failed ({exc})")
             n_skipped += 1
             continue
-        if not (Path(cfg.out_dir) / "cnp.ckpt").is_file():
-            print(f"[skip] {cfg_path.name}: no cnp.ckpt")
+        ckpt_dir = resolve_out_dir(cfg)
+        if not (ckpt_dir / "cnp.ckpt").is_file():
+            print(f"[skip] {cfg_path.name}: no cnp.ckpt at {ckpt_dir}")
             n_skipped += 1
             continue
         rel = cfg_path.relative_to(CFG_ROOT)
