@@ -1,0 +1,116 @@
+# Cell 11 — Fully-Gated DG-SFN (closes the third Trojan horse).
+#
+# Cells 7-10 chased the high-frequency bin-fitting pathway through
+# three successive channels:
+#   * Cells 7-9: PE10 inside Q/K → sharp Q·K^T attention
+#   * Cell 10:   PE10 inside z_phi_T decoder concat → sharp β̂ directly
+# Each fix closed one channel; the model walked to the next.
+#
+# Cell 11 closes the final remaining channel by enabling
+# ``decoder_coordinate_gating: true`` on top of Cell 10's
+# architecture. With that flag, the decoder's concat input
+# switches from z_phi_T (full PE10 latent) to the raw 2D
+# (E_norm, T_norm) vector. The complete information flow becomes:
+#
+#   PE10 features ─→ phi_encoder ─→ z_phi
+#                                    │
+#         (z_phi BLOCKED at Q/K)  ←──┤
+#                                    ↓
+#                       ContextPointEncoder
+#                                    │
+#                                    ↓
+#                                   h_C ─→ W_V ─→ V
+#                                                  │
+#                                                  ↓
+#                                           σ,τ-gated attention
+#                                                  │
+#                                                  ↓
+#                                              r_target
+#                                                  │
+#                                                  ↓
+#       decoder([r_target, raw_E_norm_target])  ←─ decoder concat
+#                                                  (raw, NOT z_phi_T)
+#
+# The ONLY mathematical path for PE10's high-frequency content to
+# reach β̂(E_*) is V → r_target → decoder, and that path is throttled
+# by σ_head(E_*) and τ_head(E_*) at the attention layer. The SFN
+# gates have no alternative bypass.
+#
+# Single-head attention (attn1x128) preserved from Cell 10 since
+# multi-head only ever enabled head-specialisation escapes.
+# Everything else (pool buffer, flat_stratified sampling, σ ∈ [5, 200],
+# τ ∈ [1, 10], head-tied σ/τ) identical to Cell 10 — A/B isolates
+# the decoder-concat-gating intervention.
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/flat_stratified_varN640-1024_pe10_attn1x128_gated_gab_dgsfn_tied_pedetach
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: flat_stratified
+trial_size_strategy: variable_uniform
+n_trial_events_min: 640
+n_trial_events_max: 1024
+
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 128
+  n_context_max: 512
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 1
+  attention_dim: 128
+  decoder_coordinate_gating: true
+  gaussian_attention_bias: true
+  pe_detach_qk: true
+  pool_density_sfn:
+    enabled: true
+    sigma_max_kev: 200.0
+    sigma_min_kev: 5.0
+    hidden_dim: 16
+    sigma_local_kev: 10.0
+    sigma_global_kev: 150.0
+    epsilon: 1.0e-5
+    temperature_gating: true
+    tau_min_value: 1.0
+    tau_max_value: 10.0
+    head_tied: true
