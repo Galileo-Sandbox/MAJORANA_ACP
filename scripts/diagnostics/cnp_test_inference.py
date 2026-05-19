@@ -302,6 +302,13 @@ def _load_cnp(cfg: CutAcceptanceConfig, ckpt_path: Path) -> torch.nn.Module:
     state = torch.load(ckpt_path, map_location="cpu", weights_only=False)
     cnp.load_state_dict(state["model_state"])
     cnp.eval()
+    # Honor the config's device preference at inference too — running
+    # MC Dropout × n_mc passes × N_T queries on GPU pulls a multi-minute
+    # CPU job down to seconds.
+    from majorana_acp.cut_acceptance.pipeline import _resolve_device
+
+    device = _resolve_device(getattr(cfg, "device", "auto"))
+    cnp.to(device)
     return cnp
 
 

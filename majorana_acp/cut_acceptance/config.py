@@ -383,6 +383,22 @@ class CutAcceptanceConfig(_Frozen):
     )
 
     # ------------------------------------------------------------------
+    # Compute device. ``auto`` picks CUDA when available, falling back
+    # to CPU silently — works on shared-GPU machines as well as
+    # CPU-only CI without YAML edits. Set explicitly to ``cuda`` to
+    # fail loudly if GPU is unavailable, or to ``cpu`` to force CPU
+    # (useful for byte-for-byte reproducibility against pre-GPU runs).
+    # ------------------------------------------------------------------
+    device: Literal["auto", "cuda", "cpu"] = Field(
+        "auto",
+        description=(
+            "Compute device for training. ``auto`` (default) uses CUDA "
+            "when available, falls back to CPU. ``cuda`` raises if GPU "
+            "unavailable. ``cpu`` forces CPU."
+        ),
+    )
+
+    # ------------------------------------------------------------------
     # Pluggable context aggregator. Default ``type='mean'`` routes
     # through the upstream ``ConditionalNeuralProcess`` unchanged.
     # ``type='cross_attention'`` switches to the local AttentiveCNP.

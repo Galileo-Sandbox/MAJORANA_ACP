@@ -41,7 +41,6 @@ from core import (
     cnp_loss,
     save_checkpoint,
     split_context_target,
-    train_cnp,
 )
 from sklearn.metrics import roc_curve
 
@@ -221,33 +220,71 @@ def build_local_cnp(cfg: CutAcceptanceConfig, *, dim_phi: int):
 # ---------------------------------------------------------------------------
 
 
-def train_cnp_variable_n_per_step(
+def _resolve_device(preference: str | None = None) -> torch.device:
+    """Resolve a torch device from ``"auto" | "cuda" | "cpu"``.
+
+    ``"auto"`` picks CUDA when available, falling back to CPU silently.
+    Explicit ``"cuda"`` raises if CUDA isn't available so that GPU-only
+    config files fail loudly rather than running 10× slower than the
+    user expects. ``"cpu"`` always honors the explicit choice.
+    """
+    pref = (preference or "auto").lower()
+    if pref == "cpu":
+        return torch.device("cpu")
+    if pref == "cuda":
+        if not torch.cuda.is_available():
+            raise RuntimeError(
+                "device='cuda' requested but torch.cuda.is_available() is "
+                "False — install a CUDA build of torch or set device='cpu'."
+            )
+        return torch.device("cuda")
+    if pref != "auto":
+        raise ValueError(f"unknown device preference: {preference!r}")
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def train_cnp_local(
     cnp,
     sampler: EventSampler,
     *,
     cnp_config,
     training_config,
-    n_min: int,
-    n_max: int,
+    device: torch.device,
+    variable_n: bool = False,
+    n_min: int | None = None,
+    n_max: int | None = None,
 ) -> TrainingHistory:
-    """Variant of ``core.train_cnp`` that resamples ``n_events`` per step
-    uniformly from ``[n_min, n_max]``.
+    """Device-aware mirror of ``core.train_cnp`` with optional per-step variable N.
 
-    Within a single batch all trials share the same N — required by
-    ``StandardBatch.labels``'s fixed ``[B, N]`` shape and the encoder's
-    lack of a padding mask. Across thousands of steps the model still
-    sees the full N distribution. ``n_ctx_max`` is clamped per step
-    to ``n_events − 1`` so ``split_context_target`` never receives an
-    out-of-range request.
+    Replaces both the upstream ``train_cnp`` (when ``variable_n=False``)
+    and the previous ``train_cnp_variable_n_per_step`` wrapper. Behaviour
+    is otherwise identical to the upstream loop except for two
+    deliberate divergences:
 
-    Implementation mirrors ``core.train_cnp`` line-for-line *except*
-    the per-step resampling of ``n_events``, so the upstream training
-    loop stays untouched.
+    * ``x_target`` is moved to ``device`` before the loss call — upstream
+      leaves the binary label tensor on CPU, which is fine when the
+      model is also on CPU but raises a device mismatch on GPU.
+    * When ``variable_n=True``, each step draws a fresh ``n_events``
+      from ``Uniform[n_min, n_max]`` (uniform per-step, not per-trial,
+      so ``StandardBatch.labels`` keeps its fixed ``[B, N]`` shape).
+
+    The training loop assumes the caller has already moved ``cnp`` to
+    ``device``. The sampler stays CPU-side and emits numpy arrays; the
+    upstream encoder.forward picks up the device from its parameters
+    and moves the batch tensors automatically.
     """
-    if n_max < n_min:
-        raise ValueError(f"n_max ({n_max}) < n_min ({n_min})")
-    if n_min < 2:
-        raise ValueError(f"n_min must be >= 2, got {n_min}")
+    if variable_n:
+        if n_min is None or n_max is None:
+            raise ValueError("variable_n=True requires n_min and n_max")
+        if n_max < n_min:
+            raise ValueError(f"n_max ({n_max}) < n_min ({n_min})")
+        if n_min < 2:
+            raise ValueError(f"n_min must be >= 2, got {n_min}")
+    else:
+        if training_config.n_events_per_trial < 2:
+            raise ValueError(
+                f"n_events_per_trial must be >= 2, got {training_config.n_events_per_trial}"
+            )
 
     rng = np.random.default_rng(training_config.seed)
     torch.manual_seed(training_config.seed)
@@ -260,16 +297,28 @@ def train_cnp_variable_n_per_step(
         "eval_mae": [],
     }
     cnp_n_ctx_min = max(1, cnp_config.n_context_min)
-    cnp_n_ctx_max = cnp_config.n_context_max
+    cnp_n_ctx_max_cfg = cnp_config.n_context_max
+
+    if not variable_n:
+        n_events_fixed = training_config.n_events_per_trial
+        n_ctx_max_eff_fixed = min(cnp_n_ctx_max_cfg, n_events_fixed - 1)
+        if n_ctx_max_eff_fixed < cnp_n_ctx_min:
+            raise ValueError(
+                f"Effective n_context range is empty: min={cnp_n_ctx_min}, "
+                f"max={n_ctx_max_eff_fixed}; n_events_per_trial={n_events_fixed} "
+                "must exceed n_context_min."
+            )
 
     cnp.train()
     for step in range(training_config.n_steps):
-        n_events = int(rng.integers(n_min, n_max + 1))
-        n_ctx_max_eff = min(cnp_n_ctx_max, n_events - 1)
-        if n_ctx_max_eff < cnp_n_ctx_min:
-            # n_events too small to split — should be ruled out by the
-            # n_min ≥ cnp.n_context_min + 1 invariant, but defend anyway.
-            continue
+        if variable_n:
+            n_events = int(rng.integers(n_min, n_max + 1))
+            n_ctx_max_eff = min(cnp_n_ctx_max_cfg, n_events - 1)
+            if n_ctx_max_eff < cnp_n_ctx_min:
+                continue
+        else:
+            n_events = n_events_fixed
+            n_ctx_max_eff = n_ctx_max_eff_fixed
         n_ctx = int(rng.integers(cnp_n_ctx_min, n_ctx_max_eff + 1))
 
         batch = sampler.generate(
@@ -281,7 +330,7 @@ def train_cnp_variable_n_per_step(
             batch, n_context=n_ctx, seed=int(rng.integers(0, 2**31 - 1))
         )
         out = cnp(ctx, tgt)
-        x_target = torch.as_tensor(tgt.labels, dtype=torch.float32)
+        x_target = torch.as_tensor(tgt.labels, dtype=torch.float32, device=device)
         loss = cnp_loss(out, x_target, n_mc_samples=training_config.n_mc_samples)
 
         optimizer.zero_grad()
@@ -382,22 +431,25 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
     # is aggregator-agnostic.
     dim_phi = sampler.dim_phi
     cnp = build_local_cnp(cfg, dim_phi=dim_phi)
-    if cfg.trial_size_strategy == "variable_uniform":
-        history = train_cnp_variable_n_per_step(
-            cnp,
-            sampler,
-            cnp_config=cfg.cnp,
-            training_config=cfg.training,
-            n_min=cfg.n_trial_events_min,
-            n_max=cfg.n_trial_events_max,
-        )
-    else:
-        history = train_cnp(
-            cnp,
-            sampler,
-            cnp_config=cfg.cnp,
-            training_config=cfg.training,
-        )
+    # Resolve device once per run. The factory always builds CPU-side;
+    # ``.to(device)`` moves params (and any non-persistent buffers) to
+    # GPU in one shot. Same call is a no-op on CPU-only machines.
+    device = _resolve_device(getattr(cfg, "device", "auto"))
+    cnp.to(device)
+    variable_n = cfg.trial_size_strategy == "variable_uniform"
+    history = train_cnp_local(
+        cnp,
+        sampler,
+        cnp_config=cfg.cnp,
+        training_config=cfg.training,
+        device=device,
+        variable_n=variable_n,
+        n_min=cfg.n_trial_events_min if variable_n else None,
+        n_max=cfg.n_trial_events_max if variable_n else None,
+    )
+    # Move the model back to CPU before saving so the checkpoint stays
+    # device-agnostic (loadable on any machine regardless of CUDA).
+    cnp.to("cpu")
     save_checkpoint(
         out_dir / "cnp.ckpt",
         cnp,
@@ -421,6 +473,7 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             "aggregator_type": cfg.aggregator.type,
             "aggregator_num_heads": cfg.aggregator.num_heads,
             "aggregator_attention_dim": cfg.aggregator.attention_dim,
+            "device": str(device),
         },
     )
     final_train_loss = float(history["loss"][-1]) if history.get("loss") else float("nan")
