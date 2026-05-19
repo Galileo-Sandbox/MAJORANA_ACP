@@ -541,6 +541,44 @@ class PoolDensitySfnConfig(_Frozen):
             "kernel sum underflows to zero."
         ),
     )
+    temperature_gating: bool = Field(
+        False,
+        description=(
+            "Enable the Dual-Gated SFN (Cell 8). When True, a SECOND "
+            "PE-free MLP head (same input ``[log ρ_local, log ρ_global]``) "
+            "emits a per-target temperature τ_head ∈ [τ_min, τ_max] that "
+            "scales the pre-softmax attention score:\n\n"
+            "    Scores = (Q · K^T) / (√d_k · τ_head) − Δ² / (2 σ_head²)\n\n"
+            "Closes the asymmetric loophole in Cell 7's σ-only gating: "
+            "when σ_head → σ_max in a flat continuum the spatial "
+            "penalty collapses to ~0, leaving the raw PE10-driven "
+            "``Q·K^T`` free to produce sharp attention peaks against "
+            "shot noise. Co-driving τ_head → τ_max simultaneously "
+            "flattens the QK^T spikes — the model now has both a "
+            "maximum bandwidth (the σ penalty) and an enforced minimum "
+            "bandwidth (the temperature flooring) in vacuum regions."
+        ),
+    )
+    tau_min_value: float = Field(
+        1.0,
+        gt=0.0,
+        description=(
+            "Lower bound on τ_head (dimensionless). Setting to 1.0 means "
+            "the dual-gate degenerates to plain softmax in peak regions "
+            "— the model can recover Cell 7's behaviour exactly when "
+            "τ_head saturates at τ_min."
+        ),
+    )
+    tau_max_value: float = Field(
+        10.0,
+        gt=0.0,
+        description=(
+            "Upper bound on τ_head (dimensionless). τ = 10 reduces "
+            "pre-softmax score magnitudes by 10× — enough to flatten "
+            "PE10's bin-scale ``Q·K^T`` fluctuations in vacuum regions "
+            "without zeroing the attention entirely."
+        ),
+    )
 
     @field_validator("sigma_min_kev")
     @classmethod
@@ -559,6 +597,17 @@ class PoolDensitySfnConfig(_Frozen):
         lo = info.data.get("sigma_local_kev")
         if lo is not None and v <= lo:
             raise ValueError(f"sigma_global_kev ({v}) must exceed sigma_local_kev ({lo})")
+        return v
+
+    @field_validator("tau_max_value")
+    @classmethod
+    def _tau_max_gt_min(cls, v: float, info) -> float:
+        lo = info.data.get("tau_min_value")
+        if lo is not None and v <= lo:
+            raise ValueError(
+                f"tau_max_value ({v}) must exceed tau_min_value ({lo}) — "
+                "the temperature clamp window must be non-degenerate."
+            )
         return v
 
 

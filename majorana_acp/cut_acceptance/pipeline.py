@@ -170,9 +170,14 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
                 bits.append("sfn")
             # Append _pdsfn (Pool-Density SFN, Cell 7) when the
             # absolute-density pool-based SFN replaces log_gamma.
-            # Mutually exclusive with BPBN and SFN.
+            # ``_dgsfn`` (Dual-Gated SFN, Cell 8) when the same
+            # pool-based bandwidth is paired with the dual-output
+            # temperature head. Mutually exclusive with BPBN and SFN.
             if cfg.aggregator.pool_density_sfn.enabled:
-                bits.append("pdsfn")
+                if cfg.aggregator.pool_density_sfn.temperature_gating:
+                    bits.append("dgsfn")
+                else:
+                    bits.append("pdsfn")
     # Append _debinned when the sampler uses the continuous inverse-
     # density draw instead of the legacy bin-stratified loop.
     if cfg.density_sampling == "continuous":
@@ -291,6 +296,9 @@ def build_local_cnp(cfg: CutAcceptanceConfig, *, dim_phi: int):
             pool_density_sfn_sigma_local_kev=pdsfn.sigma_local_kev if pdsfn.enabled else None,
             pool_density_sfn_sigma_global_kev=pdsfn.sigma_global_kev if pdsfn.enabled else None,
             pool_density_sfn_epsilon=pdsfn.epsilon,
+            pool_density_sfn_temperature_gating=pdsfn.temperature_gating,
+            pool_density_sfn_tau_min=pdsfn.tau_min_value,
+            pool_density_sfn_tau_max=pdsfn.tau_max_value,
             pool_energies_kev=pool_energies_kev,
             energy_range_kev=cfg.energy_range if needs_range else None,
             decoder_hidden_dims=list(cfg.decoder_hidden_dims),
@@ -580,6 +588,9 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             "pool_density_sfn_sigma_local_kev": cfg.aggregator.pool_density_sfn.sigma_local_kev,
             "pool_density_sfn_sigma_global_kev": cfg.aggregator.pool_density_sfn.sigma_global_kev,
             "pool_density_sfn_epsilon": cfg.aggregator.pool_density_sfn.epsilon,
+            "pool_density_sfn_temperature_gating": cfg.aggregator.pool_density_sfn.temperature_gating,
+            "pool_density_sfn_tau_min_value": cfg.aggregator.pool_density_sfn.tau_min_value,
+            "pool_density_sfn_tau_max_value": cfg.aggregator.pool_density_sfn.tau_max_value,
             "density_sampling": cfg.density_sampling,
             "density_kde_radius_kev": cfg.density_kde_radius_kev,
             "device": str(device),

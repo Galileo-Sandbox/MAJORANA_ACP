@@ -1558,3 +1558,139 @@ def test_paradigm_suffix_omits_pdsfn_when_off(tmp_path: Path) -> None:
         ),
     )
     assert "_pdsfn" not in paradigm_path_suffix(cfg)
+
+
+# ---------------------------------------------------------------------- #
+# Dual-Gated Pool-Density SFN (Cell 8)
+# ---------------------------------------------------------------------- #
+
+
+def test_dual_gated_sfn_defaults_off() -> None:
+    """Temperature gating is opt-in — Cell 7 checkpoints stay
+    state-dict-compatible because pool_tau_net is not registered when
+    ``temperature_gating=False`` (the default)."""
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    pdsfn = PoolDensitySfnConfig()
+    assert pdsfn.temperature_gating is False
+    assert pdsfn.tau_min_value == 1.0
+    assert pdsfn.tau_max_value == 10.0
+
+
+def test_dual_gated_sfn_tau_max_must_exceed_min() -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    with pytest.raises(ValueError, match="tau_max_value"):
+        PoolDensitySfnConfig(
+            enabled=True,
+            temperature_gating=True,
+            tau_min_value=10.0,
+            tau_max_value=1.0,
+        )
+
+
+def test_dual_gated_sfn_registers_tau_net_only_when_on(
+    encoder_cfg: EncoderConfig,
+) -> None:
+    """``pool_tau_net`` appears in state_dict iff temperature_gating is on,
+    so Cell 7 checkpoints keep loading via the same factory without
+    extra unexpected keys."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+
+    cnp_cell7 = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=2,
+        num_heads=4,
+        attention_dim=64,
+        gaussian_attention_bias=True,
+        pool_density_sfn_enabled=True,
+        pool_density_sfn_sigma_max_kev=200.0,
+        pool_density_sfn_sigma_min_kev=5.0,
+        pool_density_sfn_sigma_local_kev=10.0,
+        pool_density_sfn_sigma_global_kev=150.0,
+        pool_energies_kev=pool,
+        energy_range_kev=(500.0, 3000.0),
+    )
+    assert cnp_cell7.attention.pool_density_sfn_temperature_gating is False
+    assert not any(k.startswith("attention.pool_tau_net") for k in cnp_cell7.state_dict())
+
+    cnp_cell8 = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=2,
+        num_heads=4,
+        attention_dim=64,
+        gaussian_attention_bias=True,
+        pool_density_sfn_enabled=True,
+        pool_density_sfn_sigma_max_kev=200.0,
+        pool_density_sfn_sigma_min_kev=5.0,
+        pool_density_sfn_sigma_local_kev=10.0,
+        pool_density_sfn_sigma_global_kev=150.0,
+        pool_density_sfn_temperature_gating=True,
+        pool_density_sfn_tau_min=1.0,
+        pool_density_sfn_tau_max=10.0,
+        pool_energies_kev=pool,
+        energy_range_kev=(500.0, 3000.0),
+    )
+    assert cnp_cell8.attention.pool_density_sfn_temperature_gating is True
+    tau_keys = [k for k in cnp_cell8.state_dict() if k.startswith("attention.pool_tau_net")]
+    assert len(tau_keys) == 4  # 2 Linear × (weight, bias)
+    # σ-head still present.
+    assert any(k.startswith("attention.pool_sfn_net") for k in cnp_cell8.state_dict())
+
+
+def test_dual_gated_sfn_forward_shape(encoder_cfg: EncoderConfig) -> None:
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+    cnp = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=2,
+        num_heads=8,
+        attention_dim=64,
+        gaussian_attention_bias=True,
+        pool_density_sfn_enabled=True,
+        pool_density_sfn_sigma_max_kev=200.0,
+        pool_density_sfn_sigma_min_kev=5.0,
+        pool_density_sfn_sigma_local_kev=10.0,
+        pool_density_sfn_sigma_global_kev=150.0,
+        pool_density_sfn_temperature_gating=True,
+        pool_energies_kev=pool,
+        energy_range_kev=(500.0, 3000.0),
+    )
+    ctx = _random_batch(B=2, N=64, dim_phi=2, seed=0)
+    tgt = _random_batch(B=2, N=8, dim_phi=2, seed=1)
+    out = cnp(ctx, tgt)
+    assert out.mu_logit.shape == (2, 8)
+    assert out.log_sigma.shape == (2, 8)
+
+
+def test_paradigm_suffix_uses_dgsfn_when_temperature_gating(tmp_path: Path) -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    cfg = _make_cfg(
+        tmp_path,
+        sampling_pattern="flat_stratified",
+        trial_size_strategy="variable_uniform",
+        n_trial_events_min=640,
+        n_trial_events_max=1024,
+        aggregator=AggregatorConfig(
+            type="cross_attention",
+            num_heads=8,
+            attention_dim=64,
+            gaussian_attention_bias=True,
+            pool_density_sfn=PoolDensitySfnConfig(
+                enabled=True,
+                temperature_gating=True,
+            ),
+        ),
+    )
+    suffix = paradigm_path_suffix(cfg)
+    assert suffix.endswith("_attn8x64_gab_dgsfn"), suffix
+    assert "_pdsfn" not in suffix

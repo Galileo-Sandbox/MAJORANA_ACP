@@ -76,6 +76,10 @@ PARADIGMS = [
         "flat_pe10_attn_gab_pdsfn",
         "hybrid_scale/flat_stratified_varN640-1024_pe10_attn8x64_gab_pdsfn",
     ),
+    (
+        "flat_pe10_attn_gab_dgsfn",
+        "hybrid_scale/flat_stratified_varN640-1024_pe10_attn8x64_gab_dgsfn",
+    ),
 ]
 
 PEAK_ORDER = [

@@ -126,6 +126,9 @@ class CrossAttentionAggregator(nn.Module):
         pool_density_sfn_sigma_global_norm: float | None = None,
         pool_density_sfn_epsilon: float = 1e-5,
         pool_energies_norm: torch.Tensor | None = None,
+        pool_density_sfn_temperature_gating: bool = False,
+        pool_density_sfn_tau_min: float = 1.0,
+        pool_density_sfn_tau_max: float = 10.0,
     ) -> None:
         super().__init__()
         if attention_dim % num_heads != 0:
@@ -398,12 +401,42 @@ class CrossAttentionAggregator(nn.Module):
                 nn.GELU(),
                 nn.Linear(int(pool_density_sfn_hidden_dim), self.num_heads),
             )
+            # Cell 8 — Dual-Gated SFN. A second PE-free MLP head emits a
+            # per-target temperature τ_head ∈ [τ_min, τ_max] that scales
+            # the pre-softmax ``Q·K^T``. Closes the asymmetric loophole
+            # in Cell 7 where σ_head → σ_max in vacuum kills the spatial
+            # penalty and leaves the raw PE10-driven QK^T free to fit
+            # shot noise. Only registered when ``temperature_gating`` is
+            # on, so Cell 7 checkpoints stay state-dict-compatible.
+            self.pool_density_sfn_temperature_gating = bool(
+                pool_density_sfn_temperature_gating
+            )
+            if self.pool_density_sfn_temperature_gating:
+                if pool_density_sfn_tau_max <= pool_density_sfn_tau_min:
+                    raise ValueError(
+                        f"pool_density_sfn_tau_max ({pool_density_sfn_tau_max}) "
+                        f"must exceed pool_density_sfn_tau_min "
+                        f"({pool_density_sfn_tau_min})"
+                    )
+                self.pool_density_sfn_tau_min = float(pool_density_sfn_tau_min)
+                self.pool_density_sfn_tau_max = float(pool_density_sfn_tau_max)
+                self.pool_tau_net = nn.Sequential(
+                    nn.Linear(2, int(pool_density_sfn_hidden_dim)),
+                    nn.GELU(),
+                    nn.Linear(int(pool_density_sfn_hidden_dim), self.num_heads),
+                )
+            else:
+                self.pool_density_sfn_tau_min = float(pool_density_sfn_tau_min)
+                self.pool_density_sfn_tau_max = float(pool_density_sfn_tau_max)
         else:
             self.pool_density_sfn_sigma_max_norm = 0.0  # unused
             self.pool_density_sfn_sigma_min_norm = 0.0
             self.pool_density_sfn_sigma_local_norm = 0.0
             self.pool_density_sfn_sigma_global_norm = 0.0
             self.pool_density_sfn_epsilon = float(pool_density_sfn_epsilon)
+            self.pool_density_sfn_temperature_gating = False
+            self.pool_density_sfn_tau_min = float(pool_density_sfn_tau_min)
+            self.pool_density_sfn_tau_max = float(pool_density_sfn_tau_max)
 
     def forward(
         self,
@@ -518,6 +551,25 @@ class CrossAttentionAggregator(nn.Module):
                 sigma_head = self.pool_density_sfn_sigma_min_norm + sigma_range * torch.sigmoid(
                     logits
                 )
+                # Cell 8 — Dual-Gated SFN: apply per-target temperature
+                # scaling to ``Q·K^T`` BEFORE the spatial penalty
+                # subtraction. Implements
+                #   Scores = (Q·K^T) / (√d · τ) − Δ² / (2 σ²)
+                # When the σ-head saturates at σ_max (vacuum region), the
+                # spatial penalty collapses → τ_head saturating at
+                # τ_max simultaneously flattens the raw QK^T spikes so
+                # PE10's bin-scale Fourier features cannot push the
+                # post-softmax distribution into single-event attention.
+                if self.pool_density_sfn_temperature_gating:
+                    tau_logits = self.pool_tau_net(Z)  # [B, N_T, H]
+                    tau_logits = tau_logits.transpose(1, 2).unsqueeze(-1)  # [B, H, N_T, 1]
+                    tau_range = (
+                        self.pool_density_sfn_tau_max - self.pool_density_sfn_tau_min
+                    )
+                    tau_head = self.pool_density_sfn_tau_min + tau_range * torch.sigmoid(
+                        tau_logits
+                    )
+                    attn_logits = attn_logits / tau_head
                 penalty = delta2 / (2.0 * sigma_head.pow(2))  # [B, H, N_T, N_C]
                 attn_logits = attn_logits - penalty
             elif self.sfn_modulation_enabled:
@@ -765,6 +817,9 @@ def build_attentive_cnp(
     pool_density_sfn_sigma_local_kev: float | None = None,
     pool_density_sfn_sigma_global_kev: float | None = None,
     pool_density_sfn_epsilon: float = 1e-5,
+    pool_density_sfn_temperature_gating: bool = False,
+    pool_density_sfn_tau_min: float = 1.0,
+    pool_density_sfn_tau_max: float = 10.0,
     pool_energies_kev: "np.ndarray | torch.Tensor | None" = None,
     energy_range_kev: tuple[float, float] | None = None,
     aggregator_dim: int | None = None,
@@ -959,6 +1014,9 @@ def build_attentive_cnp(
         pool_density_sfn_sigma_global_norm=pool_sfn_sigma_global_norm_v,
         pool_density_sfn_epsilon=pool_density_sfn_epsilon,
         pool_energies_norm=pool_energies_norm_t,
+        pool_density_sfn_temperature_gating=pool_density_sfn_temperature_gating,
+        pool_density_sfn_tau_min=pool_density_sfn_tau_min,
+        pool_density_sfn_tau_max=pool_density_sfn_tau_max,
     )
     # Decoder input dim is ``agg_dim + decoder_latent_dim`` where
     # decoder_latent_dim is the size of the second concat input. With
