@@ -1,0 +1,107 @@
+# Cell 13 — PE-Gated Decoder Concat.
+#
+# Cells 11/12 closed every PE10 bypass and proved the σ/τ gates
+# could be activated. But the resulting architecture was smooth-only
+# by construction — there was no remaining path for β̂(E) to spike
+# at sharp γ-lines, and SE/DEP collapsed to |Z| ≈ 20-30.
+#
+# Cell 13 reintroduces ONE high-frequency channel — z_phi_T into
+# the decoder concat — but ONLY under the explicit authorisation
+# of a third SFN head η(log_l, log_g) ∈ [0, 1] that sits on the
+# same density-aware MLP family as σ and τ. The decoder's coord
+# input becomes:
+#
+#     decoder_input = [r_target, raw_E_norm, η(E_*) · z_phi_T]
+#                                              ^^^^^^^^^^^^^^
+#                                              gated PE10 leak
+#
+# In low-density regions (continuum, low log_l contrast) the SFN
+# learns η → 0 and the decoder sees only the raw 2D coords →
+# β̂ is forced smooth (Cell 11/12 regime, MASD ≈ 0.004).
+#
+# In high-density regions (γ-peaks, high log_l contrast under
+# σ_local = 2 keV) the SFN learns η → 1 and the full PE10 latent
+# reaches the decoder → β̂ can resolve sharp peak features.
+#
+# The on/off switch is part of the SAME SFN that drives σ and τ,
+# so it cannot become a hidden Trojan horse — its activation is
+# bound to the density-aware decision the rest of the gates obey.
+#
+# Architecture, sampler, kernel (σ_local = 2 keV from Cell 12) all
+# preserved verbatim. Only the new η-head + the wider decoder
+# (latent_dim Z+2 → 2Z+2) differ from Cell 12.
+#
+# Paradigm tag (auto-derived; new ``pegate`` token slots between
+# ``dgsfn_tied`` and ``sl2``):
+#   hybrid_scale/flat_stratified_varN640-1024_pe10_attn1x128_gated_gab_dgsfn_tied_pegate_sl2_pedetach
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: flat_stratified
+trial_size_strategy: variable_uniform
+n_trial_events_min: 640
+n_trial_events_max: 1024
+
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 128
+  n_context_max: 512
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 1
+  attention_dim: 128
+  decoder_coordinate_gating: true
+  gaussian_attention_bias: true
+  pe_detach_qk: true
+  pool_density_sfn:
+    enabled: true
+    sigma_max_kev: 200.0
+    sigma_min_kev: 5.0
+    hidden_dim: 16
+    sigma_local_kev: 2.0           # ← Cell 12 fix retained
+    sigma_global_kev: 150.0
+    epsilon: 1.0e-5
+    temperature_gating: true
+    tau_min_value: 1.0
+    tau_max_value: 10.0
+    head_tied: true
+    pe_gated_decoder: true         # ← Cell 13 — third SFN head η

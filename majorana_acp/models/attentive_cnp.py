@@ -130,6 +130,7 @@ class CrossAttentionAggregator(nn.Module):
         pool_density_sfn_tau_min: float = 1.0,
         pool_density_sfn_tau_max: float = 10.0,
         pool_density_sfn_head_tied: bool = False,
+        pool_density_sfn_pe_gated_decoder: bool = False,
         pe_detach_qk: bool = False,
         raw_phi_dim: int = 2,
     ) -> None:
@@ -453,6 +454,26 @@ class CrossAttentionAggregator(nn.Module):
                     )
                 self.pool_density_sfn_tau_min = float(pool_density_sfn_tau_min)
                 self.pool_density_sfn_tau_max = float(pool_density_sfn_tau_max)
+            # Cell 13 — PE-Gated Decoder Concat. A third PE-free MLP
+            # head (same Z input as σ/τ) emits η(E_*) ∈ [0, 1] that
+            # gates how much of z_phi_T leaks into the decoder concat.
+            # Output is ALWAYS a single scalar per target query (η is
+            # broadcast across the Z-dim of z_phi_T at decode time).
+            self.pool_density_sfn_pe_gated_decoder = bool(
+                pool_density_sfn_pe_gated_decoder
+            )
+            if self.pool_density_sfn_pe_gated_decoder:
+                if not self.pool_density_sfn_temperature_gating:
+                    raise ValueError(
+                        "pool_density_sfn_pe_gated_decoder=True requires "
+                        "pool_density_sfn_temperature_gating=True — the "
+                        "η-head sits on the same SFN family as σ/τ."
+                    )
+                self.pool_eta_net = nn.Sequential(
+                    nn.Linear(2, int(pool_density_sfn_hidden_dim)),
+                    nn.GELU(),
+                    nn.Linear(int(pool_density_sfn_hidden_dim), 1),
+                )
         else:
             self.pool_density_sfn_sigma_max_norm = 0.0  # unused
             self.pool_density_sfn_sigma_min_norm = 0.0
@@ -463,6 +484,12 @@ class CrossAttentionAggregator(nn.Module):
             self.pool_density_sfn_tau_min = float(pool_density_sfn_tau_min)
             self.pool_density_sfn_tau_max = float(pool_density_sfn_tau_max)
             self.pool_density_sfn_head_tied = False
+            self.pool_density_sfn_pe_gated_decoder = False
+            if pool_density_sfn_pe_gated_decoder:
+                raise ValueError(
+                    "pool_density_sfn_pe_gated_decoder=True requires "
+                    "pool_density_sfn_enabled=True."
+                )
 
     def forward(
         self,
@@ -688,7 +715,48 @@ class CrossAttentionAggregator(nn.Module):
         out = out.transpose(1, 2).reshape(B, N_T, H * d)  # [B, N_T, attention_dim]
         out = self.w_o(out)  # [B, N_T, latent_dim]
         out = self.out_dropout(out)
-        return out
+
+        # Cell 13 — PE-gate η for the decoder. Reuses the [log ρ_l,
+        # log ρ_g] tensor ``Z`` computed in the pool-density branch
+        # above. Returns η ∈ [0, 1] as a side output so AttentiveCNP
+        # can multiply it into z_phi_T at decoder-concat time.
+        side_info: dict[str, torch.Tensor] = {}
+        if (
+            getattr(self, "pool_density_sfn_pe_gated_decoder", False)
+            and self.pool_density_sfn_enabled
+            and self.gaussian_attention_bias
+        ):
+            # ``Z`` was bound in the pool-density branch (under
+            # torch.no_grad). For η we need a grad path — recompute
+            # Z without no_grad here. Cheap relative to the chunked
+            # pool kernel that already ran.
+            e_t = e_target_norm.unsqueeze(-1)  # [B, N_T, 1]
+            s_l = self.pool_density_sfn_sigma_local_norm
+            s_g = self.pool_density_sfn_sigma_global_norm
+            inv2_l = 1.0 / (2.0 * s_l * s_l)
+            inv2_g = 1.0 / (2.0 * s_g * s_g)
+            pool = self.pool_energies_norm
+            B_q, N_T_q = e_target_norm.shape
+            rho_l_g = torch.zeros(
+                (B_q, N_T_q), dtype=e_target_norm.dtype, device=e_target_norm.device
+            )
+            rho_g_g = torch.zeros_like(rho_l_g)
+            with torch.no_grad():
+                # Densities are inputs to η_net (parameters live in the
+                # MLP), so detaching the pool kernel here is fine.
+                for start in range(0, int(pool.numel()), _POOL_DENSITY_KERNEL_CHUNK):
+                    e_pool_chunk = pool[
+                        start : start + _POOL_DENSITY_KERNEL_CHUNK
+                    ].view(1, 1, -1)
+                    d2_chunk = (e_t - e_pool_chunk).pow(2)
+                    rho_l_g = rho_l_g + torch.exp(-d2_chunk * inv2_l).sum(dim=-1)
+                    rho_g_g = rho_g_g + torch.exp(-d2_chunk * inv2_g).sum(dim=-1)
+                log_l = torch.log(rho_l_g + self.pool_density_sfn_epsilon)
+                log_g = torch.log(rho_g_g + self.pool_density_sfn_epsilon)
+                Z_eta = torch.stack([log_l, log_g], dim=-1)  # [B, N_T, 2]
+            eta_logits = self.pool_eta_net(Z_eta)  # [B, N_T, 1]
+            side_info["pe_gate"] = torch.sigmoid(eta_logits)
+        return out, side_info
 
 
 def _recover_raw_phi(phi: torch.Tensor) -> torch.Tensor:
@@ -801,10 +869,16 @@ class AttentiveCNP(nn.Module):
             if wants_pe_detach:
                 kwargs["phi_target_raw"] = phi_t_raw
                 kwargs["phi_ctx_raw"] = phi_c_raw
-            r_target = self.attention(z_phi_T, z_phi_C, h_C, **kwargs)
+            attn_out = self.attention(z_phi_T, z_phi_C, h_C, **kwargs)
         else:
             # Cross-attention → target-conditioned representation.
-            r_target = self.attention(z_phi_T, z_phi_C, h_C)  # [B, N_T, Z]
+            attn_out = self.attention(z_phi_T, z_phi_C, h_C)  # [B, N_T, Z]
+        # Aggregator now always returns ``(r_target, side_info)``.
+        # ``side_info`` may carry the Cell-13 η-gate as ``"pe_gate"``.
+        if isinstance(attn_out, tuple):
+            r_target, side_info = attn_out
+        else:
+            r_target, side_info = attn_out, {}
 
         # Decoder coordinate input. By default the decoder concatenates
         # r_target with the high-frequency latent z_phi_T (legacy
@@ -814,7 +888,22 @@ class AttentiveCNP(nn.Module):
         # the attention layer still benefits from PE bandwidth via Q/K,
         # but the decoder MLP no longer sees the bin-scale Fourier
         # features and therefore cannot fit bin-scale Bernoulli noise.
-        if self.decoder_coordinate_gating:
+        pe_gate = side_info.get("pe_gate")
+        if pe_gate is not None:
+            # Cell 13 — PE-gated decoder concat. Requires
+            # decoder_coordinate_gating=True (the raw_phi must be in
+            # the mix); the decoder's input dim was built as
+            # ``agg_dim + 2 + Z`` to accommodate the gated z_phi_T.
+            phi_tgt_t = torch.as_tensor(
+                target_batch.phi,
+                dtype=z_phi_T.dtype,
+                device=z_phi_T.device,
+            )
+            raw_phi = _recover_raw_phi(phi_tgt_t)  # [B, N_T, 2]
+            # eta has shape [B, N_T, 1]; broadcasts across Z.
+            gated_pe = pe_gate * z_phi_T  # [B, N_T, Z]
+            coord_input = torch.cat([raw_phi, gated_pe], dim=-1)  # [B, N_T, 2+Z]
+        elif self.decoder_coordinate_gating:
             phi_tgt_t = torch.as_tensor(
                 target_batch.phi,
                 dtype=z_phi_T.dtype,
@@ -881,6 +970,7 @@ def build_attentive_cnp(
     pool_density_sfn_tau_min: float = 1.0,
     pool_density_sfn_tau_max: float = 10.0,
     pool_density_sfn_head_tied: bool = False,
+    pool_density_sfn_pe_gated_decoder: bool = False,
     pe_detach_qk: bool = False,
     pool_energies_kev: "np.ndarray | torch.Tensor | None" = None,
     energy_range_kev: tuple[float, float] | None = None,
@@ -1080,14 +1170,29 @@ def build_attentive_cnp(
         pool_density_sfn_tau_min=pool_density_sfn_tau_min,
         pool_density_sfn_tau_max=pool_density_sfn_tau_max,
         pool_density_sfn_head_tied=pool_density_sfn_head_tied,
+        pool_density_sfn_pe_gated_decoder=pool_density_sfn_pe_gated_decoder,
         pe_detach_qk=pe_detach_qk,
     )
     # Decoder input dim is ``agg_dim + decoder_latent_dim`` where
-    # decoder_latent_dim is the size of the second concat input. With
-    # gating on, that input is raw (E_norm, T_norm) → 2; off, it's
-    # z_phi_T → Z. Both code paths reuse the same upstream CnpDecoder
-    # MLP architecture; only the first-layer width adapts.
-    decoder_latent_dim = 2 if decoder_coordinate_gating else Z
+    # decoder_latent_dim is the size of the second concat input.
+    # Three modes:
+    #   * pe_gated_decoder (Cell 13): coord input is
+    #     [raw_phi (2), η · z_phi_T (Z)] → latent_dim = 2 + Z.
+    #   * decoder_coordinate_gating (Cell 9-style): coord input is
+    #     raw (E_norm, T_norm) → latent_dim = 2.
+    #   * default (legacy attentive): coord input is z_phi_T → Z.
+    if pool_density_sfn_pe_gated_decoder:
+        if not decoder_coordinate_gating:
+            raise ValueError(
+                "pool_density_sfn_pe_gated_decoder=True requires "
+                "decoder_coordinate_gating=True — the raw_phi tensor "
+                "must remain in the decoder input alongside η · z_phi_T."
+            )
+        decoder_latent_dim = 2 + Z
+    elif decoder_coordinate_gating:
+        decoder_latent_dim = 2
+    else:
+        decoder_latent_dim = Z
     decoder = CnpDecoder(
         latent_dim=decoder_latent_dim,
         agg_dim=agg_dim,

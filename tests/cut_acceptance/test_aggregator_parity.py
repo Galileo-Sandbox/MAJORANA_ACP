@@ -1954,3 +1954,157 @@ def test_paradigm_suffix_appends_pedetach(tmp_path: Path) -> None:
     )
     suffix = paradigm_path_suffix(cfg)
     assert suffix.endswith("_dgsfn_tied_pedetach"), suffix
+
+
+# ---------------------------------------------------------------------- #
+# PE-Gated Decoder Concat (Cell 13)
+# ---------------------------------------------------------------------- #
+
+
+def test_pe_gated_decoder_defaults_off() -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    assert PoolDensitySfnConfig().pe_gated_decoder is False
+
+
+def test_pe_gated_decoder_requires_temperature_gating_config() -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    with pytest.raises(ValueError, match="requires temperature_gating"):
+        PoolDensitySfnConfig(
+            enabled=True, temperature_gating=False, pe_gated_decoder=True
+        )
+
+
+def test_pe_gated_decoder_requires_decoder_coordinate_gating(
+    encoder_cfg: EncoderConfig,
+) -> None:
+    """Factory raises if pe_gated_decoder is on without
+    decoder_coordinate_gating — the raw_phi must stay in the
+    decoder input alongside η · z_phi_T."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+    with pytest.raises(ValueError, match="decoder_coordinate_gating"):
+        build_attentive_cnp(
+            encoder_cfg,
+            dim_theta=None,
+            dim_phi=21,
+            num_heads=1,
+            attention_dim=128,
+            decoder_coordinate_gating=False,
+            gaussian_attention_bias=True,
+            pool_density_sfn_enabled=True,
+            pool_density_sfn_sigma_max_kev=200.0,
+            pool_density_sfn_sigma_min_kev=5.0,
+            pool_density_sfn_sigma_local_kev=2.0,
+            pool_density_sfn_sigma_global_kev=150.0,
+            pool_density_sfn_temperature_gating=True,
+            pool_density_sfn_pe_gated_decoder=True,
+            pool_energies_kev=pool,
+            energy_range_kev=(500.0, 3000.0),
+        )
+
+
+def test_pe_gated_decoder_registers_eta_net_and_widens_decoder(
+    encoder_cfg: EncoderConfig,
+) -> None:
+    """``pool_eta_net`` appears in state_dict; decoder input dim is
+    agg_dim + (2 + Z) = 2Z + 2."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+    Z = encoder_cfg.latent_dim
+    cnp = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=21,
+        num_heads=1,
+        attention_dim=128,
+        decoder_coordinate_gating=True,
+        gaussian_attention_bias=True,
+        pool_density_sfn_enabled=True,
+        pool_density_sfn_sigma_max_kev=200.0,
+        pool_density_sfn_sigma_min_kev=5.0,
+        pool_density_sfn_sigma_local_kev=2.0,
+        pool_density_sfn_sigma_global_kev=150.0,
+        pool_density_sfn_temperature_gating=True,
+        pool_density_sfn_head_tied=True,
+        pool_density_sfn_pe_gated_decoder=True,
+        pe_detach_qk=True,
+        pool_energies_kev=pool,
+        energy_range_kev=(500.0, 3000.0),
+    )
+    eta_keys = [k for k in cnp.state_dict() if k.startswith("attention.pool_eta_net")]
+    assert len(eta_keys) == 4  # 2 Linear × (weight, bias)
+    # Final Linear of η-MLP — out_features == 1 (one scalar per query).
+    assert cnp.attention.pool_eta_net[-1].out_features == 1
+    # Decoder input width: agg_dim (Z) + 2 + Z = 2Z + 2.
+    assert cnp.decoder.net[0].in_features == 2 * Z + 2
+
+
+def test_pe_gated_decoder_forward_shape(encoder_cfg: EncoderConfig) -> None:
+    """Cell 13's full config — end-to-end forward returns the expected
+    [B, N_T] mu/log_sigma shapes."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+    cnp = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=21,
+        num_heads=1,
+        attention_dim=128,
+        decoder_coordinate_gating=True,
+        gaussian_attention_bias=True,
+        pool_density_sfn_enabled=True,
+        pool_density_sfn_sigma_max_kev=200.0,
+        pool_density_sfn_sigma_min_kev=5.0,
+        pool_density_sfn_sigma_local_kev=2.0,
+        pool_density_sfn_sigma_global_kev=150.0,
+        pool_density_sfn_temperature_gating=True,
+        pool_density_sfn_head_tied=True,
+        pool_density_sfn_pe_gated_decoder=True,
+        pe_detach_qk=True,
+        pool_energies_kev=pool,
+        energy_range_kev=(500.0, 3000.0),
+    )
+    ctx = _random_batch(B=2, N=64, dim_phi=21, seed=0)
+    tgt = _random_batch(B=2, N=8, dim_phi=21, seed=1)
+    out = cnp(ctx, tgt)
+    assert out.mu_logit.shape == (2, 8)
+    assert out.log_sigma.shape == (2, 8)
+
+
+def test_paradigm_suffix_appends_pegate(tmp_path: Path) -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    cfg = _make_cfg(
+        tmp_path,
+        sampling_pattern="flat_stratified",
+        trial_size_strategy="variable_uniform",
+        n_trial_events_min=640,
+        n_trial_events_max=1024,
+        aggregator=AggregatorConfig(
+            type="cross_attention",
+            num_heads=1,
+            attention_dim=128,
+            decoder_coordinate_gating=True,
+            gaussian_attention_bias=True,
+            pe_detach_qk=True,
+            pool_density_sfn=PoolDensitySfnConfig(
+                enabled=True,
+                temperature_gating=True,
+                head_tied=True,
+                pe_gated_decoder=True,
+                sigma_local_kev=2.0,
+            ),
+        ),
+    )
+    suffix = paradigm_path_suffix(cfg)
+    assert "_pegate" in suffix
+    assert "_sl2" in suffix
+    assert "_pedetach" in suffix

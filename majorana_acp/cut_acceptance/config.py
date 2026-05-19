@@ -612,6 +612,41 @@ class PoolDensitySfnConfig(_Frozen):
             )
         return v
 
+    pe_gated_decoder: bool = Field(
+        False,
+        description=(
+            "Enable the PE-Gated Decoder Concat (Cell 13). When True, a "
+            "THIRD PE-free MLP head (same input ``[log ρ_local, "
+            "log ρ_global]`` as σ and τ) emits a per-target scalar "
+            "η_head(E_*) ∈ [0, 1] that gates how much of the PE-encoded "
+            "``z_phi_T`` latent leaks into the decoder's coordinate "
+            "concat input:\n\n"
+            "    decoder_input = [r_target, raw_E_norm, η · z_phi_T]\n\n"
+            "In low-density regions (continuum) the SFN learns η → 0 "
+            "and the decoder sees only the raw 2D coords → β̂ is forced "
+            "smooth (Cell 11/12 regime, MASD ≈ 0.004). In high-density "
+            "regions (peaks) the SFN learns η → 1 and the full PE10 "
+            "latent reaches the decoder → β̂ can resolve sharp γ-line "
+            "features (Cell 6 regime). The on/off switch sits under "
+            "the SAME density-aware MLP family that drives σ and τ.\n\n"
+            "Requires ``aggregator.decoder_coordinate_gating=True`` "
+            "(so the raw coords stay in the decoder input) AND "
+            "``temperature_gating=True`` (the SFN-machinery dependency). "
+            "Decoder is built with input dim ``agg_dim + 2 + Z`` to "
+            "accommodate the gated PE10 channel."
+        ),
+    )
+
+    @field_validator("pe_gated_decoder")
+    @classmethod
+    def _pe_gate_requires_temperature_gating(cls, v: bool, info) -> bool:
+        if v and not info.data.get("temperature_gating", False):
+            raise ValueError(
+                "pe_gated_decoder=True requires temperature_gating=True "
+                "— the PE gate sits on the same SFN family as σ/τ."
+            )
+        return v
+
     @field_validator("sigma_min_kev")
     @classmethod
     def _min_below_max(cls, v: float, info) -> float:

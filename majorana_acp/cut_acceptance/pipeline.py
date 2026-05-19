@@ -180,6 +180,10 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
                     bits.append("dgsfn")
                     if cfg.aggregator.pool_density_sfn.head_tied:
                         bits.append("tied")
+                    # Cell 13 — third SFN head η gating PE10 into the
+                    # decoder concat. Sits alongside the σ/τ heads.
+                    if cfg.aggregator.pool_density_sfn.pe_gated_decoder:
+                        bits.append("pegate")
                 else:
                     bits.append("pdsfn")
                 # Encode a non-default ``sigma_local_kev`` so different
@@ -323,6 +327,7 @@ def build_local_cnp(cfg: CutAcceptanceConfig, *, dim_phi: int):
             pool_density_sfn_tau_min=pdsfn.tau_min_value,
             pool_density_sfn_tau_max=pdsfn.tau_max_value,
             pool_density_sfn_head_tied=pdsfn.head_tied,
+            pool_density_sfn_pe_gated_decoder=pdsfn.pe_gated_decoder,
             pe_detach_qk=cfg.aggregator.pe_detach_qk,
             pool_energies_kev=pool_energies_kev,
             energy_range_kev=cfg.energy_range if needs_range else None,
@@ -617,6 +622,7 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             "pool_density_sfn_tau_min_value": cfg.aggregator.pool_density_sfn.tau_min_value,
             "pool_density_sfn_tau_max_value": cfg.aggregator.pool_density_sfn.tau_max_value,
             "pool_density_sfn_head_tied": cfg.aggregator.pool_density_sfn.head_tied,
+            "pool_density_sfn_pe_gated_decoder": cfg.aggregator.pool_density_sfn.pe_gated_decoder,
             "pe_detach_qk": cfg.aggregator.pe_detach_qk,
             "density_sampling": cfg.density_sampling,
             "density_kde_radius_kev": cfg.density_kde_radius_kev,
