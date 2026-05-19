@@ -60,6 +60,8 @@ SamplingPattern = Literal[
     "physics_anchored",
 ]
 
+DensitySampling = Literal["bin_stratified", "continuous"]
+
 _MAX_CLUSTER_REJECTIONS = 50
 
 
@@ -95,6 +97,8 @@ class EventSampler:
         n_clusters: int = 2,
         physics_peaks_kev: list[float] | None = None,
         positional_encoding: PositionalEncodingConfig | None = None,
+        density_sampling: DensitySampling = "bin_stratified",
+        density_kde_radius_kev: float = 10.0,
     ) -> None:
         if not threshold_range[1] > threshold_range[0]:
             raise ValueError(f"threshold_range must satisfy hi > lo, got {threshold_range}")
@@ -113,6 +117,13 @@ class EventSampler:
             raise ValueError(f"local_event_fraction must be in (0, 1), got {local_event_fraction}")
         if n_clusters < 1:
             raise ValueError(f"n_clusters must be >= 1, got {n_clusters}")
+        if density_sampling not in ("bin_stratified", "continuous"):
+            raise ValueError(
+                f"density_sampling must be 'bin_stratified' or 'continuous', "
+                f"got {density_sampling!r}"
+            )
+        if density_kde_radius_kev <= 0.0:
+            raise ValueError(f"density_kde_radius_kev must be > 0, got {density_kde_radius_kev}")
 
         self._index = _BinIndex(
             energy,
@@ -153,6 +164,42 @@ class EventSampler:
         # dim_phi is dynamic: 2*L + 1 when PE is on, 2 otherwise. The
         # CNP encoder/decoder are built from this same number.
         self.dim_phi: int = phi_dim(self.positional_encoding)
+
+        # Continuous-density book-keeping. Always populate the kept-
+        # event id list so the continuous draw shares the same kept-
+        # event set as the bin-stratified path; only precompute the
+        # inverse-density weights when actually needed.
+        self.density_sampling: DensitySampling = density_sampling
+        self.density_kde_radius_kev = float(density_kde_radius_kev)
+        kept_event_ids = np.concatenate(self._index.bin_events).astype(np.int64)
+        self._kept_event_ids = kept_event_ids
+        self._kept_event_energies = self._index.energy[kept_event_ids]
+        if self.density_sampling == "continuous":
+            self._continuous_global_weights = self._compute_inverse_density_weights(
+                self._kept_event_energies, self.density_kde_radius_kev
+            )
+        else:
+            self._continuous_global_weights = None
+
+    @staticmethod
+    def _compute_inverse_density_weights(energies: np.ndarray, kde_radius_kev: float) -> np.ndarray:
+        """Per-event inverse-density weight via a box kernel of half-
+        width ``kde_radius_kev``. ``O(N log N)`` via sorted searchsorted.
+
+        Returned weights are normalised to sum to 1 across the input
+        pool, ready to be passed straight to ``rng.choice(p=...)``.
+        """
+        sort_idx = np.argsort(energies)
+        e_sorted = energies[sort_idx]
+        lo = np.searchsorted(e_sorted, e_sorted - kde_radius_kev, side="left")
+        hi = np.searchsorted(e_sorted, e_sorted + kde_radius_kev, side="right")
+        counts_sorted = (hi - lo).astype(np.float64)
+        # Map back to the original (unsorted) event order so the weight
+        # at slot i is for event i in ``energies``.
+        counts = np.empty_like(counts_sorted)
+        counts[sort_idx] = counts_sorted
+        inv = 1.0 / counts
+        return inv / inv.sum()
 
     # ----- introspection (used by pipeline + diagnostics) ---------------
 
@@ -213,6 +260,50 @@ class EventSampler:
             out[mask] = pool[rng.integers(0, pool.size, size=int(mask.sum()))]
         return out
 
+    # ----- Continuous draws (continuous density sampling mode) ---------
+
+    def _continuous_global_draw(self, rng: np.random.Generator, n: int) -> np.ndarray:
+        """Inverse-density-weighted draw from the kept-event pool. Returns
+        pool-event indices (into ``self._index.energy``)."""
+        if n == 0:
+            return np.empty(0, dtype=np.int64)
+        kept_idx = rng.choice(
+            self._kept_event_ids.size,
+            size=n,
+            replace=True,
+            p=self._continuous_global_weights,
+        )
+        return self._kept_event_ids[kept_idx]
+
+    def _continuous_local_draw(
+        self,
+        rng: np.random.Generator,
+        n: int,
+        focus_e: float,
+        half_w: float,
+    ) -> np.ndarray:
+        """Uniform draw (with replacement) from kept events satisfying
+        ``|E_i − focus_e| ≤ half_w``. Returns pool-event indices.
+
+        Raises if the local pool is empty — same error semantics as the
+        bin-stratified ``_bin_stratified_draw`` on an empty subset.
+        """
+        if n == 0:
+            return np.empty(0, dtype=np.int64)
+        mask = np.abs(self._kept_event_energies - focus_e) <= half_w
+        local_pool_size = int(mask.sum())
+        if local_pool_size == 0:
+            raise ValueError(
+                f"continuous local draw: focus {focus_e:.1f} keV has no kept "
+                f"events within ±{half_w:.1f} keV"
+            )
+        local_event_ids = self._kept_event_ids[mask]
+        # Uniform within the local set, with replacement so n_local can
+        # exceed the local-pool size (consistent with the bin-stratified
+        # path, which also samples within-bin with replacement).
+        idx = rng.integers(0, local_event_ids.size, size=n)
+        return local_event_ids[idx]
+
     def _bins_in_window(self, e_center: float, half_w: float) -> np.ndarray:
         """Kept-bin indices whose bin overlaps the window
         ``[e_center − half_w, e_center + half_w]``. A bin is included
@@ -223,6 +314,8 @@ class EventSampler:
     # ----- Pattern dispatch + 4 per-trial draw routines ----------------
 
     def _draw_flat_stratified(self, rng: np.random.Generator, n: int) -> np.ndarray:
+        if self.density_sampling == "continuous":
+            return self._continuous_global_draw(rng, n)
         return self._bin_stratified_draw(rng, n, np.arange(self.n_bins))
 
     def _draw_mixed_density(self, rng: np.random.Generator, n: int) -> np.ndarray:
@@ -236,18 +329,24 @@ class EventSampler:
     def _foveated_draw(self, rng: np.random.Generator, n: int, *, focus_e: float) -> np.ndarray:
         """Common engine for ``mixed_density`` and ``physics_anchored``:
         a fraction of events in a window around ``focus_e``, the rest
-        drawn globally."""
+        drawn globally. Branches on ``density_sampling`` — both branches
+        respect the same ``zoom_window_width_kev`` half-window for the
+        local fraction."""
         half_w = 0.5 * self.zoom_window_width_kev
-        local_bins = self._bins_in_window(focus_e, half_w)
-        if local_bins.size == 0:
-            raise ValueError(
-                f"focus energy {focus_e:.1f} keV has no kept bins within "
-                f"±{half_w:.1f} keV — check energy_range / min_events_per_bin"
-            )
         n_local = int(round(n * self.local_event_fraction))
         n_global = n - n_local
-        local = self._bin_stratified_draw(rng, n_local, local_bins)
-        global_ = self._bin_stratified_draw(rng, n_global, np.arange(self.n_bins))
+        if self.density_sampling == "continuous":
+            local = self._continuous_local_draw(rng, n_local, focus_e, half_w)
+            global_ = self._continuous_global_draw(rng, n_global)
+        else:
+            local_bins = self._bins_in_window(focus_e, half_w)
+            if local_bins.size == 0:
+                raise ValueError(
+                    f"focus energy {focus_e:.1f} keV has no kept bins within "
+                    f"±{half_w:.1f} keV — check energy_range / min_events_per_bin"
+                )
+            local = self._bin_stratified_draw(rng, n_local, local_bins)
+            global_ = self._bin_stratified_draw(rng, n_global, np.arange(self.n_bins))
         out = np.concatenate([local, global_])
         rng.shuffle(out)
         return out
@@ -291,8 +390,11 @@ class EventSampler:
         for c, k in zip(centers, per_cluster, strict=True):
             if k == 0:
                 continue
-            bins_here = self._bins_in_window(c, half_w)
-            pieces.append(self._bin_stratified_draw(rng, int(k), bins_here))
+            if self.density_sampling == "continuous":
+                pieces.append(self._continuous_local_draw(rng, int(k), c, half_w))
+            else:
+                bins_here = self._bins_in_window(c, half_w)
+                pieces.append(self._bin_stratified_draw(rng, int(k), bins_here))
         out = np.concatenate(pieces) if pieces else np.empty(0, dtype=np.int64)
         rng.shuffle(out)
         return out

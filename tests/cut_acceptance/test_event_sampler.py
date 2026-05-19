@@ -564,3 +564,175 @@ def test_pe_enabled_widens_phi_to_2L_plus_one(L: int) -> None:
     energy_features = batch.phi[..., : 2 * L]
     assert energy_features.min() >= -1.0 - 1e-9
     assert energy_features.max() <= 1.0 + 1e-9
+
+
+# ---------------------------------------------------------------------------
+# Continuous density sampling
+# ---------------------------------------------------------------------------
+
+
+def _gradient_pool(
+    n_dense: int = 18000,
+    n_sparse: int = 2000,
+    seed: int = 0,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Pool with a strong density gradient: ``n_dense`` events uniform in
+    [500, 1500] keV, ``n_sparse`` events uniform in [1500, 3000] keV.
+    Mimics the natural HPGe spectrum (Compton-dominated low E, peaks at high E)."""
+    rng = np.random.default_rng(seed)
+    e = np.concatenate([rng.uniform(500.0, 1500.0, n_dense), rng.uniform(1500.0, 3000.0, n_sparse)])
+    s = rng.uniform(0.0, 1.0, e.size)
+    return e, s
+
+
+def test_continuous_density_weights_sum_to_one() -> None:
+    e, s = _gradient_pool()
+    samp = EventSampler(
+        e,
+        s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=10.0,
+        min_events_per_bin=2,
+        density_sampling="continuous",
+        density_kde_radius_kev=10.0,
+    )
+    w = samp._continuous_global_weights
+    assert w is not None
+    assert np.isclose(w.sum(), 1.0)
+    assert (w > 0).all()
+
+
+def test_continuous_density_weights_inverse_to_local_density() -> None:
+    """Events in dense regions get smaller weights than events in sparse
+    regions. The ratio must exceed the density ratio's order of magnitude
+    (the box-kernel count is a coarse estimator, so allow slack)."""
+    e, s = _gradient_pool(n_dense=18000, n_sparse=2000)
+    samp = EventSampler(
+        e,
+        s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=10.0,
+        min_events_per_bin=2,
+        density_sampling="continuous",
+        density_kde_radius_kev=10.0,
+    )
+    w = samp._continuous_global_weights
+    E_kept = samp._kept_event_energies
+    dense_mask = E_kept < 1500.0
+    sparse_mask = E_kept >= 1500.0
+    mean_w_dense = w[dense_mask].mean()
+    mean_w_sparse = w[sparse_mask].mean()
+    # Dense weight should be substantially smaller than sparse weight.
+    assert mean_w_sparse / mean_w_dense > 3.0, (
+        f"continuous mode failed inverse-density check: "
+        f"dense={mean_w_dense:.6f}  sparse={mean_w_sparse:.6f}"
+    )
+
+
+def test_continuous_mode_default_off() -> None:
+    """Default density_sampling is bin_stratified — no precomputed weights."""
+    s = _sampler()
+    assert s.density_sampling == "bin_stratified"
+    assert s._continuous_global_weights is None
+
+
+def test_continuous_global_draw_equalises_density() -> None:
+    """flat_stratified + continuous mode should pull MORE events from the
+    sparse half of a 9:1 gradient pool than a natural draw would."""
+    e, s = _gradient_pool(n_dense=18000, n_sparse=2000)
+    samp = EventSampler(
+        e,
+        s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=10.0,
+        min_events_per_bin=2,
+        sampling_pattern="flat_stratified",
+        density_sampling="continuous",
+        density_kde_radius_kev=10.0,
+    )
+    batch = samp.generate(n_trials=64, n_events=128, seed=0)
+    E_draw = batch.phi[..., 0].flatten() * 2500.0 + 500.0
+    frac_sparse = (E_draw > 1500.0).mean()
+    # Pool's natural sparse fraction = 0.10. After density equalization,
+    # sparse fraction should rise to ~0.5 (equal-by-bin) at the limit.
+    # Allow a tolerance since the box kernel + bin filtering aren't perfect.
+    assert frac_sparse > 0.3, f"continuous draw sparse fraction = {frac_sparse:.2f} (expected >0.3)"
+    assert frac_sparse < 0.7, f"continuous draw sparse fraction = {frac_sparse:.2f} (expected <0.7)"
+
+
+def test_continuous_local_filter_strict_within_half_window() -> None:
+    """The continuous local draw uses the absolute filter
+    ``|E - focus| <= half_w`` — every locally-drawn event must satisfy
+    it. With f_local = 1.0 (no global draw) every event in the batch
+    should fall inside the window."""
+    e, s = _gradient_pool()
+    samp = EventSampler(
+        e,
+        s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=10.0,
+        min_events_per_bin=2,
+        sampling_pattern="physics_anchored",
+        physics_peaks_kev=[1592.0, 2103.0, 2614.0],
+        zoom_window_width_kev=10.0,
+        local_event_fraction=0.99,  # near-100% local
+        density_sampling="continuous",
+        density_kde_radius_kev=10.0,
+    )
+    batch = samp.generate(n_trials=64, n_events=64, seed=0)
+    E_draw = batch.phi[..., 0].flatten() * 2500.0 + 500.0
+    # Each event must be within ±5 keV of *some* peak.
+    peaks = np.array([1592.0, 2103.0, 2614.0])
+    min_dist = np.min(np.abs(E_draw[:, None] - peaks[None, :]), axis=1)
+    # >= 99% should be in-window (the ~1% allowed for the n_global slot).
+    in_window_frac = (min_dist <= 5.0).mean()
+    assert in_window_frac >= 0.95, (
+        f"continuous local filter leaked {1 - in_window_frac:.2%} outside ±5 keV"
+    )
+
+
+def test_continuous_sampling_reproducible() -> None:
+    """Two runs with the same seed must produce bitwise-identical batches."""
+    e, s = _gradient_pool()
+    samp = EventSampler(
+        e,
+        s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=10.0,
+        min_events_per_bin=2,
+        sampling_pattern="physics_anchored",
+        physics_peaks_kev=[1592.0, 2614.0],
+        zoom_window_width_kev=10.0,
+        local_event_fraction=0.80,
+        density_sampling="continuous",
+        density_kde_radius_kev=10.0,
+    )
+    b1 = samp.generate(n_trials=4, n_events=32, seed=42)
+    b2 = samp.generate(n_trials=4, n_events=32, seed=42)
+    np.testing.assert_array_equal(b1.phi, b2.phi)
+    np.testing.assert_array_equal(b1.labels, b2.labels)
+
+
+def test_continuous_sampling_rejects_empty_local_window() -> None:
+    """If the focus is outside the pool's energy range, raise — same
+    error contract as the bin-stratified path."""
+    e, s = _gradient_pool()
+    # Use a focus far outside any kept event (pool spans [500, 3000])
+    samp = EventSampler(
+        e,
+        s,
+        energy_range=(500.0, 3000.0),
+        energy_bin_width=10.0,
+        min_events_per_bin=2,
+        sampling_pattern="physics_anchored",
+        physics_peaks_kev=[2999.0],  # at upper edge
+        zoom_window_width_kev=1.0,  # narrow window
+        local_event_fraction=0.5,
+        density_sampling="continuous",
+        density_kde_radius_kev=10.0,
+    )
+    # Hard-code a focus the local mask cannot satisfy by bypassing the
+    # YAML peak filter — call _continuous_local_draw directly.
+    rng = np.random.default_rng(0)
+    with pytest.raises(ValueError, match="no kept events within"):
+        samp._continuous_local_draw(rng, n=4, focus_e=4000.0, half_w=0.1)
