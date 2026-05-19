@@ -182,6 +182,19 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
                         bits.append("tied")
                 else:
                     bits.append("pdsfn")
+                # Encode a non-default ``sigma_local_kev`` so different
+                # local-kernel widths land at distinct canonical paths.
+                # The default 10 keV stays unsuffixed for back-compat;
+                # any other value gets ``sl<int(σ_l)>`` (Cell 12 uses 2).
+                sl_default = 10.0
+                sl_kev = cfg.aggregator.pool_density_sfn.sigma_local_kev
+                if abs(sl_kev - sl_default) > 1e-9:
+                    # Encode floats compactly: integers as ``sl5``,
+                    # fractional values as ``sl0p5`` (0.5 keV).
+                    if abs(sl_kev - round(sl_kev)) < 1e-9:
+                        bits.append(f"sl{int(round(sl_kev))}")
+                    else:
+                        bits.append(f"sl{str(sl_kev).replace('.', 'p')}")
     # Append _debinned when the sampler uses the continuous inverse-
     # density draw instead of the legacy bin-stratified loop.
     if cfg.density_sampling == "continuous":
