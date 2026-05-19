@@ -2,7 +2,7 @@
 
 Source: `analysis/cnp_audit/simple_cnn_small/<paradigm>/bin10/inclusive/test_set_audit.json` (regenerated via `python -m scripts.diagnostics.cnp_test_inference <cfg>` or the full sweep). The inclusive cell uses ``target_class="all"`` — every test event contributes to D_T, no label filter — so this is the spectrum-wide pass-rate view the experiment ultimately reports.
 
-Loaded cells: true_cnp, w10_fixed48, w10_varN_large, physics_w10_varN, hyper_zoom_w5, w10_varN_pe10, w10_varN_pe10_attn, physics_pe10_attn_gated, physics_pe9_attn_gated, physics_pure_attn4x64, physics_pe10_attn_gab, physics_pe10_attn_gab_debinned, physics_pe10_attn_gab_dense, physics_peOff_attn_gab_dense, physics_pe10_attn_gab_bpbn, physics_pe10_attn_gab_sfn, flat_pe10_attn_gab_pdsfn, flat_pe10_attn_gab_dgsfn, flat_pe10_attn_gab_dgsfn_tied, flat_pe10_attn1_pedetach_dgsfn_tied, flat_pe10_attn1_gated_pedetach_dgsfn_tied, flat_attn1_fullgated_dgsfn_tied_sl2, flat_attn1_fullgated_dgsfn_tied_pegate_sl2, flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1
+Loaded cells: true_cnp, w10_fixed48, w10_varN_large, physics_w10_varN, hyper_zoom_w5, w10_varN_pe10, w10_varN_pe10_attn, physics_pe10_attn_gated, physics_pe9_attn_gated, physics_pure_attn4x64, physics_pe10_attn_gab, physics_pe10_attn_gab_debinned, physics_pe10_attn_gab_dense, physics_peOff_attn_gab_dense, physics_pe10_attn_gab_bpbn, physics_pe10_attn_gab_sfn, flat_pe10_attn_gab_pdsfn, flat_pe10_attn_gab_dgsfn, flat_pe10_attn_gab_dgsfn_tied, flat_pe10_attn1_pedetach_dgsfn_tied, flat_pe10_attn1_gated_pedetach_dgsfn_tied, flat_attn1_fullgated_dgsfn_tied_sl2, flat_attn1_fullgated_dgsfn_tied_pegate_sl2, flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1, flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2
 
 ## Coverage  (target: Gaussian 0.683 / 0.954 / 0.997)
 
@@ -34,6 +34,7 @@ Loaded cells: true_cnp, w10_fixed48, w10_varN_large, physics_w10_varN, hyper_zoo
 | flat_attn1_fullgated_dgsfn_tied_sl2 | 0.590 | 0.883 | 0.951 | 0.063 | 0.151 | 0.263 | ↓ overconfident (σ too tight) |
 | flat_attn1_fullgated_dgsfn_tied_pegate_sl2 | 0.541 | 0.839 | 0.941 | 0.220 | 0.473 | 0.644 | ↓ overconfident (σ too tight) |
 | flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1 | 0.580 | 0.893 | 0.941 | 0.112 | 0.195 | 0.249 | ↓ overconfident (σ too tight) |
+| flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2 | 0.595 | 0.888 | 0.946 | 0.063 | 0.180 | 0.268 | ↓ overconfident (σ too tight) |
 
 ## Localized peak-region goodness-of-fit  (±5 keV window, held-out D_T)
 
@@ -67,6 +68,7 @@ Reduced χ²_DT target ≈ 1.0; p_DT > 0.5 = mean indistinguishable from sharp t
 | flat_attn1_fullgated_dgsfn_tied_sl2 |   0.62 |  -1.02 | 0.309 | ~ marginal |
 | flat_attn1_fullgated_dgsfn_tied_pegate_sl2 |   2.48 |  -1.71 | 0.086 | ✗ local miss |
 | flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1 |   0.67 |  +1.02 | 0.307 | ~ marginal |
+| flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2 |   1.24 |  -1.37 | 0.171 | ~ marginal |
 
 ### SE 2103
 
@@ -96,6 +98,7 @@ Reduced χ²_DT target ≈ 1.0; p_DT > 0.5 = mean indistinguishable from sharp t
 | flat_attn1_fullgated_dgsfn_tied_sl2 |  43.26 | -28.81 | 1.4e-182 | ✗ local miss |
 | flat_attn1_fullgated_dgsfn_tied_pegate_sl2 |   1.74 |  -1.86 | 0.063 | ~ marginal |
 | flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1 |  37.16 | -20.17 | 1.7e-90 | ✗ local miss |
+| flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2 |  41.58 | -22.56 | 1.1e-112 | ✗ local miss |
 
 ### DEP 1592
 
@@ -125,6 +128,7 @@ Reduced χ²_DT target ≈ 1.0; p_DT > 0.5 = mean indistinguishable from sharp t
 | flat_attn1_fullgated_dgsfn_tied_sl2 |  23.72 | +23.04 | 1.7e-117 | ✗ local miss |
 | flat_attn1_fullgated_dgsfn_tied_pegate_sl2 |  11.99 |  +5.16 | 2.5e-07 | ✗ local miss |
 | flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1 |  28.54 | +22.80 | 5.1e-115 | ✗ local miss |
+| flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2 |  24.46 | +18.82 | 4.7e-79 | ✗ local miss |
 
 ### Bi 1620
 
@@ -154,6 +158,7 @@ Reduced χ²_DT target ≈ 1.0; p_DT > 0.5 = mean indistinguishable from sharp t
 | flat_attn1_fullgated_dgsfn_tied_sl2 |   0.55 |  -0.71 | 0.479 | ~ marginal |
 | flat_attn1_fullgated_dgsfn_tied_pegate_sl2 |   0.72 |  +0.26 | 0.793 | ✓ clean |
 | flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1 |   0.51 |  -0.64 | 0.520 | ✓ clean |
+| flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2 |   0.46 |  -0.55 | 0.580 | ✓ clean |
 
 ## Per-peak ranking (held-out D_T)
 
@@ -176,14 +181,15 @@ Ranked by *p_DT* (high = mean indistinguishable from data). High p_DT with χ²_
   14. `w10_varN_pe10_attn` — p_DT=0.280, Z_DT= -1.08, χ²_DT=  1.00  ·  ~ marginal
   15. `physics_pe9_attn_gated` — p_DT=0.275, Z_DT= -1.09, χ²_DT=  0.69  ·  ~ marginal
   16. `physics_pe10_attn_gab_bpbn` — p_DT=0.207, Z_DT= +1.26, χ²_DT=  0.98  ·  ~ marginal
-  17. `physics_pe10_attn_gab_sfn` — p_DT=0.170, Z_DT= +1.37, χ²_DT=  0.89  ·  ~ marginal
-  18. `w10_varN_large` — p_DT=0.137, Z_DT= -1.49, χ²_DT=  1.84  ·  ~ marginal
-  19. `flat_attn1_fullgated_dgsfn_tied_pegate_sl2` — p_DT=0.086, Z_DT= -1.71, χ²_DT=  2.48  ·  ✗ local miss
-  20. `w10_varN_pe10` — p_DT=0.037, Z_DT= -2.09, χ²_DT=  3.58  ·  ✗ local miss
-  21. `physics_pure_attn4x64` — p_DT=0.021, Z_DT= -2.31, χ²_DT=  3.00  ·  ✗ local miss
-  22. `physics_w10_varN` — p_DT=0.007, Z_DT= -2.72, χ²_DT=  3.06  ·  ✗ local miss
-  23. `physics_peOff_attn_gab_dense` — p_DT=0.002, Z_DT= -3.06, χ²_DT=  4.53  ·  ✗ local miss
-  24. `hyper_zoom_w5` — p_DT=8.6e-04, Z_DT= -3.33, χ²_DT=  7.32  ·  ✗ local miss
+  17. `flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2` — p_DT=0.171, Z_DT= -1.37, χ²_DT=  1.24  ·  ~ marginal
+  18. `physics_pe10_attn_gab_sfn` — p_DT=0.170, Z_DT= +1.37, χ²_DT=  0.89  ·  ~ marginal
+  19. `w10_varN_large` — p_DT=0.137, Z_DT= -1.49, χ²_DT=  1.84  ·  ~ marginal
+  20. `flat_attn1_fullgated_dgsfn_tied_pegate_sl2` — p_DT=0.086, Z_DT= -1.71, χ²_DT=  2.48  ·  ✗ local miss
+  21. `w10_varN_pe10` — p_DT=0.037, Z_DT= -2.09, χ²_DT=  3.58  ·  ✗ local miss
+  22. `physics_pure_attn4x64` — p_DT=0.021, Z_DT= -2.31, χ²_DT=  3.00  ·  ✗ local miss
+  23. `physics_w10_varN` — p_DT=0.007, Z_DT= -2.72, χ²_DT=  3.06  ·  ✗ local miss
+  24. `physics_peOff_attn_gab_dense` — p_DT=0.002, Z_DT= -3.06, χ²_DT=  4.53  ·  ✗ local miss
+  25. `hyper_zoom_w5` — p_DT=8.6e-04, Z_DT= -3.33, χ²_DT=  7.32  ·  ✗ local miss
 
 **SE 2103**
   1. `flat_pe10_attn1_pedetach_dgsfn_tied` — p_DT=0.717, Z_DT= -0.36, χ²_DT=  0.07  ·  ✓ clean
@@ -208,8 +214,9 @@ Ranked by *p_DT* (high = mean indistinguishable from data). High p_DT with χ²_
   20. `hyper_zoom_w5` — p_DT=4.5e-74, Z_DT=-18.21, χ²_DT= 28.99  ·  ✗ local miss
   21. `flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1` — p_DT=1.7e-90, Z_DT=-20.17, χ²_DT= 37.16  ·  ✗ local miss
   22. `w10_varN_large` — p_DT=2.7e-96, Z_DT=-20.82, χ²_DT= 43.45  ·  ✗ local miss
-  23. `flat_pe10_attn1_gated_pedetach_dgsfn_tied` — p_DT=4.0e-157, Z_DT=-26.71, χ²_DT= 43.69  ·  ✗ local miss
-  24. `flat_attn1_fullgated_dgsfn_tied_sl2` — p_DT=1.4e-182, Z_DT=-28.81, χ²_DT= 43.26  ·  ✗ local miss
+  23. `flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2` — p_DT=1.1e-112, Z_DT=-22.56, χ²_DT= 41.58  ·  ✗ local miss
+  24. `flat_pe10_attn1_gated_pedetach_dgsfn_tied` — p_DT=4.0e-157, Z_DT=-26.71, χ²_DT= 43.69  ·  ✗ local miss
+  25. `flat_attn1_fullgated_dgsfn_tied_sl2` — p_DT=1.4e-182, Z_DT=-28.81, χ²_DT= 43.26  ·  ✗ local miss
 
 **DEP 1592**
   1. `flat_pe10_attn_gab_pdsfn` — p_DT=0.001, Z_DT= +3.26, χ²_DT=  6.08  ·  ✗ local miss
@@ -231,11 +238,12 @@ Ranked by *p_DT* (high = mean indistinguishable from data). High p_DT with χ²_
   17. `physics_pe10_attn_gated` — p_DT=3.2e-59, Z_DT=+16.23, χ²_DT= 52.81  ·  ✗ local miss
   18. `w10_varN_large` — p_DT=7.3e-75, Z_DT=+18.31, χ²_DT= 22.60  ·  ✗ local miss
   19. `flat_pe10_attn1_gated_pedetach_dgsfn_tied` — p_DT=5.0e-78, Z_DT=+18.70, χ²_DT= 22.63  ·  ✗ local miss
-  20. `physics_pure_attn4x64` — p_DT=1.1e-80, Z_DT=+19.02, χ²_DT= 25.80  ·  ✗ local miss
-  21. `physics_w10_varN` — p_DT=1.0e-84, Z_DT=+19.50, χ²_DT= 30.64  ·  ✗ local miss
-  22. `flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1` — p_DT=5.1e-115, Z_DT=+22.80, χ²_DT= 28.54  ·  ✗ local miss
-  23. `flat_attn1_fullgated_dgsfn_tied_sl2` — p_DT=1.7e-117, Z_DT=+23.04, χ²_DT= 23.72  ·  ✗ local miss
-  24. `hyper_zoom_w5` — p_DT=1.9e-160, Z_DT=+26.99, χ²_DT= 29.21  ·  ✗ local miss
+  20. `flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2` — p_DT=4.7e-79, Z_DT=+18.82, χ²_DT= 24.46  ·  ✗ local miss
+  21. `physics_pure_attn4x64` — p_DT=1.1e-80, Z_DT=+19.02, χ²_DT= 25.80  ·  ✗ local miss
+  22. `physics_w10_varN` — p_DT=1.0e-84, Z_DT=+19.50, χ²_DT= 30.64  ·  ✗ local miss
+  23. `flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1` — p_DT=5.1e-115, Z_DT=+22.80, χ²_DT= 28.54  ·  ✗ local miss
+  24. `flat_attn1_fullgated_dgsfn_tied_sl2` — p_DT=1.7e-117, Z_DT=+23.04, χ²_DT= 23.72  ·  ✗ local miss
+  25. `hyper_zoom_w5` — p_DT=1.9e-160, Z_DT=+26.99, χ²_DT= 29.21  ·  ✗ local miss
 
 **Bi 1620**
   1. `physics_w10_varN` — p_DT=0.969, Z_DT= -0.04, χ²_DT=  0.23  ·  ✓ clean
@@ -248,20 +256,21 @@ Ranked by *p_DT* (high = mean indistinguishable from data). High p_DT with χ²_
   8. `physics_pure_attn4x64` — p_DT=0.661, Z_DT= -0.44, χ²_DT=  0.36  ·  ✓ clean
   9. `physics_pe10_attn_gated` — p_DT=0.631, Z_DT= -0.48, χ²_DT=  0.21  ·  ✓ clean
   10. `true_cnp` — p_DT=0.609, Z_DT= -0.51, χ²_DT=  0.44  ·  ✓ clean
-  11. `physics_pe9_attn_gated` — p_DT=0.580, Z_DT= -0.55, χ²_DT=  0.49  ·  ✓ clean
-  12. `flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1` — p_DT=0.520, Z_DT= -0.64, χ²_DT=  0.51  ·  ✓ clean
-  13. `w10_fixed48` — p_DT=0.486, Z_DT= -0.70, χ²_DT=  0.58  ·  ~ marginal
-  14. `flat_attn1_fullgated_dgsfn_tied_sl2` — p_DT=0.479, Z_DT= -0.71, χ²_DT=  0.55  ·  ~ marginal
-  15. `flat_pe10_attn1_gated_pedetach_dgsfn_tied` — p_DT=0.432, Z_DT= -0.79, χ²_DT=  0.62  ·  ~ marginal
-  16. `w10_varN_large` — p_DT=0.402, Z_DT= -0.84, χ²_DT=  0.69  ·  ~ marginal
-  17. `w10_varN_pe10_attn` — p_DT=0.379, Z_DT= +0.88, χ²_DT=  1.05  ·  ~ marginal
-  18. `w10_varN_pe10` — p_DT=0.350, Z_DT= +0.93, χ²_DT=  2.14  ·  ✗ local miss
-  19. `physics_pe10_attn_gab_sfn` — p_DT=0.346, Z_DT= -0.94, χ²_DT=  1.33  ·  ~ marginal
-  20. `physics_pe10_attn_gab_dense` — p_DT=0.317, Z_DT= -1.00, χ²_DT=  1.08  ·  ~ marginal
-  21. `physics_pe10_attn_gab` — p_DT=0.251, Z_DT= -1.15, χ²_DT=  1.06  ·  ~ marginal
-  22. `physics_pe10_attn_gab_bpbn` — p_DT=0.240, Z_DT= -1.17, χ²_DT=  1.13  ·  ~ marginal
-  23. `physics_peOff_attn_gab_dense` — p_DT=0.169, Z_DT= -1.37, χ²_DT=  1.33  ·  ~ marginal
-  24. `physics_pe10_attn_gab_debinned` — p_DT=0.022, Z_DT= -2.29, χ²_DT=  3.77  ·  ✗ local miss
+  11. `flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2` — p_DT=0.580, Z_DT= -0.55, χ²_DT=  0.46  ·  ✓ clean
+  12. `physics_pe9_attn_gated` — p_DT=0.580, Z_DT= -0.55, χ²_DT=  0.49  ·  ✓ clean
+  13. `flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1` — p_DT=0.520, Z_DT= -0.64, χ²_DT=  0.51  ·  ✓ clean
+  14. `w10_fixed48` — p_DT=0.486, Z_DT= -0.70, χ²_DT=  0.58  ·  ~ marginal
+  15. `flat_attn1_fullgated_dgsfn_tied_sl2` — p_DT=0.479, Z_DT= -0.71, χ²_DT=  0.55  ·  ~ marginal
+  16. `flat_pe10_attn1_gated_pedetach_dgsfn_tied` — p_DT=0.432, Z_DT= -0.79, χ²_DT=  0.62  ·  ~ marginal
+  17. `w10_varN_large` — p_DT=0.402, Z_DT= -0.84, χ²_DT=  0.69  ·  ~ marginal
+  18. `w10_varN_pe10_attn` — p_DT=0.379, Z_DT= +0.88, χ²_DT=  1.05  ·  ~ marginal
+  19. `w10_varN_pe10` — p_DT=0.350, Z_DT= +0.93, χ²_DT=  2.14  ·  ✗ local miss
+  20. `physics_pe10_attn_gab_sfn` — p_DT=0.346, Z_DT= -0.94, χ²_DT=  1.33  ·  ~ marginal
+  21. `physics_pe10_attn_gab_dense` — p_DT=0.317, Z_DT= -1.00, χ²_DT=  1.08  ·  ~ marginal
+  22. `physics_pe10_attn_gab` — p_DT=0.251, Z_DT= -1.15, χ²_DT=  1.06  ·  ~ marginal
+  23. `physics_pe10_attn_gab_bpbn` — p_DT=0.240, Z_DT= -1.17, χ²_DT=  1.13  ·  ~ marginal
+  24. `physics_peOff_attn_gab_dense` — p_DT=0.169, Z_DT= -1.37, χ²_DT=  1.33  ·  ~ marginal
+  25. `physics_pe10_attn_gab_debinned` — p_DT=0.022, Z_DT= -2.29, χ²_DT=  3.77  ·  ✗ local miss
 
 ## Sawtooth diagnostic suite  (control regions, no γ-peaks)
 
@@ -295,6 +304,7 @@ Three complementary roughness metrics computed on the dense predicted β̂(E) cu
 | flat_attn1_fullgated_dgsfn_tied_sl2 | 0.0041 | 0.212 | -0.542 |
 | flat_attn1_fullgated_dgsfn_tied_pegate_sl2 | 0.2449 | 0.219 | -0.450 |
 | flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1 | 0.0094 | 0.222 | -0.566 |
+| flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2 | 0.0034 | 0.195 | -0.473 |
 
 ### Control region 2.2–2.4 MeV
 
@@ -324,6 +334,7 @@ Three complementary roughness metrics computed on the dense predicted β̂(E) cu
 | flat_attn1_fullgated_dgsfn_tied_sl2 | 0.0056 | 0.203 | -0.408 |
 | flat_attn1_fullgated_dgsfn_tied_pegate_sl2 | 0.1409 | 0.233 | -0.507 |
 | flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1 | 0.0058 | 0.198 | -0.493 |
+| flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2 | 0.0043 | 0.203 | -0.578 |
 
 ## Global sanity check
 
@@ -355,3 +366,4 @@ Spectrum-wide metrics. Pearson r close to +1 = CNP β(E) tracks D_T; mean offset
 | flat_attn1_fullgated_dgsfn_tied_sl2 | 5659 | 1415 | +0.467 | +0.0054 | 0.590 |
 | flat_attn1_fullgated_dgsfn_tied_pegate_sl2 | 5659 | 1415 | +0.288 | +0.0115 | 0.541 |
 | flat_attn1_fullgated_dgsfn_tied_bandfilter_sl1 | 5659 | 1415 | +0.486 | -0.0001 | 0.580 |
+| flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2 | 5659 | 1415 | +0.488 | -0.0074 | 0.595 |
