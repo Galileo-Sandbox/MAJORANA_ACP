@@ -707,6 +707,84 @@ class PoolDensitySfnConfig(_Frozen):
             )
         return v
 
+    hard_filter: bool = Field(
+        False,
+        description=(
+            "Enable the Hard-Gated Bandwidth Filter (Cell 15). Parameter-"
+            "free variant of ``band_filter``: replaces the learnable "
+            "λ-MLP with an explicit closed-form expression of the "
+            "physical density contrast at ``E_*``:\n\n"
+            "    R(E_*)  = (σ_global / σ_local) · ρ_local(E_*) / ρ_global(E_*)\n"
+            "    λ(E_*)  = 1.0 + 9.0 · sigmoid(s · (R(E_*) − T))\n\n"
+            "with ``T = hard_filter_contrast_threshold`` (default 5.0, "
+            "from the HPGe physics rule that genuine γ-lines spike to "
+            "≥5× the adjacent Compton continuum density) and ``s = "
+            "hard_filter_sigmoid_steepness`` (default 10.0). The "
+            "(σ_global/σ_local) prefactor normalises R so it reads ≈ 1 "
+            "in flat regions and 5+ at γ-peaks — exact analogue of the "
+            "self-normalised ratio used by ``DensityModulationConfig``.\n\n"
+            "Behaviour:\n"
+            "* R ≈ 1 in continuum → sigmoid argument ≈ −40 → λ → 1.0 → "
+            "  only band 0 open → β̂ is structurally smooth (analogue of "
+            "  Cell 11/12, MASD-clean).\n"
+            "* R ≥ 5 at γ-peaks → sigmoid argument ≥ 0 → λ → 10.0 → all "
+            "  10 PE bands open → β̂ can resolve 2-keV-wide SE/DEP/FE "
+            "  lines.\n\n"
+            "Zero trainable parameters. The model **cannot** drift to a "
+            "compressed-λ degenerate solution (Cell 14 failure mode) "
+            "because λ is no longer a function of weights to optimise. "
+            "Mutually exclusive with ``band_filter`` and "
+            "``pe_gated_decoder`` — all three are alternative drivers of "
+            "the decoder-concat SAPE / η path.\n\n"
+            "Requires ``aggregator.decoder_coordinate_gating=True``, "
+            "``temperature_gating=True`` (the σ/τ SFN machinery is "
+            "still learnable), and ``positional_encoding.enabled=True`` "
+            "(there must be Fourier bands to filter)."
+        ),
+    )
+    hard_filter_contrast_threshold: float = Field(
+        5.0,
+        gt=0.0,
+        description=(
+            "Density contrast threshold ``T`` for the hard filter. "
+            "Default 5.0 encodes the empirical HPGe physics rule that "
+            "real γ-lines display a local density at least 5× the "
+            "adjacent Compton continuum baseline."
+        ),
+    )
+    hard_filter_sigmoid_steepness: float = Field(
+        10.0,
+        gt=0.0,
+        description=(
+            "Sigmoid steepness ``s`` for the hard filter. Default 10.0 "
+            "produces a near-step transition: 1 unit above threshold "
+            "saturates λ → 10; 1 unit below saturates λ → 1."
+        ),
+    )
+
+    @field_validator("hard_filter")
+    @classmethod
+    def _hard_filter_requirements(cls, v: bool, info) -> bool:
+        if not v:
+            return v
+        if not info.data.get("temperature_gating", False):
+            raise ValueError(
+                "hard_filter=True requires temperature_gating=True — "
+                "the σ/τ SFN machinery still drives the attention layer."
+            )
+        if info.data.get("pe_gated_decoder", False):
+            raise ValueError(
+                "hard_filter=True is mutually exclusive with "
+                "pe_gated_decoder=True — both write into the decoder concat."
+            )
+        if info.data.get("band_filter", False):
+            raise ValueError(
+                "hard_filter=True is mutually exclusive with "
+                "band_filter=True — both drive the per-band SAPE weights. "
+                "Enable at most one."
+            )
+        return v
+
     @field_validator("sigma_min_kev")
     @classmethod
     def _min_below_max(cls, v: float, info) -> float:

@@ -1,0 +1,109 @@
+# Cell 15 — Hard-Gated Bandwidth Filter (parameter-free).
+#
+# Cell 14 (learnable λ-MLP) confirmed the frequency-domain gate
+# structurally kills continuum sawtooth (MASD 0.245 → 0.009), but
+# the optimizer found a degenerate compressed-λ solution that left
+# bands 2-9 zeroed everywhere — including peaks. See
+# analysis/cnp_audit/_cell14_diagnostic_compressed_lambda.md.
+#
+# Cell 15 removes the MLP entirely and injects a hard physics prior:
+# real HPGe γ-lines display a local density ≥ 5× the adjacent
+# Compton continuum. Encode this as a parameter-free closed form
+# of the normalised density contrast at E_*:
+#
+#     R(E_*) = (σ_global / σ_local) · ρ_local(E_*) / ρ_global(E_*)
+#     λ(E_*) = 1.0 + 9.0 · sigmoid(10 · (R(E_*) − 5))
+#
+# The (σ_global / σ_local) prefactor self-normalises R so it reads
+# ≈ 1 in flat regions and ≥ 5 at γ-peaks (exact analogue of the
+# DensityModulationConfig dual-σ ratio).
+#
+# Behaviour:
+#   * R ≈ 1 (continuum)    → sigmoid arg ≈ −40 → λ → 1.0
+#                              → only band 0 open → β̂ smooth
+#   * R ≥ 5 (γ-peaks)       → sigmoid arg ≥ 0  → λ → 10.0
+#                              → all 10 bands open → β̂ can resolve
+#                                 2-keV-wide SE/DEP/FE lines
+#
+# Zero trainable λ parameters. The model **cannot** drift to a
+# degenerate compressed-λ regime.
+#
+# σ_local pushed BACK to 2.0 keV — matches the physical HPGe FWHM.
+# 1 keV (Cell 14) was below the detector resolution and caused
+# contextual data sparsity at peaks.
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/flat_stratified_varN640-1024_pe10_attn1x128_gated_gab_dgsfn_tied_hardfilter_sl2_pedetach
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: flat_stratified
+trial_size_strategy: variable_uniform
+n_trial_events_min: 640
+n_trial_events_max: 1024
+
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 128
+  n_context_max: 512
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 1
+  attention_dim: 128
+  decoder_coordinate_gating: true
+  gaussian_attention_bias: true
+  pe_detach_qk: true
+  pool_density_sfn:
+    enabled: true
+    sigma_max_kev: 200.0
+    sigma_min_kev: 5.0
+    hidden_dim: 16
+    sigma_local_kev: 2.0           # ← Cell 15: back to HPGe FWHM
+    sigma_global_kev: 150.0
+    epsilon: 1.0e-5
+    temperature_gating: true
+    tau_min_value: 1.0
+    tau_max_value: 10.0
+    head_tied: true
+    hard_filter: true              # ← Cell 15 — parameter-free, 5× physics rule
+    hard_filter_contrast_threshold: 5.0
+    hard_filter_sigmoid_steepness: 10.0

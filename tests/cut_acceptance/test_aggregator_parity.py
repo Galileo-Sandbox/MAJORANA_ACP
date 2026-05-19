@@ -2320,3 +2320,189 @@ def test_paradigm_suffix_appends_bandfilter(tmp_path: Path) -> None:
     assert "_sl1" in suffix
     assert "_pegate" not in suffix
     assert "_pedetach" in suffix
+
+
+# ---------------------------------------------------------------------- #
+# Hard-Gated Bandwidth Filter (Cell 15)
+# ---------------------------------------------------------------------- #
+
+
+def test_hard_filter_defaults_off() -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    cfg = PoolDensitySfnConfig()
+    assert cfg.hard_filter is False
+    assert cfg.hard_filter_contrast_threshold == 5.0
+    assert cfg.hard_filter_sigmoid_steepness == 10.0
+
+
+def test_hard_filter_requires_temperature_gating_config() -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    with pytest.raises(ValueError, match="requires temperature_gating"):
+        PoolDensitySfnConfig(
+            enabled=True, temperature_gating=False, hard_filter=True
+        )
+
+
+def test_hard_filter_mutex_with_band_filter() -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        PoolDensitySfnConfig(
+            enabled=True,
+            temperature_gating=True,
+            band_filter=True,
+            hard_filter=True,
+        )
+
+
+def test_hard_filter_mutex_with_pe_gated_decoder() -> None:
+    from majorana_acp.cut_acceptance.config import PoolDensitySfnConfig
+
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        PoolDensitySfnConfig(
+            enabled=True,
+            temperature_gating=True,
+            pe_gated_decoder=True,
+            hard_filter=True,
+        )
+
+
+def test_hard_filter_has_no_lambda_net(encoder_cfg: EncoderConfig) -> None:
+    """Cell 15's defining property: NO trainable λ parameters. The
+    state_dict must contain no ``pool_lambda_net`` keys."""
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(0)
+    pool = rng.uniform(500.0, 3000.0, size=2000)
+    L = 10
+    Z = encoder_cfg.latent_dim
+    cnp = build_attentive_cnp(
+        encoder_cfg,
+        dim_theta=None,
+        dim_phi=2 * L + 1,
+        num_heads=1,
+        attention_dim=128,
+        decoder_coordinate_gating=True,
+        gaussian_attention_bias=True,
+        pool_density_sfn_enabled=True,
+        pool_density_sfn_sigma_max_kev=200.0,
+        pool_density_sfn_sigma_min_kev=5.0,
+        pool_density_sfn_sigma_local_kev=2.0,
+        pool_density_sfn_sigma_global_kev=150.0,
+        pool_density_sfn_temperature_gating=True,
+        pool_density_sfn_head_tied=True,
+        pool_density_sfn_hard_filter=True,
+        pool_density_sfn_num_bands=L,
+        pe_detach_qk=True,
+        pool_energies_kev=pool,
+        energy_range_kev=(500.0, 3000.0),
+    )
+    lam_keys = [k for k in cnp.state_dict() if "pool_lambda_net" in k]
+    eta_keys = [k for k in cnp.state_dict() if "pool_eta_net" in k]
+    assert lam_keys == [], f"unexpected λ-MLP parameters: {lam_keys}"
+    assert eta_keys == [], f"unexpected η-MLP parameters: {eta_keys}"
+    # Decoder input width is still agg_dim (Z) + 2 + 2L — same shape
+    # as band_filter, only the λ source differs.
+    assert cnp.decoder.net[0].in_features == Z + 2 + 2 * L
+
+
+def test_hard_filter_forward_lambda_at_peaks_and_continuum() -> None:
+    """Synthetic pool with a sharp 2-keV-wide Gaussian peak superposed
+    on a flat background. R(E_*) should be ~1 in the continuum and
+    ≫5 at the peak, so λ should hit ~1 vs ~10."""
+    import torch
+    from schemas.config import EncoderConfig
+    from majorana_acp.models.attentive_cnp import build_attentive_cnp
+
+    rng = np.random.default_rng(7)
+    # Flat continuum 500-3000 keV plus a sharp peak at 2103 keV.
+    continuum = rng.uniform(500.0, 3000.0, size=18000)
+    peak = 2103.0 + rng.normal(scale=1.0, size=2000)  # 1 keV σ — sharper than σ_local
+    pool = np.concatenate([continuum, peak])
+    enc = EncoderConfig(type="mlp", latent_dim=64, hidden_dims=[128, 128], dropout=0.0)
+    L = 10
+    cnp = build_attentive_cnp(
+        enc,
+        dim_theta=None,
+        dim_phi=2 * L + 1,
+        num_heads=1,
+        attention_dim=128,
+        decoder_coordinate_gating=True,
+        gaussian_attention_bias=True,
+        pool_density_sfn_enabled=True,
+        pool_density_sfn_sigma_max_kev=200.0,
+        pool_density_sfn_sigma_min_kev=5.0,
+        pool_density_sfn_sigma_local_kev=2.0,
+        pool_density_sfn_sigma_global_kev=150.0,
+        pool_density_sfn_temperature_gating=True,
+        pool_density_sfn_head_tied=True,
+        pool_density_sfn_hard_filter=True,
+        pool_density_sfn_num_bands=L,
+        pe_detach_qk=True,
+        pool_energies_kev=pool,
+        energy_range_kev=(500.0, 3000.0),
+    )
+    cnp.eval()
+    # Forward a 2-event target batch (peak vs continuum). The exact
+    # forward path returns CnpOutput, not λ — so probe the closed-
+    # form expression directly from the aggregator state.
+    attn = cnp.attention
+    pool_t = attn.pool_energies_norm
+    s_l = attn.pool_density_sfn_sigma_local_norm
+    s_g = attn.pool_density_sfn_sigma_global_norm
+    eps = attn.pool_density_sfn_epsilon
+    T = attn.pool_density_sfn_hard_filter_contrast_threshold
+    steep = attn.pool_density_sfn_hard_filter_sigmoid_steepness
+    e_peak_norm = (2103.0 - 500.0) / 2500.0
+    e_ctrl_norm = (1700.0 - 500.0) / 2500.0
+    with torch.no_grad():
+        for e_norm, expect_high in [(e_peak_norm, True), (e_ctrl_norm, False)]:
+            e_t = torch.tensor([[[e_norm]]], dtype=pool_t.dtype, device=pool_t.device)
+            d2 = (e_t - pool_t.view(1, 1, -1)).pow(2)
+            rho_l = torch.exp(-d2 / (2 * s_l * s_l)).sum(-1)
+            rho_g = torch.exp(-d2 / (2 * s_g * s_g)).sum(-1)
+            R = (s_g / s_l) * rho_l / (rho_g + eps)
+            lam = 1.0 + 9.0 * torch.sigmoid(steep * (R - T))
+            if expect_high:
+                assert float(lam) > 9.0, f"λ at injected peak should be ~10, got {float(lam):.3f}"
+            else:
+                assert float(lam) < 2.0, f"λ in continuum should be ~1, got {float(lam):.3f}"
+
+
+def test_paradigm_suffix_appends_hardfilter(tmp_path: Path) -> None:
+    from majorana_acp.cut_acceptance.config import (
+        PoolDensitySfnConfig,
+        PositionalEncodingConfig,
+    )
+
+    cfg = _make_cfg(
+        tmp_path,
+        sampling_pattern="flat_stratified",
+        trial_size_strategy="variable_uniform",
+        n_trial_events_min=640,
+        n_trial_events_max=1024,
+        positional_encoding=PositionalEncodingConfig(enabled=True, num_bands=10),
+        aggregator=AggregatorConfig(
+            type="cross_attention",
+            num_heads=1,
+            attention_dim=128,
+            decoder_coordinate_gating=True,
+            gaussian_attention_bias=True,
+            pe_detach_qk=True,
+            pool_density_sfn=PoolDensitySfnConfig(
+                enabled=True,
+                temperature_gating=True,
+                head_tied=True,
+                hard_filter=True,
+                sigma_local_kev=2.0,
+            ),
+        ),
+    )
+    suffix = paradigm_path_suffix(cfg)
+    assert "_hardfilter" in suffix
+    assert "_sl2" in suffix
+    assert "_bandfilter" not in suffix
+    assert "_pegate" not in suffix
+    assert "_pedetach" in suffix

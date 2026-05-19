@@ -190,6 +190,12 @@ def paradigm_path_suffix(cfg: CutAcceptanceConfig) -> str:
                     # z_phi_T. Mutually exclusive with ``pegate``.
                     if cfg.aggregator.pool_density_sfn.band_filter:
                         bits.append("bandfilter")
+                    # Cell 15 — parameter-free hard-gated variant of
+                    # band_filter. λ is an explicit closed-form
+                    # function of the normalised density contrast,
+                    # threshold-locked at the 5× HPGe physics rule.
+                    if cfg.aggregator.pool_density_sfn.hard_filter:
+                        bits.append("hardfilter")
                 else:
                     bits.append("pdsfn")
                 # Encode a non-default ``sigma_local_kev`` so different
@@ -341,6 +347,9 @@ def build_local_cnp(cfg: CutAcceptanceConfig, *, dim_phi: int):
                 if cfg.positional_encoding.enabled
                 else 0
             ),
+            pool_density_sfn_hard_filter=pdsfn.hard_filter,
+            pool_density_sfn_hard_filter_contrast_threshold=pdsfn.hard_filter_contrast_threshold,
+            pool_density_sfn_hard_filter_sigmoid_steepness=pdsfn.hard_filter_sigmoid_steepness,
             pe_detach_qk=cfg.aggregator.pe_detach_qk,
             pool_energies_kev=pool_energies_kev,
             energy_range_kev=cfg.energy_range if needs_range else None,
@@ -638,6 +647,9 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             "pool_density_sfn_pe_gated_decoder": cfg.aggregator.pool_density_sfn.pe_gated_decoder,
             "pool_density_sfn_band_filter": cfg.aggregator.pool_density_sfn.band_filter,
             "pool_density_sfn_band_filter_alpha": cfg.aggregator.pool_density_sfn.band_filter_alpha,
+            "pool_density_sfn_hard_filter": cfg.aggregator.pool_density_sfn.hard_filter,
+            "pool_density_sfn_hard_filter_contrast_threshold": cfg.aggregator.pool_density_sfn.hard_filter_contrast_threshold,
+            "pool_density_sfn_hard_filter_sigmoid_steepness": cfg.aggregator.pool_density_sfn.hard_filter_sigmoid_steepness,
             "pe_detach_qk": cfg.aggregator.pe_detach_qk,
             "density_sampling": cfg.density_sampling,
             "density_kde_radius_kev": cfg.density_kde_radius_kev,

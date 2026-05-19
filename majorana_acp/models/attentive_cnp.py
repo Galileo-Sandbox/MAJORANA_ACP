@@ -134,6 +134,9 @@ class CrossAttentionAggregator(nn.Module):
         pool_density_sfn_band_filter: bool = False,
         pool_density_sfn_band_filter_alpha: float = 5.0,
         pool_density_sfn_num_bands: int = 0,
+        pool_density_sfn_hard_filter: bool = False,
+        pool_density_sfn_hard_filter_contrast_threshold: float = 5.0,
+        pool_density_sfn_hard_filter_sigmoid_steepness: float = 10.0,
         pe_detach_qk: bool = False,
         raw_phi_dim: int = 2,
     ) -> None:
@@ -522,6 +525,43 @@ class CrossAttentionAggregator(nn.Module):
                 self.pool_density_sfn_band_filter_alpha = float(
                     pool_density_sfn_band_filter_alpha
                 )
+            # Cell 15 — Hard-Gated Bandwidth Filter. Parameter-free
+            # variant of band_filter: λ(E_*) is an explicit closed form
+            # of the normalised physical density contrast, with no MLP
+            # to optimise. The σ/τ SFN heads still apply to attention.
+            self.pool_density_sfn_hard_filter = bool(
+                pool_density_sfn_hard_filter
+            )
+            if self.pool_density_sfn_hard_filter:
+                if not self.pool_density_sfn_temperature_gating:
+                    raise ValueError(
+                        "pool_density_sfn_hard_filter=True requires "
+                        "pool_density_sfn_temperature_gating=True — the "
+                        "σ/τ machinery still drives the attention layer."
+                    )
+                if self.pool_density_sfn_pe_gated_decoder:
+                    raise ValueError(
+                        "pool_density_sfn_hard_filter=True is mutually "
+                        "exclusive with pool_density_sfn_pe_gated_decoder=True."
+                    )
+                if self.pool_density_sfn_band_filter:
+                    raise ValueError(
+                        "pool_density_sfn_hard_filter=True is mutually "
+                        "exclusive with pool_density_sfn_band_filter=True."
+                    )
+                if int(pool_density_sfn_num_bands) < 1:
+                    raise ValueError(
+                        "pool_density_sfn_hard_filter=True requires "
+                        "pool_density_sfn_num_bands >= 1."
+                    )
+                # If band_filter was off, num_bands wasn't stored above.
+                self.pool_density_sfn_num_bands = int(pool_density_sfn_num_bands)
+            self.pool_density_sfn_hard_filter_contrast_threshold = float(
+                pool_density_sfn_hard_filter_contrast_threshold
+            )
+            self.pool_density_sfn_hard_filter_sigmoid_steepness = float(
+                pool_density_sfn_hard_filter_sigmoid_steepness
+            )
         else:
             self.pool_density_sfn_sigma_max_norm = 0.0  # unused
             self.pool_density_sfn_sigma_min_norm = 0.0
@@ -538,6 +578,13 @@ class CrossAttentionAggregator(nn.Module):
             self.pool_density_sfn_band_filter_alpha = float(
                 pool_density_sfn_band_filter_alpha
             )
+            self.pool_density_sfn_hard_filter = False
+            self.pool_density_sfn_hard_filter_contrast_threshold = float(
+                pool_density_sfn_hard_filter_contrast_threshold
+            )
+            self.pool_density_sfn_hard_filter_sigmoid_steepness = float(
+                pool_density_sfn_hard_filter_sigmoid_steepness
+            )
             if pool_density_sfn_pe_gated_decoder:
                 raise ValueError(
                     "pool_density_sfn_pe_gated_decoder=True requires "
@@ -546,6 +593,11 @@ class CrossAttentionAggregator(nn.Module):
             if pool_density_sfn_band_filter:
                 raise ValueError(
                     "pool_density_sfn_band_filter=True requires "
+                    "pool_density_sfn_enabled=True."
+                )
+            if pool_density_sfn_hard_filter:
+                raise ValueError(
+                    "pool_density_sfn_hard_filter=True requires "
                     "pool_density_sfn_enabled=True."
                 )
 
@@ -855,6 +907,63 @@ class CrossAttentionAggregator(nn.Module):
             ).view(1, 1, L)  # [1, 1, L]
             band_weights = torch.sigmoid(alpha * (lam - band_idx))  # [B, N_T, L]
             side_info["band_weights"] = band_weights
+        # Cell 15 — Hard-Gated Bandwidth Filter. Parameter-free λ(E_*).
+        # Same per-band w_l construction as band_filter, but λ is the
+        # explicit closed form
+        #     R(E_*) = (σ_global / σ_local) · ρ_local / ρ_global
+        #     λ(E_*) = 1.0 + 9.0 · sigmoid(s · (R − T))
+        # with no learnable MLP. The (σ_global/σ_local) prefactor
+        # normalises R so it reads ≈ 1 in flat regions; the threshold
+        # T = 5 captures the empirical HPGe rule that real γ-lines
+        # spike to ≥5× the adjacent Compton continuum.
+        if (
+            getattr(self, "pool_density_sfn_hard_filter", False)
+            and self.pool_density_sfn_enabled
+            and self.gaussian_attention_bias
+        ):
+            e_t = e_target_norm.unsqueeze(-1)  # [B, N_T, 1]
+            s_l = self.pool_density_sfn_sigma_local_norm
+            s_g = self.pool_density_sfn_sigma_global_norm
+            inv2_l = 1.0 / (2.0 * s_l * s_l)
+            inv2_g = 1.0 / (2.0 * s_g * s_g)
+            pool = self.pool_energies_norm
+            B_q, N_T_q = e_target_norm.shape
+            rho_l_h = torch.zeros(
+                (B_q, N_T_q), dtype=e_target_norm.dtype, device=e_target_norm.device
+            )
+            rho_g_h = torch.zeros_like(rho_l_h)
+            # No grad on the entire branch — parameter-free, the entire
+            # path from pool to band_weights is a constant function of
+            # the (frozen) pool buffer and the target query coordinates.
+            with torch.no_grad():
+                for start in range(0, int(pool.numel()), _POOL_DENSITY_KERNEL_CHUNK):
+                    e_pool_chunk = pool[
+                        start : start + _POOL_DENSITY_KERNEL_CHUNK
+                    ].view(1, 1, -1)
+                    d2_chunk = (e_t - e_pool_chunk).pow(2)
+                    rho_l_h = rho_l_h + torch.exp(-d2_chunk * inv2_l).sum(dim=-1)
+                    rho_g_h = rho_g_h + torch.exp(-d2_chunk * inv2_g).sum(dim=-1)
+                # Self-normalised contrast: R ≈ 1 in flat regions, ≥ 5
+                # at γ-peaks. (σ_global/σ_local) corrects the unequal
+                # kernel-integral magnitudes — see DensityModulationConfig
+                # docstring for the same self-normalised form.
+                R_contrast = (s_g / s_l) * rho_l_h / (
+                    rho_g_h + self.pool_density_sfn_epsilon
+                )  # [B, N_T]
+                T = self.pool_density_sfn_hard_filter_contrast_threshold
+                s_steep = self.pool_density_sfn_hard_filter_sigmoid_steepness
+                lam = 1.0 + 9.0 * torch.sigmoid(
+                    s_steep * (R_contrast - T)
+                )  # [B, N_T] ∈ [1, 10]
+                L = self.pool_density_sfn_num_bands
+                alpha = self.pool_density_sfn_band_filter_alpha
+                band_idx = torch.arange(
+                    L, dtype=lam.dtype, device=lam.device
+                ).view(1, 1, L)  # [1, 1, L]
+                band_weights_h = torch.sigmoid(
+                    alpha * (lam.unsqueeze(-1) - band_idx)
+                )  # [B, N_T, L]
+            side_info["band_weights"] = band_weights_h
         return out, side_info
 
 
@@ -1106,6 +1215,9 @@ def build_attentive_cnp(
     pool_density_sfn_band_filter: bool = False,
     pool_density_sfn_band_filter_alpha: float = 5.0,
     pool_density_sfn_num_bands: int = 0,
+    pool_density_sfn_hard_filter: bool = False,
+    pool_density_sfn_hard_filter_contrast_threshold: float = 5.0,
+    pool_density_sfn_hard_filter_sigmoid_steepness: float = 10.0,
     pe_detach_qk: bool = False,
     pool_energies_kev: "np.ndarray | torch.Tensor | None" = None,
     energy_range_kev: tuple[float, float] | None = None,
@@ -1309,11 +1421,17 @@ def build_attentive_cnp(
         pool_density_sfn_band_filter=pool_density_sfn_band_filter,
         pool_density_sfn_band_filter_alpha=pool_density_sfn_band_filter_alpha,
         pool_density_sfn_num_bands=pool_density_sfn_num_bands,
+        pool_density_sfn_hard_filter=pool_density_sfn_hard_filter,
+        pool_density_sfn_hard_filter_contrast_threshold=pool_density_sfn_hard_filter_contrast_threshold,
+        pool_density_sfn_hard_filter_sigmoid_steepness=pool_density_sfn_hard_filter_sigmoid_steepness,
         pe_detach_qk=pe_detach_qk,
     )
     # Decoder input dim is ``agg_dim + decoder_latent_dim`` where
     # decoder_latent_dim is the size of the second concat input.
-    # Four modes:
+    # Five modes:
+    #   * hard_filter (Cell 15): coord input is
+    #     [raw_phi (2), SAPE (2L)] → latent_dim = 2 + 2L (same shape
+    #     as band_filter — only the λ source differs).
     #   * band_filter (Cell 14): coord input is
     #     [raw_phi (2), SAPE (2L)] → latent_dim = 2 + 2L.
     #   * pe_gated_decoder (Cell 13): coord input is
@@ -1321,7 +1439,22 @@ def build_attentive_cnp(
     #   * decoder_coordinate_gating (Cell 9-style): coord input is
     #     raw (E_norm, T_norm) → latent_dim = 2.
     #   * default (legacy attentive): coord input is z_phi_T → Z.
-    if pool_density_sfn_band_filter:
+    if pool_density_sfn_hard_filter:
+        if not decoder_coordinate_gating:
+            raise ValueError(
+                "pool_density_sfn_hard_filter=True requires "
+                "decoder_coordinate_gating=True — the raw_phi tensor "
+                "must remain in the decoder input alongside SAPE."
+            )
+        if int(pool_density_sfn_num_bands) < 1:
+            raise ValueError(
+                "pool_density_sfn_hard_filter=True requires "
+                "pool_density_sfn_num_bands >= 1 (the L of the PE10 "
+                "expansion). Set positional_encoding.enabled=True and "
+                "pass num_bands through the factory call."
+            )
+        decoder_latent_dim = 2 + 2 * int(pool_density_sfn_num_bands)
+    elif pool_density_sfn_band_filter:
         if not decoder_coordinate_gating:
             raise ValueError(
                 "pool_density_sfn_band_filter=True requires "
