@@ -108,6 +108,10 @@ PARADIGMS = [
         "flat_attn1_fullgated_dgsfn_tied_hardfilter_sl2",
         "hybrid_scale/flat_stratified_varN640-1024_pe10_attn1x128_gated_gab_dgsfn_tied_hardfilter_sl2_pedetach",
     ),
+    (
+        "flat_attn1_fullgated_dgsfn_tied_hardfilter_xfeed_sl1_sg50",
+        "hybrid_scale/flat_stratified_varN640-1024_pe10_attn1x128_gated_gab_dgsfn_tied_hardfilter_xfeed_sl1_sg50_pedetach",
+    ),
 ]
 
 PEAK_ORDER = [

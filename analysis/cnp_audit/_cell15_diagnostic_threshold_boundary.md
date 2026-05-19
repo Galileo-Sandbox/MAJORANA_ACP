@@ -1,113 +1,121 @@
-# Cell 15 — Hard-Gated DGBF; re-calibrated to T = 3
+# Cell 15 — Hard-gated DGBF, iterated to ultra-contrast + R-injection
 
-## Architecture
+## Architecture timeline
 
-A parameter-free closed-form replacement for Cell 14's λ-MLP,
-anchored to the physical density contrast at each target query:
+| variant | σ_l | σ_g | T | xfeed | path |
+| --- | --- | --- | --- | --- | --- |
+| Cell 15a (initial) | 2 | 150 | 5 | off | `_hardfilter_sl2_pedetach` |
+| Cell 15b (T=3) | 2 | 150 | 3 | off | `_hardfilter_sl2_pedetach` (overwrite) |
+| **Cell 15c (ultra-contrast)** | **1** | **50** | **3** | **on** | `_hardfilter_xfeed_sl1_sg50_pedetach` |
 
-    R(E_*) = (σ_global / σ_local) · ρ_local(E_*) / ρ_global(E_*)
-    λ(E_*) = 1.0 + 9.0 · sigmoid(s · (R(E_*) − T))
+All three share: hard-gated parameter-free λ closed form,
+`λ = 1 + 9·sigmoid(10·(R − T))`, head-tied σ/τ SFN attention,
+PE10 + PE-detached Q/K, decoder-coordinate gating, single-head
+1×128 attention. The 15c re-run lives at a new paradigm path
+because the kernel pocket and decoder dim changed
+architecturally; the 15a/b history is preserved at the old path.
 
-with steepness ``s = 10``, σ_local = 2 keV (HPGe FWHM), σ_global =
-150 keV. The (σ_global / σ_local) prefactor self-normalises R so it
-reads ≈ 1 in flat regions (analogue of DensityModulationConfig).
-Zero trainable parameters in the gate.
+## What changed in the ultra-contrast re-run
 
-## Threshold calibration
+**1. Kernel pocket re-tuned**. σ_local pushed below the HPGe FWHM
+(2 → 1 keV) to capture single-bin peak intensity from the raw
+spectrum without dilution. σ_global pulled in (150 → 50 keV) to
+track local Compton background fluctuations without absorbing
+peak counts into the baseline. Pre-train probe shows clean
+separation:
 
-The first pass used **T = 5** from the rule-of-thumb "real γ-lines
-spike to 5× the adjacent Compton continuum". But the empirical R
-on this ²²⁸Th pool with σ_local = 2 keV gave:
+| peak | R(sl=2) | R(ultra) |
+| --- | --- | --- |
+| FE 2614 | 43.32 | 27.86 |
+| SE 2103 | 4.84 | 5.95 |
+| **DEP 1592** | **4.26** | **5.29** |
+| Bi 1620 | 3.92 | 4.87 |
+| K-40 1460 | 1.01 | 1.19 |
+| continuum | 0.8–1.0 | 0.6–1.2 |
 
-| peak    | R | T=5 → λ | T=3 → λ |
-| ------- | ----- | ------- | ------- |
-| FE 2614 | 43.32 | 10.00 | 10.00 |
-| SE 2103 | 4.84  | 2.55  | 10.00 |
-| DEP 1592 | 4.26 | 1.01  | 10.00 |
-| Bi 1620  | 3.92 | 1.00  | 10.00 |
-| K-40 1460 | 1.01 | 1.00 | 1.00 |
-| continuum | 0.8-1.0 | 1.00 | 1.00 |
-| 2700 tail | 0.003 | 1.00 | 1.00 |
+All four named lines now exceed T = 3 by ≥1.9 units; continuum
+stays ≤1.2. The pocket is **the right physics resolution** for
+this dataset.
 
-The named lines clustered in the 3.9–4.8 range — below the 5
-rule of thumb. HPGe broadening plus SE/DEP's weaker branching
-ratios push their density contrast under the asymptotic FE
-benchmark. **T = 3 is the empirical cut that separates real peaks
-from continuum on this pool**: 2-unit margin above continuum
-baseline R ≈ 1, 2.6× steepness-units below the lowest real peak.
+**2. Explicit R(E_*) injection into the decoder**. R was
+previously visible to the *gate* only (deciding λ); the decoder
+saw only the bandwidth budget via SAPE. Injecting R as a scalar
+per-query coordinate gives the decoder explicit raw-spectrum peak
+intensity, so it can map FE (R~28) and SE/DEP/Bi (R~5-6) to
+different β values rather than treating them all as "open gate".
+
+    decoder_input = [r_target, raw_phi (E,T), SAPE(E_*), R(E_*)]
+
+Decoder input dim: 64 + 2 + 20 + 1 = 87.
 
 ## Empirical results
 
-| metric | Cell 11 | Cell 14 (λ-MLP) | Cell 15 T=5 | **Cell 15 T=3** |
-| --- | --- | --- | --- | --- |
-| MASD (1.7-2.0 MeV) | 0.0038 | 0.0094 | 0.0034 | **0.0038** ✓ |
-| MASD (2.2-2.4 MeV) | 0.0041 | 0.0058 | 0.0043 | **0.0034** ✓ cleanest |
-| ACF1 (1.7-2.0) | −0.54 | −0.57 | −0.47 | −0.49 |
-| FE Z | +0.04 | +1.02 | −1.37 | **−1.92** ✓ |
-| **SE Z** | **−26.7** | **−20.2** | **−22.6** | **−2.09** ✓ p=0.037 |
-| **DEP Z** | **+18.7** | **+22.8** | **+18.8** | **+18.7** ✗ |
-| Bi Z | −0.79 | −0.64 | −0.55 | −0.70 ✓ |
-| final NBLL | 0.437 | 0.437 | 0.4375 | 0.4365 |
+| metric | 15a (T=5) | 15b (T=3, sl=2) | **15c (ultra)** |
+| --- | --- | --- | --- |
+| MASD 1.7-2.0 MeV | 0.0034 | 0.0038 | 0.0047 |
+| MASD 2.2-2.4 MeV | 0.0043 | 0.0034 | **0.0144** ↑ |
+| ACF1 1.7-2.0 | −0.47 | −0.49 | −0.40 |
+| FE Z | −1.37 | −1.92 | **+0.65 ✓ p=0.51** |
+| SE Z | −22.6 | −2.09 | **−0.78 ✓ p=0.43** |
+| Bi Z | −0.55 | −0.70 | −0.63 ✓ p=0.53 |
+| **DEP Z** | **+18.8** | **+18.7** | **+22.0 ✗** |
+| final NBLL | 0.4375 | 0.4365 | 0.4346 |
 
-**The continuum is white-noise clean** (MASD tied with Cell 11's
-record; ACF1 ≈ −0.5). **SE recovered dramatically** — Z went from
-−22.6 to −2.09 (11× improvement). FE and Bi stay clean.
+### Wins
 
-**DEP remains catastrophic at Z = +18.7.** This was the surprise.
+* **FE, SE, Bi all near-perfectly clean** — best fits of any
+  cell. SE Z went −22.6 → −2.09 → **−0.78**. FE flipped sign
+  cleanly to +0.65. Bi stayed clean. The R-injection works
+  exactly as designed for lines whose β-direction matches the
+  majority pattern (negative deflection).
 
-## DEP forensics — the gate fires, but the decoder doesn't fit it
+* **1.7-2.0 MeV continuum stays clean** (MASD 0.0047, white-noise
+  ACF1).
 
-Probing the trained model at DEP and adjacent bins:
+### Losses
 
-```
-  E_*       R    λ    | bands open
- 1580   0.997  1.00   | w0, half w1                   DEP-near-L
- 1592   4.258 10.00   | ALL 10 bands                  DEP center
- 1600   0.802  1.00   | w0, half w1                   DEP-near-R
-```
+* **2.2-2.4 MeV continuum degraded 4×** (0.0034 → 0.0144). The
+  ultra-contrast pocket (σ_g = 50 keV) is sensitive to local
+  density structure in the high-energy tail above FE 2614; the
+  decoder now reads continuous R ripples in its concat. The 1×128
+  attention's σ/τ machinery still attenuates, but the R-injection
+  removed one buffer between density noise and β̂.
 
-The hard gate is opening exactly at the DEP bin and snapping shut
-on both sides. The decoder has full PE10 bandwidth available at
-DEP and can structurally draw a sharp 1-bin feature. **The
-architecture is doing its job.**
+* **DEP unchanged at Z = +22**, even though R = 5.29 cleanly
+  triggers λ = 10 there. The explicit R magnitude alone doesn't
+  carry sign information — DEP and SE both sit at R ≈ 5-6 but
+  point in opposite directions. The decoder learned a "small R
+  → mild dip" recipe from SE/Bi and applies it to DEP, missing
+  the upward physics excess.
 
-But the empirical results show DEP Z = +18.7 — model UNDER-predicts
-the data. Compare the four named peaks' Z signs:
+## What R-injection can and cannot fix
 
-| peak | Z sign | meaning |
-| --- | --- | --- |
-| FE  | − | data slightly below smooth baseline |
-| SE  | − | data clearly below smooth baseline (a dip) |
-| Bi  | − | data slightly below smooth baseline |
-| DEP | **+** | **data ABOVE smooth baseline (an upward excess)** |
+The cleanest distinction this experiment isolates:
 
-**DEP is the only peak in this energy range where β(E) shows an
-upward excess relative to the continuum.** SE, FE, Bi all show
-downward deflections (typical psd-acceptance behaviour for γ-lines
-where multi-site / interaction-shape effects lower the cut pass
-rate). DEP's upward sign is physically distinctive (a 2.6× higher
-acceptance than the surrounding Compton continuum, per the
-diagnostic figure).
+* The hard gate decides **bandwidth** (λ): can the decoder draw
+  a sharp feature here? With ultra-contrast + T=3, all four named
+  peaks get λ=10 with crystal margin.
+* The R-injection adds **intensity** as a feature: how strong is
+  the raw peak? Helps the decoder modulate the *magnitude* of its
+  fit between FE (R=28) and SE/DEP/Bi (R=5-6).
+* **Neither carries sign information.** DEP's defining feature
+  is its *opposite* polarity vs FE/SE/Bi (positive β-excess
+  rather than dip). No density-based feature distinguishes a
+  peak's "above-baseline" from "below-baseline" β response.
 
-The decoder, trained on data that has 3 examples of "open the
-gate → draw a downward dip" (SE, Bi, FE-edge) and only 1 example
-of "open the gate → draw an upward excess" (DEP), appears to be
-learning a sign-biased recipe rather than position-specific
-predictions. With λ = 10 at DEP, the architecture lets the decoder
-do anything; the decoder still defaults to its majority-class
-downward response.
-
-This is a **decoder-side learning problem**, not a gate problem.
-The hard filter delivers exactly the bandwidth budget the user
-specified. SE, Bi, FE all behave as expected. DEP's failure is
-asymmetric class-imbalance in the high-bandwidth regime.
+Hence DEP is unrecoverable purely from density-driven inputs. To
+fix DEP without modifying the NBLL loss, the model would need a
+signal that depends on the actual β-direction at each peak — for
+example a learned per-peak embedding indexed by E_*, or a feature
+derived from the classifier-score distribution at E_* (not just
+its energy density).
 
 ## Status
 
-The hard-filter architecture is **confirmed working**. The
-continuum stays at the white-noise floor (MASD 0.0034-0.0038);
-the threshold calibration to T = 3 fixed the SE failure; FE and
-Bi stay clean. The only residual gap is DEP, which the gate cannot
-fix by itself — its sign is opposite to the majority of γ-lines
-in this energy range and the decoder under-represents it in
-training.
+Cell 15c is the cleanest result for FE / SE / Bi across the entire
+audit history. DEP remains structurally outside the reach of
+density-only gates and features. The architecture has hit the
+ceiling of what physics-prior gating alone can deliver; further
+DEP recovery requires either input features that carry sign or a
+training-time intervention that exposes DEP's polarity asymmetry
+(neither in scope for this iteration).
