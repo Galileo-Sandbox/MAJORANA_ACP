@@ -7,7 +7,7 @@
   "n_train_events": 18866,
   "n_validation_events": 7074,
   "n_bins_used": 212,
-  "cnp_final_train_loss": 0.4374639689922333,
+  "cnp_final_train_loss": 0.4364663064479828,
   "youden_T_star": 0.540643572807312,
   "upstream_classifier_config": "configs/small_data_configs/simple_cnn_small.yaml",
   "upstream_classifier_sha256": "ad8f147aabe1fcd13f79932eaaa2950a0054253120f10b175692420c0236429f",
