@@ -45,6 +45,7 @@ def evaluate(
     out_dir: Path | str | None = None,
     *,
     split: str = "test",
+    subset_portion: float | None = None,
 ) -> Path:
     """Run evaluation end-to-end and return the output directory.
 
@@ -58,12 +59,24 @@ def evaluate(
             matches the historical behaviour) or ``"train"`` for
             generating CNP-training data without re-evaluating on the
             real test set.
+        subset_portion: If set, overrides ``cfg.data.subset_portion``
+            for this evaluation only. The training-time subset is a
+            *training* concern (controls how much labeled data the
+            classifier saw); the test split is held-out and should
+            normally be evaluated at ``subset_portion=1.0`` regardless
+            of what the training config used. Pass ``1.0`` to score
+            the full split; ``None`` keeps the YAML-config value
+            (legacy behaviour).
 
     Returns:
         The output directory (a ``pathlib.Path``).
     """
     if split not in ("train", "test"):
         raise ValueError(f"split must be 'train' or 'test', got {split!r}")
+    if subset_portion is not None and not (0.0 < subset_portion <= 1.0):
+        raise ValueError(
+            f"subset_portion must be in (0, 1], got {subset_portion!r}"
+        )
 
     ckpt_path = _resolve_checkpoint_path(Path(checkpoint))
     default_out_name = "eval" if split == "test" else "eval_train"
@@ -99,10 +112,20 @@ def evaluate(
                 t90_post=cfg.data.t90_post,
                 use_derivative_channel=cfg.data.use_derivative_channel,
                 energy_range=cfg.data.energy_range,
-                subset_portion=cfg.data.subset_portion,
+                subset_portion=(
+                    subset_portion
+                    if subset_portion is not None
+                    else cfg.data.subset_portion
+                ),
                 subset_seed=cfg.data.subset_seed,
             )
         )
+        if subset_portion is not None and subset_portion != cfg.data.subset_portion:
+            logger.info(
+                "subset_portion overridden: cfg=%.3f → eval=%.3f",
+                cfg.data.subset_portion,
+                subset_portion,
+            )
         logger.info("%s set size: %d events", split, len(test_ds))
 
         loader = DataLoader(

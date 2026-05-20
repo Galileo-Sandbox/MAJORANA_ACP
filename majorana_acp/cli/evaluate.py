@@ -52,10 +52,28 @@ def main(argv: list[str] | None = None) -> int:
             "CNP training); 'test' (default) keeps the historical behaviour."
         ),
     )
+    parser.add_argument(
+        "--subset-portion",
+        type=float,
+        default=None,
+        help=(
+            "Override ``data.subset_portion`` for this evaluation only. "
+            "The training-time subset is a *training* concern (how much "
+            "labelled data the classifier saw); the test split is "
+            "held-out and should normally be evaluated at 1.0 regardless "
+            "of what the training config used. Pass 1.0 to score the "
+            "full split. Default: use the YAML's value (legacy)."
+        ),
+    )
     args = parser.parse_args(argv)
 
     _setup_console_logging()
-    evaluate(args.checkpoint, out_dir=args.out, split=args.split)
+    evaluate(
+        args.checkpoint,
+        out_dir=args.out,
+        split=args.split,
+        subset_portion=args.subset_portion,
+    )
     return 0
 
 
