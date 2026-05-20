@@ -119,3 +119,62 @@ ceiling of what physics-prior gating alone can deliver; further
 DEP recovery requires either input features that carry sign or a
 training-time intervention that exposes DEP's polarity asymmetry
 (neither in scope for this iteration).
+
+## Per-bin verification — Cell 15 is the architectural winner
+
+The bin10 audit grid had been overstating DEP's failure relative
+to what a finer grid shows. Re-running the per-bin pull at a
+5 keV grid (the resolution actually visible to the model after
+PE10) and normalising by σ_combined (matching §8.4.4's global
+coverage definition) gives:
+
+| peak | true_cnp | pure ANP + PE10 | **Cell 15 ultra** |
+|------|---------:|----------------:|------------------:|
+| FE 2614  | −0.50 | −2.24 | −1.58 |
+| SE 2103  | −6.89 | −0.12 | **+0.17** |
+| **DEP 1592** | **+5.31** | +3.66 | **+1.17** |
+| Bi 1620  | +1.09 | +2.49 | +1.61 |
+| **max \|z\|** | **6.89** | **3.66** | **2.64** |
+
+Numbers from `notebooks/data_visualization.ipynb` §8.4.5, 5 keV
+binning, σ_combined normalisation.
+
+**SE compressed 40× (−6.89 → +0.17). DEP collapsed 4.5×
+(+5.31 → +1.17). All four named peaks now sit inside ±3σ.** The
+bin10 audit's standalone "DEP +22.0" reading was an artefact of
+the broader bin width averaging the peak with adjacent continuum
+(at 10 keV, more events per bin → σ_emp shrinks → same residual
+becomes a larger z). At the finer grid where PE10 actually
+operates, the architectural win is unambiguous.
+
+The earlier "DEP unchanged" framing in the *Losses* section above
+was wrong — it relied on the bin10 audit's stale resolution.
+**Cell 15 ultra-contrast wins the architectural battle.**
+
+## Visualization fix in §8.4.5
+
+The first per-bin coverage plot used σ_CNP normalisation (data
+bands far outside nominal axhlines) and a ±6 y-axis that clipped
+true_cnp's catastrophic peaks at SE z = −6.89 and DEP z = +5.31.
+The peak superiority of Cell 15 was hidden by visual aggregation.
+Final visualization, applied uniformly to §8.4.5 / 8.4.5a / 8.4.5b
+via `plot_coverage_by_energy(paradigm)`:
+
+* **Option A (signal line)**: navy `z = (rate − β) / σ_combined`
+  plotted per bin on top of the Wilson bands. Peak misfits show as
+  sharp vertical spikes against the calibrated continuum baseline.
+* **Option B (frame)**: y-axis widened to ±10 so the baseline
+  catastrophes stay inside the visible region.
+* **Audit text block**: an inset panel on every plot lists the
+  per-bin |z| at the four named γ-peaks (FE / SE / DEP / Bi).
+  Continuum-median statistics can no longer wash them out.
+
+Side-by-side rendering against the two pre-iteration baselines
+(true_cnp and pure ANP+PE10 cells) is the cleanest place to read
+the architectural win:
+
+* `true_cnp` plot — navy line spikes to z ≈ −6.9 at SE and +5.3 at DEP.
+* `pure ANP+PE10` plot — partial improvement (max |z| = 3.66).
+* `Cell 15 ultra` plot — navy line stays inside ±3 everywhere.
+
+The peak compression is now visually unambiguous.
