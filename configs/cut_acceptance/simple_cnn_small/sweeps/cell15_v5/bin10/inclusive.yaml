@@ -1,0 +1,128 @@
+# cell15_v5 — encoder.dropout sweep, 0.10 → 0.20
+#
+# Delta vs cell15_ultra (the locked SOTA base):
+#   encoder.dropout: 0.10 → 0.20
+#
+# Rationale: higher MC-Dropout broadens σ_CNP per query. v4 (5k
+# steps) showed n_steps as one DEP-fixing lever; this tests
+# whether dropout-widening alone (at baseline 3k steps) is an
+# orthogonal lever — wider σ_CNP would let DEP's wrong-direction
+# residual fit inside ±kσ more easily without the n_steps
+# overfitting that v3 induced.
+
+name: cell15_v5_dropout02
+out_dir: results/cut_acceptance/simple_cnn_small/sweeps/cell15_v5/bin10/inclusive
+
+# ---- original baseline comments retained below ----
+# Cell 15 (ultra-contrast re-run).
+#
+# Cell 15 with T=3 fixed the SE catastrophe (Z −22.6 → −2.09) but
+# left DEP at Z +18.7. Forensic finding: the gate WAS open at DEP
+# (λ=10 confirmed by post-train probe), but the decoder defaulted
+# to a "downward-deflection" recipe — SE, FE, Bi all show β below
+# the smooth baseline while DEP shows β above, and the decoder
+# learned the majority direction from a 3:1 sign-imbalanced
+# supervision.
+#
+# This re-run injects two physics-grounded changes:
+#
+# 1. Ultra-contrast kernel pocket. σ_local = 1 keV captures
+#    single-bin peak intensity in the raw spectrum without HPGe
+#    FWHM dilution. σ_global = 50 keV tracks local Compton
+#    background fluctuations without absorbing peak counts into
+#    the baseline. With this pocket the normalised contrast R(E_*)
+#    at real lines pierces 3.0 violently while continuum
+#    fluctuations stay near 1.0.
+#
+# 2. Explicit R(E_*) injection into the decoder. The hard filter
+#    already computes R; the decoder previously saw only the
+#    bandwidth budget λ (via SAPE), not the raw peak intensity.
+#    Concatenating R as a per-query scalar gives the decoder an
+#    explicit magnitude coordinate, letting it distinguish FE
+#    (R ≈ 100+) from SE/DEP/Bi (R ≈ 5-50) and map each line's
+#    raw-spectrum intensity to its specific post-cut β-value
+#    asymmetrically.
+#
+# Decoder concat lane:
+#
+#     decoder_input = [r_target, raw_phi (E_norm, T_norm),
+#                      SAPE(E_*), R(E_*)]
+#
+# Hard threshold T = 3.0 kept. Sigmoid steepness 10.0 kept.
+#
+# Paradigm tag (auto-derived):
+#   hybrid_scale/flat_stratified_varN640-1024_pe10_attn1x128_gated_gab_dgsfn_tied_hardfilter_xfeed_sl1_sg50_pedetach
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: flat_stratified
+trial_size_strategy: variable_uniform
+n_trial_events_min: 640
+n_trial_events_max: 1024
+
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.2                  # ← v5 delta: was 0.1
+
+cnp:
+  n_context_min: 128
+  n_context_max: 512
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512    # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 1
+  attention_dim: 128
+  decoder_coordinate_gating: true
+  gaussian_attention_bias: true
+  pe_detach_qk: true
+  pool_density_sfn:
+    enabled: true
+    sigma_max_kev: 200.0
+    sigma_min_kev: 5.0
+    hidden_dim: 16
+    sigma_local_kev: 1.0           # ← ultra-contrast pocket
+    sigma_global_kev: 50.0         # ← ultra-contrast pocket
+    epsilon: 1.0e-5
+    temperature_gating: true
+    tau_min_value: 1.0
+    tau_max_value: 10.0
+    head_tied: true
+    hard_filter: true
+    hard_filter_contrast_threshold: 3.0
+    hard_filter_sigmoid_steepness: 10.0
+    inject_contrast_feature: true  # ← explicit R(E_*) injection
