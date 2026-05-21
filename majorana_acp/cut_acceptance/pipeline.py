@@ -365,6 +365,8 @@ def build_local_cnp(cfg: CutAcceptanceConfig, *, dim_phi: int):
             pool_density_sfn_hard_filter_sigmoid_steepness=pdsfn.hard_filter_sigmoid_steepness,
             pool_density_sfn_hard_filter_lambda_min=pdsfn.hard_filter_lambda_min,
             pool_density_sfn_hard_filter_lambda_max=pdsfn.hard_filter_lambda_max,
+            pool_density_sfn_hard_filter_lambda_min_trainable=pdsfn.hard_filter_lambda_min_trainable,
+            pool_density_sfn_hard_filter_lambda_min_constrain_range=pdsfn.hard_filter_lambda_min_constrain_range,
             pool_density_sfn_inject_contrast_feature=pdsfn.inject_contrast_feature,
             pe_detach_qk=cfg.aggregator.pe_detach_qk,
             pool_energies_kev=pool_energies_kev,
@@ -668,6 +670,12 @@ def run_pipeline(cfg: CutAcceptanceConfig, *, seed: int = 0) -> PipelineSummary:
             "pool_density_sfn_hard_filter_sigmoid_steepness": cfg.aggregator.pool_density_sfn.hard_filter_sigmoid_steepness,
             "pool_density_sfn_hard_filter_lambda_min": cfg.aggregator.pool_density_sfn.hard_filter_lambda_min,
             "pool_density_sfn_hard_filter_lambda_max": cfg.aggregator.pool_density_sfn.hard_filter_lambda_max,
+            "pool_density_sfn_hard_filter_lambda_min_trainable": cfg.aggregator.pool_density_sfn.hard_filter_lambda_min_trainable,
+            "pool_density_sfn_hard_filter_lambda_min_constrain_range": (
+                list(cfg.aggregator.pool_density_sfn.hard_filter_lambda_min_constrain_range)
+                if cfg.aggregator.pool_density_sfn.hard_filter_lambda_min_constrain_range is not None
+                else None
+            ),
             "pool_density_sfn_inject_contrast_feature": cfg.aggregator.pool_density_sfn.inject_contrast_feature,
             "pe_detach_qk": cfg.aggregator.pe_detach_qk,
             "density_sampling": cfg.density_sampling,

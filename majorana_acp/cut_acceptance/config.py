@@ -783,6 +783,30 @@ class PoolDensitySfnConfig(_Frozen):
             "PE10 frequencies open at named γ-peaks."
         ),
     )
+    hard_filter_lambda_min_trainable: bool = Field(
+        False,
+        description=(
+            "When ``True``, treat ``hard_filter_lambda_min`` as the "
+            "initial value of a learnable scalar parameter κ ("
+            "kappa) instead of a fixed scalar. Default ``False`` "
+            "preserves the legacy fixed-float behaviour bit-"
+            "identically — old configs and checkpoints reproduce."
+        ),
+    )
+    hard_filter_lambda_min_constrain_range: tuple[float, float] | None = Field(
+        None,
+        description=(
+            "Only meaningful when ``hard_filter_lambda_min_trainable"
+            "=True``. ``None`` → κ is unconstrained "
+            "(``λ_min = self.kappa_raw`` directly, can drift "
+            "anywhere). ``(lo, hi)`` → κ is mapped through a "
+            "smooth sigmoid so that κ ∈ (lo, hi) strictly: "
+            "``λ_min = lo + (hi − lo)·sigmoid(self.kappa_raw)``. "
+            "The init value ``hard_filter_lambda_min`` must lie in "
+            "the open interval ``(lo, hi)``; raw param is "
+            "inverse-sigmoid initialised."
+        ),
+    )
 
     @field_validator("hard_filter_lambda_max")
     @classmethod
@@ -792,6 +816,55 @@ class PoolDensitySfnConfig(_Frozen):
             raise ValueError(
                 f"hard_filter_lambda_max ({v}) must exceed "
                 f"hard_filter_lambda_min ({lam_min})."
+            )
+        return v
+
+    @field_validator("hard_filter_lambda_min_constrain_range")
+    @classmethod
+    def _constrain_range_valid(
+        cls, v: tuple[float, float] | None, info
+    ) -> tuple[float, float] | None:
+        if v is None:
+            return v
+        lo, hi = float(v[0]), float(v[1])
+        if not (0.0 <= lo < hi):
+            raise ValueError(
+                f"hard_filter_lambda_min_constrain_range=({lo}, {hi}) "
+                f"requires 0 ≤ lo < hi."
+            )
+        lam_max = info.data.get("hard_filter_lambda_max", 10.0)
+        if hi >= lam_max:
+            raise ValueError(
+                f"hard_filter_lambda_min_constrain_range upper bound "
+                f"({hi}) must be strictly less than hard_filter_lambda_max "
+                f"({lam_max}) — κ must stay below the peak ceiling."
+            )
+        lam_min_init = info.data.get("hard_filter_lambda_min", 1.0)
+        # Init κ must lie strictly inside (lo, hi) so the inverse sigmoid
+        # has finite gradient at step 0.
+        epsilon = 1e-3 * (hi - lo)
+        if not (lo + epsilon <= lam_min_init <= hi - epsilon):
+            raise ValueError(
+                f"hard_filter_lambda_min ({lam_min_init}) must lie in the "
+                f"open interval ({lo + epsilon:.4f}, {hi - epsilon:.4f}) "
+                f"so the inverse-sigmoid init has finite gradient. "
+                f"For midpoint init, set hard_filter_lambda_min = "
+                f"{0.5 * (lo + hi)}."
+            )
+        return (lo, hi)
+
+    @field_validator("hard_filter_lambda_min_constrain_range")
+    @classmethod
+    def _constrain_requires_trainable(
+        cls, v: tuple[float, float] | None, info
+    ) -> tuple[float, float] | None:
+        if v is not None and not info.data.get(
+            "hard_filter_lambda_min_trainable", False
+        ):
+            raise ValueError(
+                "hard_filter_lambda_min_constrain_range is only "
+                "meaningful when hard_filter_lambda_min_trainable=True. "
+                "Set trainable=True or leave constrain_range as None."
             )
         return v
 

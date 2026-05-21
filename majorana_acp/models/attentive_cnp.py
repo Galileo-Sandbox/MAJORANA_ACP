@@ -139,6 +139,8 @@ class CrossAttentionAggregator(nn.Module):
         pool_density_sfn_hard_filter_sigmoid_steepness: float = 10.0,
         pool_density_sfn_hard_filter_lambda_min: float = 1.0,
         pool_density_sfn_hard_filter_lambda_max: float = 10.0,
+        pool_density_sfn_hard_filter_lambda_min_trainable: bool = False,
+        pool_density_sfn_hard_filter_lambda_min_constrain_range: tuple[float, float] | None = None,
         pe_detach_qk: bool = False,
         raw_phi_dim: int = 2,
     ) -> None:
@@ -570,12 +572,45 @@ class CrossAttentionAggregator(nn.Module):
                     f"must exceed hard_filter_lambda_min "
                     f"({pool_density_sfn_hard_filter_lambda_min})."
                 )
-            self.pool_density_sfn_hard_filter_lambda_min = float(
-                pool_density_sfn_hard_filter_lambda_min
-            )
             self.pool_density_sfn_hard_filter_lambda_max = float(
                 pool_density_sfn_hard_filter_lambda_max
             )
+            # Cell 16/17 — learnable κ ("kappa") as the continuum floor
+            # of the bandwidth gate. Three modes:
+            #   1. trainable=False             → fixed float scalar (legacy).
+            #   2. trainable=True, range=None  → free param self.kappa_raw,
+            #                                    λ_min = kappa_raw directly.
+            #   3. trainable=True, range=(lo,hi) → smooth-bounded:
+            #        λ_min = lo + (hi − lo)·sigmoid(self.kappa_raw)
+            self.pool_density_sfn_hard_filter_lambda_min_trainable = bool(
+                pool_density_sfn_hard_filter_lambda_min_trainable
+            )
+            if self.pool_density_sfn_hard_filter_lambda_min_trainable:
+                cr = pool_density_sfn_hard_filter_lambda_min_constrain_range
+                self.pool_density_sfn_hard_filter_lambda_min = float(
+                    pool_density_sfn_hard_filter_lambda_min
+                )  # init value (for fingerprinting; live value is on kappa_raw)
+                if cr is None:
+                    # Cell 16 — unconstrained: raw param IS κ.
+                    self.pool_density_sfn_hard_filter_lambda_min_constrain_range = None
+                    self.kappa_raw = nn.Parameter(
+                        torch.tensor(float(pool_density_sfn_hard_filter_lambda_min))
+                    )
+                else:
+                    # Cell 17 — sigmoid-bounded: κ = lo + (hi−lo)·sigmoid(raw).
+                    # Inverse-sigmoid init so live κ starts at lambda_min.
+                    lo, hi = float(cr[0]), float(cr[1])
+                    self.pool_density_sfn_hard_filter_lambda_min_constrain_range = (lo, hi)
+                    u = (float(pool_density_sfn_hard_filter_lambda_min) - lo) / (hi - lo)
+                    raw_init = math.log(u / (1.0 - u))
+                    self.kappa_raw = nn.Parameter(torch.tensor(float(raw_init)))
+            else:
+                # Legacy fixed scalar — no parameter registered, byte-
+                # identical state_dict to pre-Cell-16 checkpoints.
+                self.pool_density_sfn_hard_filter_lambda_min = float(
+                    pool_density_sfn_hard_filter_lambda_min
+                )
+                self.pool_density_sfn_hard_filter_lambda_min_constrain_range = None
         else:
             self.pool_density_sfn_sigma_max_norm = 0.0  # unused
             self.pool_density_sfn_sigma_min_norm = 0.0
@@ -605,6 +640,10 @@ class CrossAttentionAggregator(nn.Module):
             self.pool_density_sfn_hard_filter_lambda_max = float(
                 pool_density_sfn_hard_filter_lambda_max
             )
+            # Pool-density gate disabled → trainable-κ knobs are no-ops;
+            # stash flags as False so forward-time dispatch stays simple.
+            self.pool_density_sfn_hard_filter_lambda_min_trainable = False
+            self.pool_density_sfn_hard_filter_lambda_min_constrain_range = None
             if pool_density_sfn_pe_gated_decoder:
                 raise ValueError(
                     "pool_density_sfn_pe_gated_decoder=True requires "
@@ -952,9 +991,15 @@ class CrossAttentionAggregator(nn.Module):
                 (B_q, N_T_q), dtype=e_target_norm.dtype, device=e_target_norm.device
             )
             rho_g_h = torch.zeros_like(rho_l_h)
-            # No grad on the entire branch — parameter-free, the entire
-            # path from pool to band_weights is a constant function of
-            # the (frozen) pool buffer and the target query coordinates.
+            # ρ_l / ρ_g (Gaussian kernel density over the pool) and the
+            # resulting contrast R are CONSTANT functions of the frozen
+            # pool buffer + target query coordinates → cheap to keep
+            # under no_grad. With Cell 16/17 the λ_min (κ) is learnable,
+            # so the lam/band_weights computation moves outside no_grad
+            # to keep κ's gradient alive. When κ is fixed (legacy), the
+            # outside-no_grad computation produces a bit-identical
+            # detached tensor — R_contrast is detached, lam_min is a
+            # python float, so the chain stays gradient-free.
             with torch.no_grad():
                 for start in range(0, int(pool.numel()), _POOL_DENSITY_KERNEL_CHUNK):
                     e_pool_chunk = pool[
@@ -969,22 +1014,32 @@ class CrossAttentionAggregator(nn.Module):
                 # docstring for the same self-normalised form.
                 R_contrast = (s_g / s_l) * rho_l_h / (
                     rho_g_h + self.pool_density_sfn_epsilon
-                )  # [B, N_T]
-                T = self.pool_density_sfn_hard_filter_contrast_threshold
-                s_steep = self.pool_density_sfn_hard_filter_sigmoid_steepness
+                )  # [B, N_T] (detached, no grad through R)
+            T = self.pool_density_sfn_hard_filter_contrast_threshold
+            s_steep = self.pool_density_sfn_hard_filter_sigmoid_steepness
+            # Cell 16/17 — resolve the live κ (continuum floor).
+            if self.pool_density_sfn_hard_filter_lambda_min_trainable:
+                if self.pool_density_sfn_hard_filter_lambda_min_constrain_range is None:
+                    # Cell 16: unconstrained, raw param IS κ.
+                    lam_min = self.kappa_raw
+                else:
+                    # Cell 17: κ = lo + (hi − lo)·sigmoid(raw_param).
+                    lo, hi = self.pool_density_sfn_hard_filter_lambda_min_constrain_range
+                    lam_min = lo + (hi - lo) * torch.sigmoid(self.kappa_raw)
+            else:
                 lam_min = self.pool_density_sfn_hard_filter_lambda_min
-                lam_max = self.pool_density_sfn_hard_filter_lambda_max
-                lam = lam_min + (lam_max - lam_min) * torch.sigmoid(
-                    s_steep * (R_contrast - T)
-                )  # [B, N_T] ∈ [lam_min, lam_max]
-                L = self.pool_density_sfn_num_bands
-                alpha = self.pool_density_sfn_band_filter_alpha
-                band_idx = torch.arange(
-                    L, dtype=lam.dtype, device=lam.device
-                ).view(1, 1, L)  # [1, 1, L]
-                band_weights_h = torch.sigmoid(
-                    alpha * (lam.unsqueeze(-1) - band_idx)
-                )  # [B, N_T, L]
+            lam_max = self.pool_density_sfn_hard_filter_lambda_max
+            lam = lam_min + (lam_max - lam_min) * torch.sigmoid(
+                s_steep * (R_contrast - T)
+            )  # [B, N_T] ∈ [lam_min, lam_max]
+            L = self.pool_density_sfn_num_bands
+            alpha = self.pool_density_sfn_band_filter_alpha
+            band_idx = torch.arange(
+                L, dtype=R_contrast.dtype, device=R_contrast.device
+            ).view(1, 1, L)  # [1, 1, L]
+            band_weights_h = torch.sigmoid(
+                alpha * (lam.unsqueeze(-1) - band_idx)
+            )  # [B, N_T, L]
             side_info["band_weights"] = band_weights_h
             # Cell 15 re-run — expose R as a scalar per-query feature
             # so the decoder can read raw peak intensity directly.
@@ -1264,6 +1319,8 @@ def build_attentive_cnp(
     pool_density_sfn_hard_filter_sigmoid_steepness: float = 10.0,
     pool_density_sfn_hard_filter_lambda_min: float = 1.0,
     pool_density_sfn_hard_filter_lambda_max: float = 10.0,
+    pool_density_sfn_hard_filter_lambda_min_trainable: bool = False,
+    pool_density_sfn_hard_filter_lambda_min_constrain_range: tuple[float, float] | None = None,
     pool_density_sfn_inject_contrast_feature: bool = False,
     pe_detach_qk: bool = False,
     pool_energies_kev: "np.ndarray | torch.Tensor | None" = None,
@@ -1473,6 +1530,8 @@ def build_attentive_cnp(
         pool_density_sfn_hard_filter_sigmoid_steepness=pool_density_sfn_hard_filter_sigmoid_steepness,
         pool_density_sfn_hard_filter_lambda_min=pool_density_sfn_hard_filter_lambda_min,
         pool_density_sfn_hard_filter_lambda_max=pool_density_sfn_hard_filter_lambda_max,
+        pool_density_sfn_hard_filter_lambda_min_trainable=pool_density_sfn_hard_filter_lambda_min_trainable,
+        pool_density_sfn_hard_filter_lambda_min_constrain_range=pool_density_sfn_hard_filter_lambda_min_constrain_range,
         pe_detach_qk=pe_detach_qk,
     )
     # Decoder input dim is ``agg_dim + decoder_latent_dim`` where

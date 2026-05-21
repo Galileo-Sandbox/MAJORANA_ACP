@@ -360,6 +360,8 @@ def _load_cnp(cfg: CutAcceptanceConfig, ckpt_path: Path) -> torch.nn.Module:
             pool_density_sfn_hard_filter_sigmoid_steepness=pdsfn.hard_filter_sigmoid_steepness,
             pool_density_sfn_hard_filter_lambda_min=pdsfn.hard_filter_lambda_min,
             pool_density_sfn_hard_filter_lambda_max=pdsfn.hard_filter_lambda_max,
+            pool_density_sfn_hard_filter_lambda_min_trainable=pdsfn.hard_filter_lambda_min_trainable,
+            pool_density_sfn_hard_filter_lambda_min_constrain_range=pdsfn.hard_filter_lambda_min_constrain_range,
             pool_density_sfn_inject_contrast_feature=pdsfn.inject_contrast_feature,
             pe_detach_qk=cfg.aggregator.pe_detach_qk,
             pool_energies_kev=pool_energies_kev,
