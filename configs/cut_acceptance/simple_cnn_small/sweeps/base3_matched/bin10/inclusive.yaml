@@ -1,0 +1,67 @@
+# base3_matched — ANP + PE10 at MATCHED budget.
+#
+# Delta vs the base3 source (mixed_density_f0_70_w10_varN32-1024_pe10_attn8x64):
+#   n_trial_events_max: 1024 → 2048
+#   cnp.n_context_min: 2 → 16
+#   cnp.n_context_max: 1023 → 2048
+#
+# All other knobs preserved (mixed_density sampling, PE10 on,
+# attention 8×64, no GAB / SFN / gating).
+
+name: base3_matched
+out_dir: results/cut_acceptance/simple_cnn_small/sweeps/base3_matched/bin10/inclusive
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+sampling_pattern: mixed_density
+zoom_window_width_kev: 10.0
+local_event_fraction: 0.70
+trial_size_strategy: variable_uniform
+n_trial_events_min: 32
+n_trial_events_max: 2048      # ← matched bump (was 1024)
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 16           # ← matched bump (was 2)
+  n_context_max: 2048         # ← matched bump (was 1023)
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512     # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+aggregator:
+  type: cross_attention
+  num_heads: 4
+  attention_dim: 64

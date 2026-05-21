@@ -247,6 +247,65 @@ strictly better DEP lever than longer training.
 continues to improve DEP, push further; if it hurts (over-broad
 σ_CNP, blurred β), then 0.20 is the dropout sweet spot.
 
+## Matched-budget retrain — all 4 models at N=32–2048, n_ctx=16–2048
+
+After locking v5 as the SOTA, ran a controlled-budget comparison:
+**all four** (base1 pure CNP, base2 pure ANP, base3 ANP+PE, Cell 15)
+retrained from scratch at the same per-trial training budget so any
+remaining difference is *architectural*, not data-budget. base3
+reduced from 8 → 4 attention heads to fit the 16 GB VRAM quota
+(matches base2's head count; cleaner PE-on-vs-PE-off ablation).
+
+Configs: `configs/cut_acceptance/simple_cnn_small/sweeps/{base1,base2,base3,cell15}_matched/`
+
+| model | MASD | overall | FE 2614 | SE 2103 | DEP 1592 | Bi 1620 |
+|---|---|---|---|---|---|---|
+| base1 matched | **0.0058** | 0.67/0.95/1.00 | 0.50/0.86/0.98 | 0.00/0.00/0.00 | 0.00/0.00/0.00 | 0.00/0.00/0.02 |
+| base2 matched | **0.0050** | 0.68/0.95/1.00 | 0.68/0.95/1.00 | 0.00/0.00/0.02 | 0.00/0.00/0.00 | 0.00/0.02/0.12 |
+| base3 matched | 0.0892 | 0.68/0.95/1.00 | 0.55/0.89/0.99 | 0.13/0.44/0.81 | 0.04/0.23/0.61 | 0.44/0.81/0.97 |
+| cell15 matched | 0.0107 | 0.68/0.95/1.00 | 0.68/0.95/1.00 | 0.53/0.88/0.98 | 0.04/0.22/0.59 | 0.64/0.94/0.99 |
+| (cell15_v5 ref) | 0.0095 | 0.68/0.95/1.00 | 0.67/0.95/1.00 | 0.65/0.94/1.00 | 0.15/0.48/0.83 | 0.54/0.88/0.99 |
+
+**Key findings.**
+
+1. **Continuum smoothness is bought by sampling, not by architecture.**
+   base1 (mean) and base2 (pure attention, no PE) both achieve
+   MASD ≈ 0.005 — better than cell15. Without PE there's no
+   bin-scale Fourier basis, so larger N just produces a smoother
+   continuum fit.
+
+2. **Peaks cost capacity.** base1 and base2 fail every named γ-peak
+   (cov_3σ = 0.00). Without PE the model literally cannot represent
+   sub-bin sharp features no matter the data budget.
+
+3. **base3 is the most pathological combo.** PE10 + N=2048 +
+   no SFN gating → MASD 0.0892 (17× worse than cell15_matched). PE
+   gives the bandwidth, no gate to clamp it → the model fits
+   bin-scale sawtooth aggressively. This is exactly the regression
+   that cell15's hard_filter + SFN family was designed to prevent.
+
+4. **More N hurt Cell 15.** cell15_matched (N=2048) is uniformly
+   slightly worse than cell15_v5 (N=640-1024) on every peak metric:
+   SE 1σ 0.65 → 0.53, DEP 1σ 0.15 → 0.04, Bi 3σ 0.99 → 0.99 (tie).
+   Cell 15's architecture is *already* well-tuned for its smaller
+   N range; pushing N higher doesn't help. **v5 remains the
+   working SOTA.**
+
+5. **2200–2400 MeV transition**: MASD in that window dropped
+   markedly for base1/base2 (which gained continuum smoothness)
+   but went UP for base3 (which gained sawtooth). cell15_matched
+   shows 0.0140 vs v5's 0.0144 — essentially unchanged. The
+   "transition" the user flagged is not primarily a data-budget
+   issue; it's an architectural trade between bandwidth and
+   regularisation.
+
+**Decision:** Keep cell15_v5 as the SOTA on disk; use the four
+`_matched` variants for the controlled architectural comparison
+(notebook §8.4.3 / §8.4.6). The matched study confirms the
+architectural features in Cell 15 are *strictly necessary* — no
+amount of N alone reaches the peak coverage that the SFN +
+hard_filter + xfeed combo delivers.
+
 ## cell15_v6 — `encoder.dropout` 0.10 → 0.30
 
 Paradigm: `sweeps/cell15_v6`

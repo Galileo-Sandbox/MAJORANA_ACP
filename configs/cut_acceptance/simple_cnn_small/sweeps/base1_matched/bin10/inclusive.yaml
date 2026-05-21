@@ -1,0 +1,60 @@
+# base1_matched — pure CNP (mean aggregator) at MATCHED budget.
+#
+# Delta vs the original `true_cnp` baseline:
+#   trial_size_strategy: fixed → variable_uniform
+#   n_trial_events_min: 32 (new)
+#   n_trial_events_max: 2048 (new; was n_events_per_trial=48 fixed)
+#   cnp.n_context_min: 2 → 16
+#   cnp.n_context_max: 32 → 2048
+#
+# Rationale: the original true_cnp trained on tiny N=48 trials with
+# at most 32 context events, vastly smaller than the cross_attention
+# variants (32-1024). To compare them fairly, this variant pumps
+# the per-trial budget up to 32-2048 events with 16-2048 context.
+# Hypothesis: more data per training step lets the CNP learn the
+# Compton-edge transition at 2200-2400 MeV better.
+
+name: base1_matched
+out_dir: results/cut_acceptance/simple_cnn_small/sweeps/base1_matched/bin10/inclusive
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+
+min_events_per_bin: 4
+
+# Variable-N matched budget.
+trial_size_strategy: variable_uniform
+n_trial_events_min: 32
+n_trial_events_max: 2048
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.1
+
+cnp:
+  n_context_min: 16
+  n_context_max: 2048
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 48      # ignored under variable_uniform
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
