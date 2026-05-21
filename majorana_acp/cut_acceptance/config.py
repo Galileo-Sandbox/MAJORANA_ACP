@@ -758,9 +758,42 @@ class PoolDensitySfnConfig(_Frozen):
         description=(
             "Sigmoid steepness ``s`` for the hard filter. Default 10.0 "
             "produces a near-step transition: 1 unit above threshold "
-            "saturates λ → 10; 1 unit below saturates λ → 1."
+            "saturates λ → λ_max; 1 unit below saturates λ → λ_min."
         ),
     )
+    hard_filter_lambda_min: float = Field(
+        1.0,
+        ge=0.0,
+        description=(
+            "Floor of ``λ(E_*)`` when the density-contrast sigmoid is at "
+            "zero (continuum, no peak). Default 1.0 — only PE band 0 "
+            "fully open, bands ≥ 1 closed. Raising the floor (e.g. to "
+            "2, 3, 4) keeps additional low-frequency bands always-open "
+            "in the continuum; partially relaxes the 'no sub-bin "
+            "structure in continuum' guarantee in exchange for more "
+            "expressivity at borderline R ≈ 1 regions."
+        ),
+    )
+    hard_filter_lambda_max: float = Field(
+        10.0,
+        gt=0.0,
+        description=(
+            "Ceiling of ``λ(E_*)`` when the density-contrast sigmoid is "
+            "at one (peak fully fires). Default 10.0 = num_bands → all "
+            "PE10 frequencies open at named γ-peaks."
+        ),
+    )
+
+    @field_validator("hard_filter_lambda_max")
+    @classmethod
+    def _lambda_max_gt_min(cls, v: float, info) -> float:
+        lam_min = info.data.get("hard_filter_lambda_min", 1.0)
+        if v <= lam_min:
+            raise ValueError(
+                f"hard_filter_lambda_max ({v}) must exceed "
+                f"hard_filter_lambda_min ({lam_min})."
+            )
+        return v
 
     @field_validator("hard_filter")
     @classmethod

@@ -137,6 +137,8 @@ class CrossAttentionAggregator(nn.Module):
         pool_density_sfn_hard_filter: bool = False,
         pool_density_sfn_hard_filter_contrast_threshold: float = 5.0,
         pool_density_sfn_hard_filter_sigmoid_steepness: float = 10.0,
+        pool_density_sfn_hard_filter_lambda_min: float = 1.0,
+        pool_density_sfn_hard_filter_lambda_max: float = 10.0,
         pe_detach_qk: bool = False,
         raw_phi_dim: int = 2,
     ) -> None:
@@ -562,6 +564,18 @@ class CrossAttentionAggregator(nn.Module):
             self.pool_density_sfn_hard_filter_sigmoid_steepness = float(
                 pool_density_sfn_hard_filter_sigmoid_steepness
             )
+            if pool_density_sfn_hard_filter_lambda_max <= pool_density_sfn_hard_filter_lambda_min:
+                raise ValueError(
+                    f"hard_filter_lambda_max ({pool_density_sfn_hard_filter_lambda_max}) "
+                    f"must exceed hard_filter_lambda_min "
+                    f"({pool_density_sfn_hard_filter_lambda_min})."
+                )
+            self.pool_density_sfn_hard_filter_lambda_min = float(
+                pool_density_sfn_hard_filter_lambda_min
+            )
+            self.pool_density_sfn_hard_filter_lambda_max = float(
+                pool_density_sfn_hard_filter_lambda_max
+            )
         else:
             self.pool_density_sfn_sigma_max_norm = 0.0  # unused
             self.pool_density_sfn_sigma_min_norm = 0.0
@@ -584,6 +598,12 @@ class CrossAttentionAggregator(nn.Module):
             )
             self.pool_density_sfn_hard_filter_sigmoid_steepness = float(
                 pool_density_sfn_hard_filter_sigmoid_steepness
+            )
+            self.pool_density_sfn_hard_filter_lambda_min = float(
+                pool_density_sfn_hard_filter_lambda_min
+            )
+            self.pool_density_sfn_hard_filter_lambda_max = float(
+                pool_density_sfn_hard_filter_lambda_max
             )
             if pool_density_sfn_pe_gated_decoder:
                 raise ValueError(
@@ -952,9 +972,11 @@ class CrossAttentionAggregator(nn.Module):
                 )  # [B, N_T]
                 T = self.pool_density_sfn_hard_filter_contrast_threshold
                 s_steep = self.pool_density_sfn_hard_filter_sigmoid_steepness
-                lam = 1.0 + 9.0 * torch.sigmoid(
+                lam_min = self.pool_density_sfn_hard_filter_lambda_min
+                lam_max = self.pool_density_sfn_hard_filter_lambda_max
+                lam = lam_min + (lam_max - lam_min) * torch.sigmoid(
                     s_steep * (R_contrast - T)
-                )  # [B, N_T] ∈ [1, 10]
+                )  # [B, N_T] ∈ [lam_min, lam_max]
                 L = self.pool_density_sfn_num_bands
                 alpha = self.pool_density_sfn_band_filter_alpha
                 band_idx = torch.arange(
@@ -1240,6 +1262,8 @@ def build_attentive_cnp(
     pool_density_sfn_hard_filter: bool = False,
     pool_density_sfn_hard_filter_contrast_threshold: float = 5.0,
     pool_density_sfn_hard_filter_sigmoid_steepness: float = 10.0,
+    pool_density_sfn_hard_filter_lambda_min: float = 1.0,
+    pool_density_sfn_hard_filter_lambda_max: float = 10.0,
     pool_density_sfn_inject_contrast_feature: bool = False,
     pe_detach_qk: bool = False,
     pool_energies_kev: "np.ndarray | torch.Tensor | None" = None,
@@ -1447,6 +1471,8 @@ def build_attentive_cnp(
         pool_density_sfn_hard_filter=pool_density_sfn_hard_filter,
         pool_density_sfn_hard_filter_contrast_threshold=pool_density_sfn_hard_filter_contrast_threshold,
         pool_density_sfn_hard_filter_sigmoid_steepness=pool_density_sfn_hard_filter_sigmoid_steepness,
+        pool_density_sfn_hard_filter_lambda_min=pool_density_sfn_hard_filter_lambda_min,
+        pool_density_sfn_hard_filter_lambda_max=pool_density_sfn_hard_filter_lambda_max,
         pe_detach_qk=pe_detach_qk,
     )
     # Decoder input dim is ``agg_dim + decoder_latent_dim`` where

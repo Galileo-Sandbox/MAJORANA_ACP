@@ -345,6 +345,89 @@ Reading:
 §8.4.3 / §8.4.6 in the notebook now show all 5 entries (4 matched
 + locked v5).
 
+## cell15_v7 / v8 / v9 — λ-floor sweep (λ_min ∈ {2, 3, 4})
+
+Sweep the lower bound of the hard-filter cutoff oracle while keeping
+λ_max = 10. v5's formula was `λ = 1 + 9·sigmoid(s·(R − T))`, so
+continuum (R << T) collapsed to λ = 1 → only band 0 open. v7/v8/v9
+lift the floor so 1, 2, or 3 additional low-frequency bands stay
+always-open in the continuum.
+
+| variant | formula | λ range | always-open bands |
+|---|---|---|---|
+| v5 (base) | `1 + 9·sigmoid(...)` | [1, 10] | band 0 |
+| **v7** | **`2 + 8·sigmoid(...)`** | **[2, 10]** | bands 0-1 (+ 2 half-open) |
+| **v8** | **`3 + 7·sigmoid(...)`** | **[3, 10]** | bands 0-2 (+ 3 half-open) |
+| **v9** | **`4 + 6·sigmoid(...)`** | **[4, 10]** | bands 0-3 (+ 4 half-open) |
+
+All other knobs identical to v5 (n_trial_events 640-1024,
+encoder.dropout 0.20, hard_filter T=3, sigmoid_steepness 10,
+ultra-contrast pocket σ_local=1 / σ_global=50).
+
+Implementation: added `hard_filter_lambda_min` and
+`hard_filter_lambda_max` to `PoolDensitySfnConfig`; the
+attentive_cnp factory threads them through; the closed-form λ in
+the aggregator forward becomes `lam_min + (lam_max − lam_min) ·
+sigmoid(s · (R − T))`. Defaults preserve v5 behavior — 204 tests
+still pass.
+
+### Results
+
+| variant | MASD | overall | FE | SE | DEP | Bi |
+|---|---|---|---|---|---|---|
+| v5 (base) | 0.0095 | 0.68/0.95/1.00 | 0.67/0.95/1.00 | 0.65/0.94/1.00 | **0.15/0.48/0.83** | 0.54/0.88/0.99 |
+| **v7** (λ_min=2) | **0.0075** | 0.68/0.95/1.00 | 0.67/0.95/1.00 | 0.62/0.92/0.99 | 0.12/0.44/0.80 | 0.57/0.90/0.99 |
+| **v8** (λ_min=3) | **0.0071** | 0.67/0.95/1.00 | 0.66/0.95/1.00 | **0.67/0.95/1.00** | 0.09/0.38/0.75 | 0.56/0.89/0.99 |
+| **v9** (λ_min=4) | **0.0073** | 0.68/0.95/1.00 | **0.68/0.95/1.00** | **0.68/0.95/1.00** | 0.12/0.43/0.79 | 0.55/0.89/0.99 |
+
+### Key findings
+
+1. **Continuum smoothness improved ~25%.** MASD dropped from
+   0.0095 (v5) to 0.0071-0.0075 across all three. The hypothesis
+   was that opening more low-frequency bands might *increase*
+   continuum sawtooth — the opposite happened. With smooth bands
+   always available, the decoder can express the broad Compton
+   shape cleanly via low-frequency PE components instead of
+   leaning on high-amplitude `r_target` modulations that can
+   look like sub-bin noise.
+
+2. **Peak coverage essentially unchanged.** FE, SE, Bi all stay
+   at the calibration target across the sweep. v8/v9 even slightly
+   *improve* on SE (0.65 → 0.67/0.68 at 1σ).
+
+3. **DEP slightly regressed.** v5 had DEP 0.15/0.48/0.83; v8 hit
+   the worst at 0.09/0.38/0.75. v7 and v9 are closer to v5
+   (0.12/0.44/0.80, 0.12/0.43/0.79). DEP is the only metric where
+   v5 still wins clearly — its tight λ floor at the continuum
+   forces the decoder to use `r_target` heavily, which happens to
+   capture DEP's sign-asymmetric structure better.
+
+4. **v9 (λ_min=4) is striking**: SE and FE coverage hit exactly
+   0.68/0.95/1.00 (perfect calibration), MASD nearly tied with v8,
+   DEP within v5's range. With λ_min=4 we always have 4 PE bands
+   open in the continuum, yet sawtooth doesn't grow — the bands
+   ≥4 (periods ≤ 313 keV) are still gated off in the continuum,
+   so sub-bin Fourier modes are still suppressed.
+
+### Verdict
+
+**v7-v9 are net improvements over v5 on continuum smoothness with
+no peak regressions except DEP.** If DEP weren't a separate
+priority, v8 (λ_min=3) would be the new SOTA pick: MASD 0.0071,
+SE/FE/Bi at target. But v5's tighter floor still wins at DEP,
+where the asymmetric β-direction needs the decoder to lean on
+`r_target` rather than smooth PE.
+
+**v5 remains the production SOTA** (best at DEP, which is the
+hardest-to-fit peak). v8 is a strong runner-up worth considering
+if a future task prioritises continuum smoothness over DEP
+recovery.
+
+The new `hard_filter_lambda_min/max` knobs stay in the config
+schema (defaults preserve v5 behavior) so the lever is available
+for future combination sweeps (e.g., dropout × λ_min, or
+n_trial_events × λ_min).
+
 ## cell15_v6 — `encoder.dropout` 0.10 → 0.30
 
 Paradigm: `sweeps/cell15_v6`
