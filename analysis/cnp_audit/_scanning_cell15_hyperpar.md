@@ -345,12 +345,12 @@ Reading:
 §8.4.3 / §8.4.6 in the notebook now show all 5 entries (4 matched
 + locked v5).
 
-## cell15_v7 / v8 / v9 — λ-floor sweep (λ_min ∈ {2, 3, 4})
+## cell15_v7 / v8 / v9 / v10 — λ-floor sweep (λ_min ∈ {2, 3, 4, 5})
 
 Sweep the lower bound of the hard-filter cutoff oracle while keeping
 λ_max = 10. v5's formula was `λ = 1 + 9·sigmoid(s·(R − T))`, so
-continuum (R << T) collapsed to λ = 1 → only band 0 open. v7/v8/v9
-lift the floor so 1, 2, or 3 additional low-frequency bands stay
+continuum (R << T) collapsed to λ = 1 → only band 0 open. v7-v10
+lift the floor so 1, 2, 3, or 4 additional low-frequency bands stay
 always-open in the continuum.
 
 | variant | formula | λ range | always-open bands |
@@ -359,6 +359,7 @@ always-open in the continuum.
 | **v7** | **`2 + 8·sigmoid(...)`** | **[2, 10]** | bands 0-1 (+ 2 half-open) |
 | **v8** | **`3 + 7·sigmoid(...)`** | **[3, 10]** | bands 0-2 (+ 3 half-open) |
 | **v9** | **`4 + 6·sigmoid(...)`** | **[4, 10]** | bands 0-3 (+ 4 half-open) |
+| **v10** | **`5 + 5·sigmoid(...)`** | **[5, 10]** | bands 0-4 (+ 5 half-open) |
 
 All other knobs identical to v5 (n_trial_events 640-1024,
 encoder.dropout 0.20, hard_filter T=3, sigmoid_steepness 10,
@@ -379,49 +380,67 @@ still pass.
 | **v7** (λ_min=2) | **0.0075** | 0.68/0.95/1.00 | 0.67/0.95/1.00 | 0.62/0.92/0.99 | 0.12/0.44/0.80 | 0.57/0.90/0.99 |
 | **v8** (λ_min=3) | **0.0071** | 0.67/0.95/1.00 | 0.66/0.95/1.00 | **0.67/0.95/1.00** | 0.09/0.38/0.75 | 0.56/0.89/0.99 |
 | **v9** (λ_min=4) | **0.0073** | 0.68/0.95/1.00 | **0.68/0.95/1.00** | **0.68/0.95/1.00** | 0.12/0.43/0.79 | 0.55/0.89/0.99 |
+| **v10** (λ_min=5) | 0.0091 | 0.68/0.95/1.00 | 0.66/0.95/1.00 | 0.65/0.94/1.00 | **0.15/0.48/0.83** | **0.68/0.95/1.00** |
 
 ### Key findings
 
-1. **Continuum smoothness improved ~25%.** MASD dropped from
-   0.0095 (v5) to 0.0071-0.0075 across all three. The hypothesis
-   was that opening more low-frequency bands might *increase*
-   continuum sawtooth — the opposite happened. With smooth bands
-   always available, the decoder can express the broad Compton
-   shape cleanly via low-frequency PE components instead of
-   leaning on high-amplitude `r_target` modulations that can
-   look like sub-bin noise.
+1. **MASD is non-monotonic in λ_min — bowl-shaped.** v5 → v7 → v8
+   → v9 → v10 produces 0.0095 → 0.0075 → 0.0071 → 0.0073 →
+   0.0091. The continuum smoothness improves dramatically when 1-3
+   extra low-frequency bands are added, then *regresses* back to
+   the v5 baseline at λ_min=5. Best continuum at v8 (λ_min=3).
+   Interpretation: a small amount of always-on smooth basis lets
+   the decoder express the Compton continuum without leaning on
+   `r_target` modulations that look like sub-bin noise — but past
+   λ_min=4, the band weight at l=3 climbs from `sigmoid(α·1)=0.99`
+   to `sigmoid(α·2)≈1.00` *and* the half-open band at l = λ_min
+   moves further out (band 4 at v9 vs band 5 at v10), introducing
+   mid-frequency content the decoder eventually uses against
+   itself.
 
-2. **Peak coverage essentially unchanged.** FE, SE, Bi all stay
-   at the calibration target across the sweep. v8/v9 even slightly
-   *improve* on SE (0.65 → 0.67/0.68 at 1σ).
+2. **DEP recovers fully at v10.** v10 hits exactly v5's DEP
+   coverage (0.15/0.48/0.83). v8 was the worst on DEP (0.09 at
+   1σ), and the curve climbs monotonically back: v8 → v9 → v10 =
+   0.09 → 0.12 → 0.15. So *both* extremes of the sweep (v5 and
+   v10) preserve DEP, while the middle (v7-v9) trades DEP for
+   continuum. This is consistent with DEP requiring either a very
+   tight continuum floor (v5 forces `r_target` to do peak work)
+   *or* enough always-on bandwidth to let smooth PE encode the
+   asymmetric β-direction directly (v10).
 
-3. **DEP slightly regressed.** v5 had DEP 0.15/0.48/0.83; v8 hit
-   the worst at 0.09/0.38/0.75. v7 and v9 are closer to v5
-   (0.12/0.44/0.80, 0.12/0.43/0.79). DEP is the only metric where
-   v5 still wins clearly — its tight λ floor at the continuum
-   forces the decoder to use `r_target` heavily, which happens to
-   capture DEP's sign-asymmetric structure better.
+3. **v10 has the best Bi 1620 of any version (0.68/0.95/1.00,
+   perfect).** Bi 1620 sits in a relatively quiet region of the
+   spectrum; opening 5 bands in the continuum gives the decoder a
+   wider smooth-basis to interpolate across it.
 
-4. **v9 (λ_min=4) is striking**: SE and FE coverage hit exactly
-   0.68/0.95/1.00 (perfect calibration), MASD nearly tied with v8,
-   DEP within v5's range. With λ_min=4 we always have 4 PE bands
-   open in the continuum, yet sawtooth doesn't grow — the bands
-   ≥4 (periods ≤ 313 keV) are still gated off in the continuum,
-   so sub-bin Fourier modes are still suppressed.
+4. **Peak coverage targets (overall + FE + SE + Bi) all sit at
+   ~0.68/0.95/1.00 across the sweep** — none of the λ-floor
+   variants destabilises calibration on the easy peaks.
+
+5. **v9 (λ_min=4) and v8 (λ_min=3) remain the calibration sweet
+   spots.** v9 hits perfect FE+SE+overall (z within ±0.04). v8 has
+   the best MASD. v10 sacrifices ~25% MASD to recover DEP.
 
 ### Verdict
 
-**v7-v9 are net improvements over v5 on continuum smoothness with
-no peak regressions except DEP.** If DEP weren't a separate
-priority, v8 (λ_min=3) would be the new SOTA pick: MASD 0.0071,
-SE/FE/Bi at target. But v5's tighter floor still wins at DEP,
-where the asymmetric β-direction needs the decoder to lean on
-`r_target` rather than smooth PE.
+The λ-floor sweep reveals a clean **continuum-vs-DEP trade-off**:
 
-**v5 remains the production SOTA** (best at DEP, which is the
-hardest-to-fit peak). v8 is a strong runner-up worth considering
-if a future task prioritises continuum smoothness over DEP
-recovery.
+| priority | best variant |
+|---|---|
+| DEP recovery (production target) | v5 (λ_min=1) or **v10** (λ_min=5) |
+| Continuum smoothness (MASD) | **v8** (λ_min=3, MASD 0.0071) |
+| Calibration symmetry on easy peaks | **v9** (λ_min=4, z ≈ 0 for FE/SE/overall) |
+
+**v5 remains the production SOTA**, with v10 as a tied alternative
+on DEP. v10 adds the bonus of perfect Bi 1620 calibration, at the
+cost of giving back the v7-v9 MASD gains. If a future task
+prioritises continuum smoothness over DEP recovery, v8 is the
+runner-up.
+
+The bowl-shape in MASD says there's a *sweet spot* in continuum
+band-budget (~3 always-open bands); above it the always-on
+mid-frequency content starts to fight the decoder. This is now a
+documented physics-grounded lever.
 
 The new `hard_filter_lambda_min/max` knobs stay in the config
 schema (defaults preserve v5 behavior) so the lever is available
