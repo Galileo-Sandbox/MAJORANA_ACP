@@ -306,6 +306,45 @@ architectural features in Cell 15 are *strictly necessary* — no
 amount of N alone reaches the peak coverage that the SFN +
 hard_filter + xfeed combo delivers.
 
+### Re-run at tighter range N=512–2048 (n_ctx 128–2048)
+
+The first matched-budget pass used N=32–2048; the small lower bound
+was hurting cell15_matched because lots of trials had too few events
+to drive useful peak gradients. Re-trained all 4 at a narrower
+floor (512 events minimum) to concentrate the gradient signal on
+adequately-sized trials.
+
+| model | MASD | overall | FE | SE | DEP | Bi |
+|---|---|---|---|---|---|---|
+| base1 matched   | 0.0061 | 0.51/0.86/0.98 | 0.48/0.84/0.98 | 0/0/0 | 0/0/0 | 0/0/0 |
+| base2 matched   | 0.0049 | 0.54/0.88/0.99 | 0.01/0.09/0.36 | 0/0/0 | 0/0/0 | 0/0/0 |
+| base3 matched   | 0.1282 | 0.63/0.93/0.99 | 0.57/0.90/0.99 | 0.65/0.94/1.00 | 0.04/0.22/0.59 | 0.68/0.95/1.00 |
+| cell15 matched  | 0.0102 | 0.66/0.94/1.00 | 0.64/0.94/0.99 | 0.54/0.88/0.99 | 0.02/0.14/0.46 | 0.68/0.95/1.00 |
+| cell15_v5 (locked) | 0.0095 | 0.68/0.95/1.00 | 0.66/0.94/1.00 | 0.64/0.93/0.99 | 0.07/0.31/0.70 | 0.68/0.95/1.00 |
+
+Reading:
+
+* **base3 (PE + 4-head attention) gets SE/Bi for free at the new
+  range** — 0.65/0.94/1.00 and 0.68/0.95/1.00 respectively, matching
+  cell15_matched. But MASD is still pathological (0.1282 vs ≤0.011
+  for the others) — bandwidth without regularisation.
+
+* **cell15_matched at 512–2048 closed some of the gap to v5 at DEP**:
+  DEP_1σ 0.04 → 0.02 (slight regression at the new range), DEP_3σ
+  0.59 → 0.46. Still cell15_v5 wins at every peak. **v5 remains
+  the SOTA.**
+
+* **base1/base2 still totally fail every peak** at 0.00/0.00/0.00.
+  Larger trial budget can't substitute for missing architectural
+  features (PE, attention).
+
+* **Continuum smoothness**: base1/base2 hit MASD ≈ 0.005, cleanest
+  of all. Without PE there's nothing for the model to overfit
+  sub-bin sawtooth with.
+
+§8.4.3 / §8.4.6 in the notebook now show all 5 entries (4 matched
++ locked v5).
+
 ## cell15_v6 — `encoder.dropout` 0.10 → 0.30
 
 Paradigm: `sweeps/cell15_v6`

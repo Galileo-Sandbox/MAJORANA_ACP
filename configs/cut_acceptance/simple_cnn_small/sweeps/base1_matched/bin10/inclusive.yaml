@@ -2,7 +2,7 @@
 #
 # Delta vs the original `true_cnp` baseline:
 #   trial_size_strategy: fixed → variable_uniform
-#   n_trial_events_min: 32 (new)
+#   n_trial_events_min: 512 (new)
 #   n_trial_events_max: 2048 (new; was n_events_per_trial=48 fixed)
 #   cnp.n_context_min: 2 → 16
 #   cnp.n_context_max: 32 → 2048
@@ -30,7 +30,7 @@ min_events_per_bin: 4
 
 # Variable-N matched budget.
 trial_size_strategy: variable_uniform
-n_trial_events_min: 32
+n_trial_events_min: 512
 n_trial_events_max: 2048
 
 encoder:
@@ -40,7 +40,7 @@ encoder:
   dropout: 0.1
 
 cnp:
-  n_context_min: 16
+  n_context_min: 128
   n_context_max: 2048
   output_activation: sigmoid
   mixup_alpha: 0.01
