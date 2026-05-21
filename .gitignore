@@ -21,6 +21,7 @@ wheels/
 /runs/
 /wandb/
 /mlruns/
+/results/
 /lightning_logs/
 
 # Trained artifacts under results/ stay gitignored (cnp.ckpt etc.
