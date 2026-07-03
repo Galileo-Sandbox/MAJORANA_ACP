@@ -1,0 +1,17 @@
+{
+  "name": "cell15_v1_t4",
+  "target_class": "all",
+  "energy_bin_width": 10.0,
+  "out_dir": "results/cut_acceptance/simple_cnn_small/sweeps/cell15_v1/bin10/inclusive",
+  "cnp_ckpt": "results/cut_acceptance/simple_cnn_small/sweeps/cell15_v1/bin10/inclusive/cnp.ckpt",
+  "n_train_events": 18866,
+  "n_validation_events": 7074,
+  "n_bins_used": 212,
+  "cnp_final_train_loss": 0.43530794978141785,
+  "youden_T_star": 0.540643572807312,
+  "upstream_classifier_config": "configs/small_data_configs/simple_cnn_small.yaml",
+  "upstream_classifier_sha256": "ad8f147aabe1fcd13f79932eaaa2950a0054253120f10b175692420c0236429f",
+  "sampling_pattern": "flat_stratified",
+  "trial_size_strategy": "variable_uniform",
+  "paradigm_path_suffix": "hybrid_scale/flat_stratified_varN640-1024_pe10_attn1x128_gated_gab_dgsfn_tied_hardfilter_xfeed_sl1_sg50_pedetach"
+}

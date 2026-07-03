@@ -37,6 +37,11 @@ results/**
 !results/**/
 !results/**/run_summary.json
 
+# Mirror the same idiom for the sequestered experiments/ tree.
+experiments/results/**
+!experiments/results/**/
+!experiments/results/**/run_summary.json
+
 # Same idiom for analysis/: bulk sweep outputs (audit PNG/JSON/TXT
 # regenerated on every diagnostic pass) stay ignored, but the
 # top-level markdown summaries (file names prefixed `_`, e.g.
@@ -45,6 +50,13 @@ results/**
 analysis/**
 !analysis/**/
 !analysis/cnp_audit/_*.md
+
+# Internal development notes — kept locally, never published.
+# CLAUDE.md is the codex of the exploration; the cell15
+# hyperparameter scan log lives beside it as a private engineering
+# artifact. The public story is told by README.md + the notebook.
+/CLAUDE.md
+/analysis/cnp_audit/_scanning_cell15_hyperpar.md
 
 # OS / editor
 .DS_Store

@@ -1,253 +1,266 @@
-# majorana-acp
+# Majorana-ACP
 
-Machine-learning research on the public Majorana Demonstrator AI/ML data
-release ([arXiv:2308.10856](https://arxiv.org/abs/2308.10856),
-[Zenodo](https://doi.org/10.5281/zenodo.8257027)). The current task is
-a binary classifier that predicts the `psd_label_low_avse` cut from a
-raw Germanium-detector waveform and emits a continuous score in
-`[0, 1]` so the cut threshold can be tuned at inference time.
+**Attentive Conditional Neural Processes for HPGe cut-acceptance
+estimation on the Majorana Demonstrator AI/ML release.**
 
-This is **not** the NPML challenge — train and test are kept strictly
-separated (the released `MJD_Train_*.hdf5` and `MJD_Test_*.hdf5` files,
-respectively).
+Given a binary Pulse-Shape Discrimination (PSD) classifier trained on
+Germanium waveforms, we learn its cut-acceptance function
 
-## Status
+    β(E) = P( score ≥ T*  |  energy = E )
 
-- ✅ Data loader (`majorana_acp/data`)
-- ✅ Training config schema (`majorana_acp/training/config.py`)
-- ✅ Model registry + concrete models: `simple_cnn`, `mlp`
-  (`majorana_acp/models`)
-- ✅ Trainer with per-epoch test monitoring (`majorana_acp/training`)
-- ✅ Evaluation pipeline (`majorana_acp/eval`)
-- ✅ CLIs: `majorana_acp.cli.train`, `majorana_acp.cli.evaluate`
-- ✅ Run discovery + comparison plots in
-  `notebooks/data_visualization.ipynb`
+as a continuous 1D curve resolved down to individual γ-lines
+(Tl-208 FE / SE / DEP, Bi-214) in the ²²⁸Th spectrum. The estimator
+is a **Conditional Neural Process (CNP)** with two custom modules
+that resolve the standard "over-smoothing near sharp physics
+features" failure of vanilla CNPs and Attentive NPs on this problem:
 
-113 unit tests, ~3s end-to-end on CPU.
+- **Scale-Aware Positional Encoding (SAPE)** — a Fourier-feature
+  lift of the energy coordinate, with a per-query hard cutoff over
+  the frequency bands so peaks get the full frequency spectrum and
+  flat Compton regions do not.
+- **Self-Adaptive Sigma Filter Network (SFN Gate)** — a
+  data-density-conditioned local/global contrast head that selects
+  the SAPE cutoff at inference time, with the continuum-floor
+  parameter **κ** exposed as a learnable, sigmoid-bounded weight.
 
-## Setup
+Every ablation from the plain CNP baseline through the final
+architecture lives in `configs/cut_acceptance/` and can be rerun
+end-to-end from a fresh clone.
 
-Python 3.12 via [uv](https://docs.astral.sh/uv/). The project pins
-`torch` to PyTorch's `cu129` wheels (the default `cu130` build fails on
-this driver — see `pyproject.toml` for the override).
+## Table of contents
+
+1. [Data](#data)
+2. [Architecture](#architecture)
+3. [Quickstart — reproduce the flagship figure](#quickstart--reproduce-the-flagship-figure)
+4. [Repository layout](#repository-layout)
+5. [Retraining from scratch](#retraining-from-scratch)
+6. [Testing](#testing)
+7. [Citation](#citation)
+
+## Data
+
+Public Majorana Demonstrator AI/ML data release, DS6 ²²⁸Th
+calibration — 3.2M waveforms with energy + PSD analysis labels.
+
+- Paper: [arXiv:2308.10856](https://arxiv.org/abs/2308.10856)
+- Files: [Zenodo, 10.5281/zenodo.8257027](https://doi.org/10.5281/zenodo.8257027)
+- `MJD_Train_*.hdf5` (16 files) — training pool
+- `MJD_Test_*.hdf5` (6 files) — evaluation
+
+Train and test files are never mixed. Waveforms are baseline-corrected
+against the first 500 samples, per-event peak-normalised, and
+optionally aligned around the 90 % rising-edge sample before hitting
+the model.
+
+## Architecture
+
+The cut-acceptance model is an **Attentive Conditional Neural Process**
+that takes a context set of `(E_i, T*)` — event energy and the
+Youden-J optimal classifier threshold — plus the binary passage flag
+`X_i = 1[score_i ≥ T*]`, and returns a mean + epistemic uncertainty
+band over a dense energy grid.
+
+```
+    context set (D_C)        target queries (E*)
+      ┌────────────┐            ┌────────────┐
+      │ E_i, T*    │            │ E*_j       │
+      │ X_i ∈{0,1} │            └─────┬──────┘
+      └─────┬──────┘                  │
+            │  SAPE(E_i)               │  SAPE(E*_j)
+            │  = [sin(2^l·πE), …]      │
+            ▼                          ▼
+      ┌────────────┐            ┌────────────┐
+      │ MLP encoder│            │ MLP encoder│
+      └─────┬──────┘            └─────┬──────┘
+            │ per-event                │ per-query
+            │   h_i, k_i               │   q_j
+            ▼                          ▼
+      ┌──────────────────────────────────────┐
+      │  Cross-attention + SFN gate          │
+      │                                      │
+      │   α_ij = softmax( q_j · k_i / √d      │
+      │             + Gaussian(E_i − E*_j)   │
+      │             − λ(E*_j) · mask_l )     │
+      │                                      │
+      │   r(E*_j) = Σ_i α_ij · h_i           │
+      └──────────────┬───────────────────────┘
+                     │
+                     ▼
+              ┌────────────┐
+              │  Decoder   │  ⇒  β(E*_j), σ(E*_j)
+              └────────────┘
+```
+
+### Scale-Aware Positional Encoding (SAPE)
+
+We lift each scalar energy into a 21-dimensional Fourier feature
+vector: `[sin(2^l·πE), cos(2^l·πE)]` for `l = 0..9`, plus the
+normalised threshold `T*`. The `l = 9` band has period ≈ 9.8 keV
+under a 2500-keV normalisation window, deliberately matching the
+bin10 evaluation grid so the network can resolve bin-scale
+acceptance features. Every layer of the encoder / attention /
+decoder consumes this expanded representation.
+
+### Self-Adaptive SFN Gate
+
+Vanilla PE10 with mean- or attention-aggregation over-shoots on the
+Tl-208 SE line and rings across the smooth Compton continuum: the
+high-frequency bands are "always on" and leak sharp features into
+regions where the data is smooth. Our SFN gate cures this with a
+data-driven **per-query soft band mask**:
+
+    λ(E*) = κ + (10 − κ) · sigmoid( 10 · (R(E*) − 3) )
+
+where `R(E*)` is the local-vs-global data-density contrast ratio
+around the target query (computed on the fly from the context set),
+and `κ` is the continuum-floor bandwidth — the minimum number of
+Fourier bands the decoder is allowed to use in featureless regions.
+
+Attention masks each band `l` with `w_l = sigmoid(α · (λ(E*) − l))`
+so high-`l` bands stay closed where `λ` is small and open up
+smoothly where `λ` grows toward 10.
+
+### Learnable, sigmoid-bounded κ (Cell 17)
+
+Cell 15 locked κ at 1.0 (over-smooths the 2400-keV Compton edge);
+Cell 16 unconstrained κ (risks continuum ringing). The shipped
+Cell 17 architecture parameterises
+
+    κ = 1 + 4 · sigmoid(κ_raw)   ∈  (1, 5)
+
+with κ_raw initialised at 0 (midpoint κ = 3, maximum gradient),
+letting Adam find the optimal continuum-floor bandwidth by
+end-to-end gradient descent without opening the high-frequency
+supreme bands (l ≥ 6) in flat regions.
+
+### Ablation ladder — five canonical checkpoints
+
+| Paradigm | Aggregator | PE | SFN gate | κ | What it isolates |
+|---|---|---|---|---|---|
+| `true_cnp/bin10/inclusive` | mean | ✗ | ✗ | — | Baseline CNP; over-smooths all features. |
+| `sweeps/base1_matched` | mean | ✗ | ✗ | — | Naïve CNP at fair-budget N. |
+| `sweeps/base3_matched` | cross-attn (8×64) | PE10 | ✗ | — | Attentive NP + Fourier features. |
+| `sweeps/cell15_v5` | 1×128 attn + gates | PE10 | fixed | 1 | SAPE + SFN, locked floor. |
+| `sweeps/cell17` | 1×128 attn + gates | PE10 | fixed | learnable ∈ (1,5) | Self-adaptive continuum floor. |
+
+Each YAML at `configs/cut_acceptance/simple_cnn_small/<paradigm>/bin10/inclusive.yaml`
+carries the full config; `experiments/` holds the deprecated
+intermediate sweeps referenced for reproducibility only.
+
+## Quickstart — reproduce the flagship figure
+
+**Zero-training path.** The five canonical inference outputs are
+committed as compact `.npz` files under `cache/inference/`, so a
+fresh clone renders `notebooks/data_visualization.ipynb` §8.4
+without any trained checkpoint or upstream `predictions.h5`:
 
 ```bash
-uv sync                                          # creates .venv and installs deps
-.venv/bin/python -c "import majorana_acp"        # smoke test the editable install
+git clone <this-repo>
+cd majorana-acp
+uv sync                                    # install Python deps
+uv run jupyter lab notebooks/data_visualization.ipynb
+# In §8.4.1: leave CURRENT_PARADIGM = "sweeps/cell17"
+# Run cells §8.4.2, §8.4.3, §8.5 top-to-bottom.
 ```
 
-The Zenodo dataset must already be present at
-`/home/klz/Data/MAJORANA/` (16 train + 6 test + 3 NPML HDF5 files).
-The path is configurable via `data.data_dir` in any experiment YAML.
+Each cached `.npz` is < 2 MB and carries: the dense β(E) mean and
+σ curves, bin-center Wilson-interval empirical rates for D_C /
+D_T, the raw event arrays for the three data-source toggles
+(D_T / D_C / D_train), and the peak-region χ²/Z audit metrics.
 
-## Project layout
+## Repository layout
 
 ```
-majorana_acp/
-  data/         HDF5 Dataset, file-list resolver
-  models/       registry + simple_cnn + mlp
-  training/     config schema, losses, trainer
-  eval/         load checkpoint, run inference, save metrics
-  cli/          train.py and evaluate.py entry points
+majorana_acp/                    Python package
+  data/                          HDF5 loader + Dataset
+  models/                        nn.Module classes (simple_cnn, MLP,
+                                 AttentiveCNP with SAPE + SFN gate)
+  training/                      Train loop, class-imbalance handling
+  eval/                          Metrics, energy histograms
+  cut_acceptance/                CNP pipeline: config, event sampler,
+                                 positional encoding, pipeline.py
+  cli/                           Entry points: train, evaluate, predict
 configs/
-  full_data_configs/   full-run experiment YAMLs (50 epoch baselines)
-  small_data_configs/  same models but on a fixed 1% slice (subset_portion=0.01)
-  smoke_tests/         fast iteration configs (one file, one epoch)
-notebooks/      data_visualization.ipynb (exploration + run comparison)
-tests/          pytest suite — synthetic HDF5 fixtures, no real data needed
-runs/           per-run output dirs, mirroring the configs/ subfolders
-                (gitignored). e.g. configs/full_data_configs/simple_cnn.yaml
-                writes to runs/full_data_configs/simple_cnn_baseline/
+  small_data_configs/            Upstream classifier YAMLs
+  cut_acceptance/simple_cnn_small/
+    true_cnp/bin{5,10,20}/       Baseline CNP (mean aggregation)
+    sweeps/
+      base1_matched/             CNP baseline at matched budget
+      base3_matched/             ANP + PE10
+      cell15_v5/                 SAPE + SFN, fixed κ = 1
+      cell17/                    SAPE + SFN, learnable κ ∈ (1,5)
+scripts/
+  diagnostics/                   Test-set inference + audit builder
+  tools/build_notebook_cache.py  Persists the five .npz files below
+cache/inference/                 Tracked notebook cache (~10 MB total)
+notebooks/data_visualization.ipynb   Full figure story
+tests/                           pytest, mirrors the package layout
+experiments/                     Sequestered historical configs
+                                 (kept for reproducibility only)
 ```
 
-A single training run writes the following to `runs/<exp-name>/`:
+The following paths are gitignored:
 
-| File | Purpose |
-|---|---|
-| `metadata.json` | Full config + runtime info (git SHA, host, versions, start/end times, completed epochs, final metrics) |
-| `training_history.json` | Per-epoch `train_loss`, `test_loss`, `test_roc_auc` |
-| `epoch_NNN.pt` | Model + optimizer checkpoint (one per epoch) |
-| `train.log` | Log file scoped to this run |
-| `eval/predictions.h5` | (After running `evaluate`) raw per-event scores, logits, labels, energy, tp0, detector, run_number, id |
-| `eval/metrics.json` | (After running `evaluate`) scalar metrics: counts, ROC-AUC, accuracy at 0.5 |
-| `eval/eval.log` | Eval-side log |
+- `runs/` — upstream classifier training outputs
+- `results/**` and `experiments/results/**` except each cell's
+  `run_summary.json` (the git-visible experiment registry)
+- `analysis/**` except top-level `_*.md` findings notes
 
-## Train a model
+## Retraining from scratch
 
-Pick or write a config under `configs/`, then:
+You need the upstream classifier's `predictions.h5` files from a
+prior training run (train + val splits). Point each cell's YAML at
+your local copy via `train_predictions_path` and
+`validation_predictions_path`.
+
+Train one paradigm:
 
 ```bash
-.venv/bin/python -m majorana_acp.cli.train configs/full_data_configs/simple_cnn.yaml
+uv run python -m majorana_acp.cut_acceptance.cli \
+    configs/cut_acceptance/simple_cnn_small/sweeps/cell17/bin10/inclusive.yaml
 ```
 
-The reference configs are:
-
-| Config | Purpose |
-|---|---|
-| `configs/full_data_configs/simple_cnn.yaml` | 1D CNN baseline, all 16 train files |
-| `configs/full_data_configs/simple_cnn_derivative.yaml` | SimpleCNN with the derivative as a 2nd input channel |
-| `configs/full_data_configs/mlp.yaml` | MLP baseline (1M params) |
-| `configs/full_data_configs/mlp_v2.yaml` | Smaller MLP (122k params) |
-| `configs/full_data_configs/mlp_derivative.yaml` | MLP with derivative channel |
-| `configs/full_data_configs/resnet.yaml` / `resnet_single.yaml` | ResNet-1D, 2-channel and 1-channel |
-| `configs/full_data_configs/inception.yaml` / `inception_single.yaml` | InceptionTime, 2-channel and 1-channel |
-| `configs/small_data_configs/simple_cnn_small.yaml` / `resnet_single_small.yaml` | Same models on a fixed 1% slice (subset_portion=0.01, train_portion=1.0) for data-scaling studies |
-| `configs/smoke_tests/quick_smoke.yaml` | One-file, one-epoch smoke test for SimpleCNN (~12 s on the 5090) |
-| `configs/smoke_tests/quick_smoke_mlp.yaml` | Same smoke shape but with `model.name: mlp` |
-
-A `train_portion` of `0.1` means each epoch draws a random 10 % of the
-training events (sampled without replacement, reshuffled each epoch).
-Set it to `1.0` to use the full ~1.04 M-event train set every epoch.
-
-## Evaluate a trained run
-
-The evaluator accepts either a `.pt` file or a run directory (it picks
-the latest `epoch_*.pt` for you):
+Run test-set inference + audit:
 
 ```bash
-# Easiest — point at the run directory
-.venv/bin/python -m majorana_acp.cli.evaluate runs/simple_cnn_baseline
-
-# Or pin to a specific checkpoint
-.venv/bin/python -m majorana_acp.cli.evaluate runs/simple_cnn_baseline/epoch_005.pt
-
-# Override the output directory (default is <run-dir>/eval)
-.venv/bin/python -m majorana_acp.cli.evaluate runs/simple_cnn_baseline --out /tmp/foo
+uv run python -m scripts.diagnostics.cnp_test_inference \
+    configs/cut_acceptance/simple_cnn_small/sweeps/cell17/bin10/inclusive.yaml
 ```
 
-Output goes to `runs/<exp-name>/eval/` by default.
-
-## Inspect the results
-
-`notebooks/data_visualization.ipynb` does double duty:
-
-- Sections 1–7: data exploration (HDF5 schema, energy spectrum,
-  per-PSD-cut survival, sample raw / preprocessed waveforms, …).
-- Section 8: training results. The discovery cell at the top of
-  section 8 walks `runs/` recursively and exposes a `GROUPS` list
-  (e.g., `["full_data_configs"]` or `None` for all) so you can scope
-  the comparison to a subset of subfolders. All later subsections
-  (loss curves, ROC, energy-stratified rates, score / logit
-  distributions, leaderboard table) operate on the filtered set.
-
-Launch with:
+Rebuild the notebook cache after retraining:
 
 ```bash
-.venv/bin/jupyter lab
+uv run python -m scripts.tools.build_notebook_cache
 ```
 
-The kernel uses the project's `.venv`. If your Jupyter doesn't see
-`majorana_acp`, you may need to register the kernel once:
+Sweep every canonical cell:
 
 ```bash
-.venv/bin/python -m ipykernel install --user --name majorana-acp \
-    --display-name "Python (majorana-acp)"
+uv run python -m scripts.diagnostics.run_all_test_inference
 ```
 
-## Add a new model
-
-The trainer is model-agnostic: it builds whichever class is registered
-under `model.name` in your YAML, passing through `model.params` as
-keyword arguments. Adding a new architecture is three steps.
-
-### 1. Write the model file
-
-Create `majorana_acp/models/<your_model>.py`:
-
-```python
-from __future__ import annotations
-
-import torch
-from torch import nn
-
-from majorana_acp.models.registry import register_model
-
-
-@register_model("my_resnet")  # this name is what configs reference
-class MyResNet(nn.Module):
-    """Input  : (B, L) float32 — preprocessed waveform.
-    Output : (B,) raw logits (NO sigmoid; trainer uses BCEWithLogitsLoss)."""
-
-    def __init__(self, channels: int = 32, depth: int = 4) -> None:
-        super().__init__()
-        # ... your architecture ...
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if x.ndim == 2:
-            x = x.unsqueeze(1)        # (B, L) -> (B, 1, L)
-        # ... compute features ...
-        return logits.squeeze(-1)     # shape (B,)
-```
-
-Two conventions are non-negotiable:
-
-- **Output a single raw logit per event** (no sigmoid in the model).
-  Training uses `BCEWithLogitsLoss` for numerical stability;
-  inference applies `torch.sigmoid` to get the [0, 1] score.
-- **Accept `(B, L)`** waveforms; `(B, 1, L)` is also accepted as a
-  convenience.
-
-### 2. Register the import
-
-Add one line to `majorana_acp/models/__init__.py` so the decorator
-fires on package import:
-
-```python
-from majorana_acp.models import my_resnet  # noqa: F401
-```
-
-### 3. Reference it in a YAML config
-
-Copy `configs/full_data_configs/simple_cnn.yaml`, change only the `model` block:
-
-```yaml
-model:
-  name: my_resnet            # registry key from step 1
-  params:
-    channels: 64
-    depth: 6
-```
-
-That's the entire change required to swap models — the trainer, eval
-module, dataset, and metadata schema are all unchanged.
-
-### Tests for the new model
-
-Add a tiny test mirroring `tests/test_models.py`:
-
-```python
-def test_my_resnet_is_registered():
-    assert "my_resnet" in list_models()
-
-def test_my_resnet_forward_shape():
-    model = build_model("my_resnet", channels=8, depth=2)
-    out = model(torch.randn(4, 3800))
-    assert out.shape == (4,)
-```
-
-Run the suite:
+## Testing
 
 ```bash
-.venv/bin/python -m pytest -q
+uv run pytest
 ```
 
-## Compare runs
+410 unit + integration tests, ~40 s on CPU. Every module under
+`majorana_acp/` has a corresponding test file and the SAPE / SFN
+gate paths carry parity tests against the mean-aggregator baseline
+to guarantee zero regression on legacy checkpoints.
 
-After multiple `train` + `evaluate` invocations, re-run the cells in
-section 8 of the notebook. The discovery cell scans every directory in
-`runs/`; subsequent cells stack loss curves, ROC curves, and the
-leaderboard table without any further configuration.
+## Citation
 
-## Coding standards
+If this work is useful in yours, please cite the Majorana
+Demonstrator AI/ML data release:
 
-See `CLAUDE.md` for the full picture. Highlights:
-
-- pydantic models for config validation.
-- pytest for everything; tests should not depend on the real
-  `/home/klz/Data/MAJORANA/` files (use `tests/conftest.py` fixtures).
-- ruff for lint and format. CI-equivalent locally:
-
-  ```bash
-  .venv/bin/python -m ruff check majorana_acp/ tests/
-  .venv/bin/python -m ruff format --check majorana_acp/ tests/
-  ```
+```
+@article{Majorana2023AIML,
+  title = {A machine-learning-based framework for anomalous-event
+           reconstruction with High-Purity Germanium detectors},
+  author = {Majorana Collaboration},
+  journal = {arXiv preprint arXiv:2308.10856},
+  year = {2023}
+}
+```
