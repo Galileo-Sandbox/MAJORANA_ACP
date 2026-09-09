@@ -87,7 +87,7 @@ def main() -> None:
     base_path = repo / "ml4phy-paper/manifests/frozen_protocol_v1.json"
     context_archive_path = repo / "ml4phy-paper/local/protocol/extension_context_roles_v1.npz"
     base_archive_path = repo / "ml4phy-paper/local/protocol/frozen_roles_v1.npz"
-    output_dir = repo / "ml4phy-paper/runs/gp/20260909-rbf-dev-s100-n2000-pilot"
+    output_dir = repo / "ml4phy-paper/runs/gp/20260909-rbf-dev-s100-n2000-pilot-attempt2"
     output_dir.mkdir(parents=True, exist_ok=False)
     summary_path = output_dir / "summary.json"
     predictions_path = output_dir / "predictions.npz"
@@ -126,9 +126,10 @@ def main() -> None:
     if sha256_file(final_h5) != base["inputs"]["full_test"]["sha256"]:
         raise ValueError("Final HDF5 hash mismatch")
     with h5py.File(development_h5, "r") as handle:
-        context_energy = handle["energy"][context_rows].astype(np.float64)
-        context_score = handle["score"][context_rows].astype(np.float64)
-        context_ids = identity_matrix(handle, np.sort(context_rows))
+        sorted_context_rows = np.sort(context_rows)
+        context_energy = handle["energy"][sorted_context_rows].astype(np.float64)
+        context_score = handle["score"][sorted_context_rows].astype(np.float64)
+        context_ids = identity_matrix(handle, sorted_context_rows)
         development_energy = handle["energy"][development_target_rows].astype(np.float64)
         development_score = handle["score"][development_target_rows].astype(np.float64)
     with h5py.File(final_h5, "r") as handle:
