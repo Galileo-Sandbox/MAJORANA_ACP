@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "training_pool_sha256": "c3a7e7a147dcc625d750b676f5e5a980765573dddb3916cf21d18083e71fc227",
+  "training_predictions": "runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5",
+  "training_predictions_sha256": "ea2eb5594acdd181ebc18926fd8deabc7b2f6910b117dec863d87c3b70057159",
+  "classifier_config": "configs/small_data_configs/simple_cnn_small.yaml",
+  "classifier_config_sha256": "ad8f147aabe1fcd13f79932eaaa2950a0054253120f10b175692420c0236429f",
+  "models": {
+    "m2_seed0_pilot": {
+      "display_name": "M2 attentive PE10 (seed 0 pilot)",
+      "config": "ml4phy-paper/configs/m2_attentive_pe10_seed0.yaml",
+      "config_sha256": "cbe365288042b6dc74c2cf867c21db8afe1f84b51358384e0ca90e89eac7e1ea",
+      "checkpoint": "ml4phy-paper/runs/training/20260908-m2-seed0-pilot3000/artifacts/cnp.ckpt",
+      "checkpoint_sha256": "2295bdc7e8015ec6387e13f8777c6c293ebe916a7cbb986ef9f21aaaf2d2dba8",
+      "training_seed": 0,
+      "comparison_role": "controlled_pilot"
+    }
+  }
+}

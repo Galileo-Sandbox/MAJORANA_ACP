@@ -30,6 +30,11 @@ def main() -> None:
     parser.add_argument("--max-context-per-pass", type=int, default=2000)
     parser.add_argument("--grid-spacing-kev", type=float, default=1.0)
     parser.add_argument("--run-kind", choices=("pilot", "evaluation"), default="evaluation")
+    parser.add_argument(
+        "--model-registry",
+        type=Path,
+        default=Path("ml4phy-paper/configs/recovered_models_v1.json"),
+    )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -71,6 +76,8 @@ def main() -> None:
         str(args.grid_spacing_kev),
         "--run-kind",
         args.run_kind,
+        "--model-registry",
+        str(args.model_registry),
         "--output-dir",
         str(output_dir),
     ]
