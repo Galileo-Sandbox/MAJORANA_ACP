@@ -1,0 +1,9 @@
+method,architecture_id,feature,training_seed_count,context_draws_per_seed,absolute_contrast_error_percentage_points_mean_of_training_seed_means,absolute_contrast_error_percentage_points_sd_across_training_seed_means,absolute_contrast_error_percentage_points_mean_context_sd_within_seed
+Attentive CNP + PE,m2,Tl-208 DEP 1592 keV,3,10,3.5792175701276694,1.1988046238051118,0.08275802788761381
+Attentive CNP + PE,m2,Bi-212 1620.74-keV feature,3,10,5.2826587909772735,1.875933951515017,0.1885358746562915
+Attentive CNP + PE,m2,Tl-208 SE 2103 keV,3,10,10.266279607207247,1.0528447951973436,0.20947715348197593
+Attentive CNP + PE,m2,Tl-208 FE 2614 keV,3,10,5.701928089212845,0.5071893040092563,0.07259826492587286
+Density-guided CNP (ours),cell17,Tl-208 DEP 1592 keV,3,10,2.789569498349044,1.2191705379468278,0.0852778627638055
+Density-guided CNP (ours),cell17,Bi-212 1620.74-keV feature,3,10,3.0641009413425713,1.6262089071641987,0.25875935959833035
+Density-guided CNP (ours),cell17,Tl-208 SE 2103 keV,3,10,3.95526974301588,1.3479389306453906,0.0721114992044099
+Density-guided CNP (ours),cell17,Tl-208 FE 2614 keV,3,10,3.5955867989597103,1.2391466470429633,0.40019698587364005

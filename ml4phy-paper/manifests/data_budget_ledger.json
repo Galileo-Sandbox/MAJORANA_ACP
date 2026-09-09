@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "analysis": "extension Phase 0 data-budget and executed-method audit",
+  "source_commit": "a9f8dce7bebbc7e715b598d95540cc80056da563",
+  "script": "ml4phy-paper/scripts/audit_data_budget.py",
+  "script_sha256": "5e24da332e7e0a0f31c9bd252835bc0c56902d7bad4c30d6b7ae44ec7cc1983b",
+  "identity_fields": [
+    "run_number",
+    "detector",
+    "id",
+    "tp0"
+  ],
+  "historical_data_exposure": "The final target was historically inspected, including for the talk. This is a prospectively frozen repeated-split evaluation, not an untouched test.",
+  "raw_inputs": {
+    "train_files": [
+      {
+        "logical_name": "MJD_Train_0.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_1.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_2.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_3.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_4.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_5.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_6.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_7.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_8.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_9.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_10.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_11.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_12.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_13.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_14.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Train_15.hdf5",
+        "bytes": 1978866144
+      }
+    ],
+    "test_files": [
+      {
+        "logical_name": "MJD_Test_0.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Test_1.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Test_2.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Test_3.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Test_4.hdf5",
+        "bytes": 1978866144
+      },
+      {
+        "logical_name": "MJD_Test_5.hdf5",
+        "bytes": 1978866144
+      }
+    ],
+    "large_file_policy": "Raw multi-gigabyte HDF5 files are bound by reconstructed identity hashes; portable byte hashes are recorded for the compact prediction exports."
+  },
+  "input_hashes": {
+    "configs/small_data_configs/simple_cnn_small.yaml": "ad8f147aabe1fcd13f79932eaaa2950a0054253120f10b175692420c0236429f",
+    "runs/small_data_configs/simple_cnn_small/metadata.json": "af16e3b8644ba943c91d8adcc0e46aab01f536288064be769afc84d06d835236",
+    "runs/small_data_configs/simple_cnn_small/epoch_050.pt": "301d0c1bd015cdcb47fc4839ca81c462a1073dadb46f2262e1d0db5ec7c3170d",
+    "runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5": "ea2eb5594acdd181ebc18926fd8deabc7b2f6910b117dec863d87c3b70057159",
+    "runs/small_data_configs/simple_cnn_small/eval/predictions.h5": "d318b49a99dd3d1ead3b1aa9c8d3e97d78aaf3cc0ab97c040bbc2235436ba5cd",
+    "runs/small_data_configs/simple_cnn_small/eval_full_test/predictions.h5": "47f55e0ba08102462b5348bc3ba7e575dd2c653cc15adadc54ef6393d2e505fb",
+    "ml4phy-paper/manifests/frozen_protocol_v1.json": "4c747fafbb043a62746616ba32160bb16a4bfad92ffea379dab6e234f714c4ce",
+    "ml4phy-paper/local/protocol/frozen_roles_v1.npz": "6206d88d9e5c7223ea3607ee4d5cf6e619a015ba205f9f968f433c2c203e9fa6",
+    "majorana_acp/data/dataset.py": "4de07b218fd400993e4fce0036d9885d6c6fb627253120cd40453952ce1e8e49",
+    "majorana_acp/training/trainer.py": "faba0600d3525c759d477325b0ae5599879af44d717209de8bcd8eba2eca5f8f",
+    "majorana_acp/cut_acceptance/event_sampler.py": "5f0767c3322ae45f71033eec1b0491c28c05aa4da6a87c6ac1d1cb4eb549c31a",
+    "majorana_acp/cut_acceptance/pipeline.py": "59274d72986da700c85ddf371ce4364e90031e91969502e1489fccb6df0101be",
+    "majorana_acp/models/attentive_cnp.py": "a6df1cc111d22bd2aa088244a8a5743af00e0b1beb28837a1382919d10b2759b",
+    "ml4phy-paper/local/resum-flex-edba6a/core/surrogate_cnp.py": "fec0942550ca9093295fcde1486b9695d9f9b0b8ce6ce5a52202cac8e97a6d63"
+  },
+  "key_findings": {
+    "classifier_training_denominator": 377330,
+    "classifier_training_unique": 18866,
+    "acceptance_input_unique": 18866,
+    "acceptance_sampling_effective_unique": 18836,
+    "density_pool_unique": 18866,
+    "development_context_draw_union": 3000,
+    "final_context_draw_union": 13060,
+    "full_test_unique": 141474,
+    "end_to_end_scored_unique_union": 160340,
+    "eligible_source_population_union": 518804,
+    "fixed_threshold": 0.540643572807312,
+    "executed_dropout_seed": 10100
+  },
+  "outputs": {
+    "ml4phy-paper/tables/data_budget_ledger.csv": {
+      "sha256": "6553bc53714221863f39af6bb71d83c37cc73ce0addfab7b5fe125556092a376",
+      "bytes": 3005
+    },
+    "ml4phy-paper/tables/data_identity_overlap.csv": {
+      "sha256": "a69b3499a430417ff75252899fb65627cf7ff604c0ffe26a77159ee844168ca0",
+      "bytes": 7013
+    },
+    "ml4phy-paper/tables/context_draw_ledger.csv": {
+      "sha256": "57a89da42b31ba23d0c252f82211a2183735d63336f7512b47474091bfb02d61",
+      "bytes": 2909
+    },
+    "ml4phy-paper/tables/training_exposure_ledger.csv": {
+      "sha256": "86f5b80832f08e894e296bcff538715ffd63747aaec1e44b4b474db320e1429a",
+      "bytes": 740
+    },
+    "ml4phy-paper/reports/data_budget_ledger.md": {
+      "sha256": "a2e4e0f40290ed0a8b182db06b517a6be06a0a80555103d308207cc6a0e571ff",
+      "bytes": 8752
+    }
+  }
+}

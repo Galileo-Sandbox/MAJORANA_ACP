@@ -526,7 +526,7 @@ def main() -> None:
     )
     report = f"""# Data-budget and executed-method ledger
 
-Audit date: 2026-09-08 (America/Los_Angeles)
+Audit date: 2026-09-09 (America/Los_Angeles)
 Status: complete before any extension training. The two uncommitted laptop plans named in the extension prompt were absent from this checkout.
 
 ## Unique-event accounting
