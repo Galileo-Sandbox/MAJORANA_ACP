@@ -603,8 +603,7 @@ The density-guided advantage appears at 5,000 and improves further at 18,866,
 but one frozen nested pool ordering does not identify a precise transition
 budget or establish robustness to alternative training-pool draws.
 
-The
-sparse tail remains a separate diagnostic: only 13 target bins meet the
+The sparse tail remains a separate diagnostic: only 13 target bins meet the
 four-event rule and 47 are excluded. The 2,000- and 5,000-event training
 subsets contain no sample-eligible sparse-tail event, so no broad all-region
 superiority claim is supported.
