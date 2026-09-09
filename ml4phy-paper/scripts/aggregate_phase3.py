@@ -253,7 +253,7 @@ def main() -> None:
                             "architecture_id": architecture,
                             "training_seed": training_seed,
                             "context_seed": context_seed,
-                            "region_id": region,
+                            "region_id": "feature_1620kev" if region == "Bi-214" else region,
                             "valid_bin_count": metric["n_valid_bins"],
                             "excluded_bin_count": metric["n_excluded_bins"],
                             "events_in_valid_bins": metric["n_events_in_valid_bins"],
