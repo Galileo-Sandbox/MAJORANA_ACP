@@ -320,7 +320,6 @@ def main() -> None:
     }
     manifests = {name: read_json(path) for name, path in input_paths.items()}
     expected = {
-        "data_budget": "complete",
         "training": "completed",
         "neural": "completed",
         "kernel": "completed",
@@ -330,6 +329,8 @@ def main() -> None:
     for name, value in expected.items():
         if manifests[name]["status"] != value:
             raise ValueError(f"Unexpected {name} status: {manifests[name]['status']}")
+    if manifests["data_budget"]["key_findings"]["classifier_training_unique"] != 18866:
+        raise ValueError("Unexpected classifier-training count in data-budget manifest")
 
     neural_rows = read_csv(root / "tables/phase1_neural_context_size_summary.csv")
     kernel_rows = read_csv(root / "tables/phase1_kernel_context_size_summary.csv")
