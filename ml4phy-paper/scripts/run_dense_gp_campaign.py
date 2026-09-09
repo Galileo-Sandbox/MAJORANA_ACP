@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
@@ -78,6 +79,44 @@ def validate_summary(
     return summary
 
 
+def resolve_attempt(
+    run_root: Path,
+    base_identifier: str,
+    phase: str,
+    family: str,
+    size: int,
+    seed: int,
+) -> tuple[str, Path, dict | None, list[dict]]:
+    incomplete = []
+    attempt = 1
+    while True:
+        identifier = (
+            base_identifier if attempt == 1 else f"{base_identifier}-attempt{attempt}"
+        )
+        directory = run_root / identifier
+        if not directory.exists():
+            return identifier, directory, None, incomplete
+        if (directory / "summary.json").is_file():
+            return (
+                identifier,
+                directory,
+                validate_summary(directory, phase, family, size, seed),
+                incomplete,
+            )
+        state_path = directory / "runner_state.json"
+        incomplete.append(
+            {
+                "run_id": identifier,
+                "state_sha256": sha256_file(state_path) if state_path.is_file() else None,
+                "state_status": read_json(state_path).get("status")
+                if state_path.is_file()
+                else "missing",
+                "scientific_result_completed": False,
+            }
+        )
+        attempt += 1
+
+
 def select_family(run_root: Path) -> dict:
     scores = []
     for family in FAMILIES:
@@ -127,6 +166,8 @@ def select_family(run_root: Path) -> dict:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.parse_args()
     repo = Path(".").resolve()
     worktree = subprocess.check_output(
         ["git", "-C", str(repo), "status", "--short"], text=True
@@ -164,6 +205,18 @@ def main() -> None:
             }
         )
         record["status"] = "running"
+        record.setdefault("incomplete_attempts", [])
+        if (
+            not record["completed"]
+            and float(record.get("accumulated_active_seconds", 0.0)) == 0.0
+            and (run_root / run_id("development", "rbf", 250, 100)).exists()
+        ):
+            record["accumulated_active_seconds"] = 15.0
+            record["unrecorded_interruption_recovery"] = {
+                "reason": "Initial CLI smoke check invoked a campaign without argparse",
+                "conservative_active_seconds_charged": 15.0,
+                "result_completed": False,
+            }
     else:
         campaign_dir.mkdir(parents=True, exist_ok=False)
         record = {
@@ -197,6 +250,7 @@ def main() -> None:
             "completed": [],
             "failures": [],
             "terminated_at_limit": [],
+            "incomplete_attempts": [],
             "family_selection": None,
         }
     write_json(record_path, record)
@@ -216,10 +270,17 @@ def main() -> None:
         write_json(record_path, record)
 
     def execute_cell(phase: str, family: str, size: int, seed: int, log) -> bool:
-        identifier = run_id(phase, family, size, seed)
-        directory = run_root / identifier
-        if identifier in completed_ids or (directory / "summary.json").is_file():
-            summary = validate_summary(directory, phase, family, size, seed)
+        base_identifier = run_id(phase, family, size, seed)
+        identifier, directory, existing_summary, incomplete = resolve_attempt(
+            run_root, base_identifier, phase, family, size, seed
+        )
+        known_incomplete = {item["run_id"] for item in record["incomplete_attempts"]}
+        for item in incomplete:
+            if item["run_id"] not in known_incomplete:
+                record["incomplete_attempts"].append(item)
+                known_incomplete.add(item["run_id"])
+        if existing_summary is not None:
+            summary = existing_summary
             if identifier not in completed_ids:
                 record["completed"].append(
                     {
