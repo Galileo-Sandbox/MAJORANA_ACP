@@ -1,0 +1,1039 @@
+{
+  "evidence_status": [
+    "historical",
+    "fixed_context",
+    "interpolated_where_applicable"
+  ],
+  "threshold": 0.540643572807312,
+  "threshold_provenance": "Legacy Youden-J selection on the same 7,074-event evaluation file; not independent.",
+  "counts": {
+    "training": 18866,
+    "context": 2000,
+    "target": 5074,
+    "retained_bins": 212,
+    "dense_grid": 800
+  },
+  "kernel": {
+    "selection": "five-fold context-only cross-validation by Brier score",
+    "cv_seed": 20260908,
+    "candidate_bandwidths_kev": [
+      2.0,
+      5.0,
+      10.0,
+      20.0,
+      50.0,
+      100.0
+    ],
+    "selected_bandwidth_kev": 100.0
+  },
+  "event_metrics": [
+    {
+      "model": "True CNP",
+      "region": "full",
+      "status": "supported",
+      "n_events": 5074,
+      "brier": 0.2300412492308323,
+      "log_loss": 0.6519446484806853,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "True CNP",
+      "region": "DEP",
+      "status": "supported",
+      "n_events": 58,
+      "brier": 0.2375775098540305,
+      "log_loss": 0.6682609108141642,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "True CNP",
+      "region": "Bi-214",
+      "status": "supported",
+      "n_events": 57,
+      "brier": 0.25171046015345294,
+      "log_loss": 0.6965744668424001,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "True CNP",
+      "region": "continuum_1700_2000",
+      "status": "supported",
+      "n_events": 392,
+      "brier": 0.2501746607073149,
+      "log_loss": 0.6934995852222045,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "True CNP",
+      "region": "SE",
+      "status": "supported",
+      "n_events": 84,
+      "brier": 0.2578566951274991,
+      "log_loss": 0.708865269816705,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "True CNP",
+      "region": "continuum_2200_2400",
+      "status": "supported",
+      "n_events": 405,
+      "brier": 0.25627947997126505,
+      "log_loss": 0.7057916831524579,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "True CNP",
+      "region": "FE",
+      "status": "supported",
+      "n_events": 405,
+      "brier": 0.16627079988685337,
+      "log_loss": 0.5151840997246715,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "True CNP",
+      "region": "sparse_tail",
+      "status": "inconclusive",
+      "n_events": 2,
+      "brier": 0.00794654641909914,
+      "log_loss": 0.09185977442558516,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "True CNP",
+      "region": "equal_region_mean",
+      "status": "supported_regions_only",
+      "n_events": "",
+      "brier": 0.23664493428340264,
+      "log_loss": "",
+      "prediction_source": "unweighted mean across predefined regions with at least 20 target events"
+    },
+    {
+      "model": "Base 1",
+      "region": "full",
+      "status": "supported",
+      "n_events": 5074,
+      "brier": 0.23064556074545386,
+      "log_loss": 0.6535352057617102,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 1",
+      "region": "DEP",
+      "status": "supported",
+      "n_events": 58,
+      "brier": 0.2347188960429513,
+      "log_loss": 0.6625048654914544,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 1",
+      "region": "Bi-214",
+      "status": "supported",
+      "n_events": 57,
+      "brier": 0.25342157536171744,
+      "log_loss": 0.7000222819275976,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 1",
+      "region": "continuum_1700_2000",
+      "status": "supported",
+      "n_events": 392,
+      "brier": 0.24997604656605554,
+      "log_loss": 0.6931006106501162,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 1",
+      "region": "SE",
+      "status": "supported",
+      "n_events": 84,
+      "brier": 0.25601963328228894,
+      "log_loss": 0.705188699704969,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 1",
+      "region": "continuum_2200_2400",
+      "status": "supported",
+      "n_events": 405,
+      "brier": 0.2584272481003005,
+      "log_loss": 0.7101750070473328,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 1",
+      "region": "FE",
+      "status": "supported",
+      "n_events": 405,
+      "brier": 0.16938498742047198,
+      "log_loss": 0.5264576061228369,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 1",
+      "region": "sparse_tail",
+      "status": "inconclusive",
+      "n_events": 2,
+      "brier": 0.0019839586881838602,
+      "log_loss": 0.04317355785407126,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 1",
+      "region": "equal_region_mean",
+      "status": "supported_regions_only",
+      "n_events": "",
+      "brier": 0.23699139779563097,
+      "log_loss": "",
+      "prediction_source": "unweighted mean across predefined regions with at least 20 target events"
+    },
+    {
+      "model": "Base 3",
+      "region": "full",
+      "status": "supported",
+      "n_events": 5074,
+      "brier": 0.22760110223115831,
+      "log_loss": 0.6468912273872407,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 3",
+      "region": "DEP",
+      "status": "supported",
+      "n_events": 58,
+      "brier": 0.2056651023874173,
+      "log_loss": 0.6003829881663649,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 3",
+      "region": "Bi-214",
+      "status": "supported",
+      "n_events": 57,
+      "brier": 0.24891602219390885,
+      "log_loss": 0.6909766251888091,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 3",
+      "region": "continuum_1700_2000",
+      "status": "supported",
+      "n_events": 392,
+      "brier": 0.25510685936560573,
+      "log_loss": 0.7036177782511565,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 3",
+      "region": "SE",
+      "status": "supported",
+      "n_events": 84,
+      "brier": 0.19266398599186163,
+      "log_loss": 0.572334384246123,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 3",
+      "region": "continuum_2200_2400",
+      "status": "supported",
+      "n_events": 405,
+      "brier": 0.24888834684761466,
+      "log_loss": 0.6908575427463653,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 3",
+      "region": "FE",
+      "status": "supported",
+      "n_events": 405,
+      "brier": 0.16922291997094435,
+      "log_loss": 0.5227860543630245,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 3",
+      "region": "sparse_tail",
+      "status": "inconclusive",
+      "n_events": 2,
+      "brier": 0.031998617956414274,
+      "log_loss": 0.19327196526316132,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Base 3",
+      "region": "equal_region_mean",
+      "status": "supported_regions_only",
+      "n_events": "",
+      "brier": 0.22007720612622542,
+      "log_loss": "",
+      "prediction_source": "unweighted mean across predefined regions with at least 20 target events"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "full",
+      "status": "supported",
+      "n_events": 5074,
+      "brier": 0.2239991644679475,
+      "log_loss": 0.639073586921764,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "DEP",
+      "status": "supported",
+      "n_events": 58,
+      "brier": 0.19865931302708464,
+      "log_loss": 0.5853165583471251,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "Bi-214",
+      "status": "supported",
+      "n_events": 57,
+      "brier": 0.22945316015574038,
+      "log_loss": 0.6504466121481107,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "continuum_1700_2000",
+      "status": "supported",
+      "n_events": 392,
+      "brier": 0.24954817095414797,
+      "log_loss": 0.6922429060660902,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "SE",
+      "status": "supported",
+      "n_events": 84,
+      "brier": 0.1982479727368618,
+      "log_loss": 0.584291575595382,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "continuum_2200_2400",
+      "status": "supported",
+      "n_events": 405,
+      "brier": 0.2558558906046862,
+      "log_loss": 0.7049179038255181,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "FE",
+      "status": "supported",
+      "n_events": 405,
+      "brier": 0.16643376795058917,
+      "log_loss": 0.5154705682464854,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "sparse_tail",
+      "status": "inconclusive",
+      "n_events": 2,
+      "brier": 0.00019148958999881682,
+      "log_loss": 0.013855991217108505,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "equal_region_mean",
+      "status": "supported_regions_only",
+      "n_events": "",
+      "brier": 0.21636637923818502,
+      "log_loss": "",
+      "prediction_source": "unweighted mean across predefined regions with at least 20 target events"
+    },
+    {
+      "model": "Cell 17",
+      "region": "full",
+      "status": "supported",
+      "n_events": 5074,
+      "brier": 0.22367417887194524,
+      "log_loss": 0.6384599753803515,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 17",
+      "region": "DEP",
+      "status": "supported",
+      "n_events": 58,
+      "brier": 0.19973689424075672,
+      "log_loss": 0.587743702561885,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 17",
+      "region": "Bi-214",
+      "status": "supported",
+      "n_events": 57,
+      "brier": 0.22936301936807119,
+      "log_loss": 0.6502349388787239,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 17",
+      "region": "continuum_1700_2000",
+      "status": "supported",
+      "n_events": 392,
+      "brier": 0.2487939774702718,
+      "log_loss": 0.6907330891356644,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 17",
+      "region": "SE",
+      "status": "supported",
+      "n_events": 84,
+      "brier": 0.19397383944710056,
+      "log_loss": 0.5757029179535557,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 17",
+      "region": "continuum_2200_2400",
+      "status": "supported",
+      "n_events": 405,
+      "brier": 0.2503475054016991,
+      "log_loss": 0.6938399704869437,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 17",
+      "region": "FE",
+      "status": "supported",
+      "n_events": 405,
+      "brier": 0.16727440631608917,
+      "log_loss": 0.5180042720864163,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 17",
+      "region": "sparse_tail",
+      "status": "inconclusive",
+      "n_events": 2,
+      "brier": 0.0008526912609114133,
+      "log_loss": 0.02942436012734885,
+      "prediction_source": "dense-grid linear interpolation"
+    },
+    {
+      "model": "Cell 17",
+      "region": "equal_region_mean",
+      "status": "supported_regions_only",
+      "n_events": "",
+      "brier": 0.21491494037399808,
+      "log_loss": "",
+      "prediction_source": "unweighted mean across predefined regions with at least 20 target events"
+    },
+    {
+      "model": "Kernel (context-only, h=100 keV)",
+      "region": "full",
+      "status": "supported",
+      "n_events": 5074,
+      "brier": 0.22809281047646948,
+      "log_loss": 0.647889024465981,
+      "prediction_source": "event-query kernel"
+    },
+    {
+      "model": "Kernel (context-only, h=100 keV)",
+      "region": "DEP",
+      "status": "supported",
+      "n_events": 58,
+      "brier": 0.2214672560571101,
+      "log_loss": 0.6354048112921464,
+      "prediction_source": "event-query kernel"
+    },
+    {
+      "model": "Kernel (context-only, h=100 keV)",
+      "region": "Bi-214",
+      "status": "supported",
+      "n_events": 57,
+      "brier": 0.2610390865054694,
+      "log_loss": 0.7156269181911797,
+      "prediction_source": "event-query kernel"
+    },
+    {
+      "model": "Kernel (context-only, h=100 keV)",
+      "region": "continuum_1700_2000",
+      "status": "supported",
+      "n_events": 392,
+      "brier": 0.24925247415396148,
+      "log_loss": 0.6916561941659989,
+      "prediction_source": "event-query kernel"
+    },
+    {
+      "model": "Kernel (context-only, h=100 keV)",
+      "region": "SE",
+      "status": "supported",
+      "n_events": 84,
+      "brier": 0.21814802525686228,
+      "log_loss": 0.6290522824661919,
+      "prediction_source": "event-query kernel"
+    },
+    {
+      "model": "Kernel (context-only, h=100 keV)",
+      "region": "continuum_2200_2400",
+      "status": "supported",
+      "n_events": 405,
+      "brier": 0.2525561881160041,
+      "log_loss": 0.6982651076643359,
+      "prediction_source": "event-query kernel"
+    },
+    {
+      "model": "Kernel (context-only, h=100 keV)",
+      "region": "FE",
+      "status": "supported",
+      "n_events": 405,
+      "brier": 0.16642363081699643,
+      "log_loss": 0.5157004563937793,
+      "prediction_source": "event-query kernel"
+    },
+    {
+      "model": "Kernel (context-only, h=100 keV)",
+      "region": "sparse_tail",
+      "status": "inconclusive",
+      "n_events": 2,
+      "brier": 0.028052131919250895,
+      "log_loss": 0.1832871643264265,
+      "prediction_source": "event-query kernel"
+    },
+    {
+      "model": "Kernel (context-only, h=100 keV)",
+      "region": "equal_region_mean",
+      "status": "supported_regions_only",
+      "n_events": "",
+      "brier": 0.22814777681773393,
+      "log_loss": "",
+      "prediction_source": "unweighted mean across predefined regions with at least 20 target events"
+    }
+  ],
+  "bin_metrics": [
+    {
+      "model": "True CNP",
+      "region": "full",
+      "n_valid_bins": 205,
+      "n_target_events_in_valid_bins": 5057,
+      "mae": 0.11188094738508203,
+      "rmse": 0.141025521098329,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "True CNP",
+      "region": "DEP",
+      "n_valid_bins": 3,
+      "n_target_events_in_valid_bins": 60,
+      "mae": 0.16220626102653063,
+      "rmse": 0.18983253503783495,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "True CNP",
+      "region": "Bi-214",
+      "n_valid_bins": 2,
+      "n_target_events_in_valid_bins": 45,
+      "mae": 0.04280672384056483,
+      "rmse": 0.05479199268088204,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "True CNP",
+      "region": "continuum_1700_2000",
+      "n_valid_bins": 30,
+      "n_target_events_in_valid_bins": 392,
+      "mae": 0.10454437486522118,
+      "rmse": 0.12631248382634747,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "True CNP",
+      "region": "SE",
+      "n_valid_bins": 3,
+      "n_target_events_in_valid_bins": 86,
+      "mae": 0.22211315350926686,
+      "rmse": 0.24434904552036146,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "True CNP",
+      "region": "continuum_2200_2400",
+      "n_valid_bins": 20,
+      "n_target_events_in_valid_bins": 405,
+      "mae": 0.11003713259164476,
+      "rmse": 0.13378829428275757,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "True CNP",
+      "region": "FE",
+      "n_valid_bins": 2,
+      "n_target_events_in_valid_bins": 404,
+      "mae": 0.014008937025454513,
+      "rmse": 0.01487874682602005,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "True CNP",
+      "region": "sparse_tail",
+      "n_valid_bins": 0,
+      "n_target_events_in_valid_bins": 0,
+      "mae": "",
+      "rmse": "",
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 1",
+      "region": "full",
+      "n_valid_bins": 205,
+      "n_target_events_in_valid_bins": 5057,
+      "mae": 0.11264480746928567,
+      "rmse": 0.14066815635697688,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 1",
+      "region": "DEP",
+      "n_valid_bins": 3,
+      "n_target_events_in_valid_bins": 60,
+      "mae": 0.1706603251573137,
+      "rmse": 0.1936354195113804,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 1",
+      "region": "Bi-214",
+      "n_valid_bins": 2,
+      "n_target_events_in_valid_bins": 45,
+      "mae": 0.05506055635961932,
+      "rmse": 0.06408177875041404,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 1",
+      "region": "continuum_1700_2000",
+      "n_valid_bins": 30,
+      "n_target_events_in_valid_bins": 392,
+      "mae": 0.10631101802412161,
+      "rmse": 0.12749688180713323,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 1",
+      "region": "SE",
+      "n_valid_bins": 3,
+      "n_target_events_in_valid_bins": 86,
+      "mae": 0.22123934365507725,
+      "rmse": 0.24362681202958675,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 1",
+      "region": "continuum_2200_2400",
+      "n_valid_bins": 20,
+      "n_target_events_in_valid_bins": 405,
+      "mae": 0.11638193255726481,
+      "rmse": 0.14105524574435352,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 1",
+      "region": "FE",
+      "n_valid_bins": 2,
+      "n_target_events_in_valid_bins": 404,
+      "mae": 0.06570115796664046,
+      "rmse": 0.0657705905247115,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 1",
+      "region": "sparse_tail",
+      "n_valid_bins": 0,
+      "n_target_events_in_valid_bins": 0,
+      "mae": "",
+      "rmse": "",
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 3",
+      "region": "full",
+      "n_valid_bins": 205,
+      "n_target_events_in_valid_bins": 5057,
+      "mae": 0.12643655796734957,
+      "rmse": 0.1590653111708723,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 3",
+      "region": "DEP",
+      "n_valid_bins": 3,
+      "n_target_events_in_valid_bins": 60,
+      "mae": 0.1381820425070019,
+      "rmse": 0.1688218145056308,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 3",
+      "region": "Bi-214",
+      "n_valid_bins": 2,
+      "n_target_events_in_valid_bins": 45,
+      "mae": 0.06631615527486992,
+      "rmse": 0.0744277322543739,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 3",
+      "region": "continuum_1700_2000",
+      "n_valid_bins": 30,
+      "n_target_events_in_valid_bins": 392,
+      "mae": 0.12178069101339259,
+      "rmse": 0.1492844331535833,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 3",
+      "region": "SE",
+      "n_valid_bins": 3,
+      "n_target_events_in_valid_bins": 86,
+      "mae": 0.10558934125818331,
+      "rmse": 0.13271113922382463,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 3",
+      "region": "continuum_2200_2400",
+      "n_valid_bins": 20,
+      "n_target_events_in_valid_bins": 405,
+      "mae": 0.09890626091311305,
+      "rmse": 0.1189341417842376,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 3",
+      "region": "FE",
+      "n_valid_bins": 2,
+      "n_target_events_in_valid_bins": 404,
+      "mae": 0.03667919293603612,
+      "rmse": 0.03691587518805892,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Base 3",
+      "region": "sparse_tail",
+      "n_valid_bins": 0,
+      "n_target_events_in_valid_bins": 0,
+      "mae": "",
+      "rmse": "",
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "full",
+      "n_valid_bins": 205,
+      "n_target_events_in_valid_bins": 5057,
+      "mae": 0.11028924658253342,
+      "rmse": 0.13900755469226966,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "DEP",
+      "n_valid_bins": 3,
+      "n_target_events_in_valid_bins": 60,
+      "mae": 0.17157682842778085,
+      "rmse": 0.19877123350528933,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "Bi-214",
+      "n_valid_bins": 2,
+      "n_target_events_in_valid_bins": 45,
+      "mae": 0.04886930686983498,
+      "rmse": 0.05761607405017835,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "continuum_1700_2000",
+      "n_valid_bins": 30,
+      "n_target_events_in_valid_bins": 392,
+      "mae": 0.10360431373310802,
+      "rmse": 0.12529772271640924,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "SE",
+      "n_valid_bins": 3,
+      "n_target_events_in_valid_bins": 86,
+      "mae": 0.11319393999573356,
+      "rmse": 0.14595089097341213,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "continuum_2200_2400",
+      "n_valid_bins": 20,
+      "n_target_events_in_valid_bins": 405,
+      "mae": 0.10943008327547696,
+      "rmse": 0.1330675973243752,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "FE",
+      "n_valid_bins": 2,
+      "n_target_events_in_valid_bins": 404,
+      "mae": 0.029526529902604084,
+      "rmse": 0.032101839321664646,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "sparse_tail",
+      "n_valid_bins": 0,
+      "n_target_events_in_valid_bins": 0,
+      "mae": "",
+      "rmse": "",
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 17",
+      "region": "full",
+      "n_valid_bins": 205,
+      "n_target_events_in_valid_bins": 5057,
+      "mae": 0.10906794542447248,
+      "rmse": 0.13665104510447001,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 17",
+      "region": "DEP",
+      "n_valid_bins": 3,
+      "n_target_events_in_valid_bins": 60,
+      "mae": 0.17899226791428444,
+      "rmse": 0.20803007632097337,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 17",
+      "region": "Bi-214",
+      "n_valid_bins": 2,
+      "n_target_events_in_valid_bins": 45,
+      "mae": 0.05064256650957499,
+      "rmse": 0.05793774336550643,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 17",
+      "region": "continuum_1700_2000",
+      "n_valid_bins": 30,
+      "n_target_events_in_valid_bins": 392,
+      "mae": 0.10073223479780279,
+      "rmse": 0.12280411236510032,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 17",
+      "region": "SE",
+      "n_valid_bins": 3,
+      "n_target_events_in_valid_bins": 86,
+      "mae": 0.09525960323410003,
+      "rmse": 0.13030051050831312,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 17",
+      "region": "continuum_2200_2400",
+      "n_valid_bins": 20,
+      "n_target_events_in_valid_bins": 405,
+      "mae": 0.09233677769466454,
+      "rmse": 0.11112448612214015,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 17",
+      "region": "FE",
+      "n_valid_bins": 2,
+      "n_target_events_in_valid_bins": 404,
+      "mae": 0.030300348768022525,
+      "rmse": 0.03037602477678078,
+      "prediction_location": "bin center"
+    },
+    {
+      "model": "Cell 17",
+      "region": "sparse_tail",
+      "n_valid_bins": 0,
+      "n_target_events_in_valid_bins": 0,
+      "mae": "",
+      "rmse": "",
+      "prediction_location": "bin center"
+    }
+  ],
+  "support": [
+    {
+      "region": "full",
+      "lower_kev": 500.0,
+      "upper_kev": 3000.0,
+      "expected_10kev_bins": 250,
+      "retained_bins": 212,
+      "omitted_bins": 38,
+      "context_events": 2000,
+      "target_events": 5074,
+      "kernel_target_events_ess_below_5": 0,
+      "status": "supported"
+    },
+    {
+      "region": "DEP",
+      "lower_kev": 1577.0,
+      "upper_kev": 1606.0,
+      "expected_10kev_bins": 3,
+      "retained_bins": 3,
+      "omitted_bins": 0,
+      "context_events": 15,
+      "target_events": 58,
+      "kernel_target_events_ess_below_5": 0,
+      "status": "supported"
+    },
+    {
+      "region": "Bi-214",
+      "lower_kev": 1606.0,
+      "upper_kev": 1635.0,
+      "expected_10kev_bins": 2,
+      "retained_bins": 2,
+      "omitted_bins": 0,
+      "context_events": 32,
+      "target_events": 57,
+      "kernel_target_events_ess_below_5": 0,
+      "status": "supported"
+    },
+    {
+      "region": "continuum_1700_2000",
+      "lower_kev": 1700.0,
+      "upper_kev": 2000.0,
+      "expected_10kev_bins": 30,
+      "retained_bins": 30,
+      "omitted_bins": 0,
+      "context_events": 161,
+      "target_events": 392,
+      "kernel_target_events_ess_below_5": 0,
+      "status": "supported"
+    },
+    {
+      "region": "SE",
+      "lower_kev": 2088.0,
+      "upper_kev": 2118.0,
+      "expected_10kev_bins": 3,
+      "retained_bins": 3,
+      "omitted_bins": 0,
+      "context_events": 49,
+      "target_events": 84,
+      "kernel_target_events_ess_below_5": 0,
+      "status": "supported"
+    },
+    {
+      "region": "continuum_2200_2400",
+      "lower_kev": 2200.0,
+      "upper_kev": 2400.0,
+      "expected_10kev_bins": 20,
+      "retained_bins": 20,
+      "omitted_bins": 0,
+      "context_events": 172,
+      "target_events": 405,
+      "kernel_target_events_ess_below_5": 0,
+      "status": "supported"
+    },
+    {
+      "region": "FE",
+      "lower_kev": 2599.0,
+      "upper_kev": 2629.0,
+      "expected_10kev_bins": 3,
+      "retained_bins": 2,
+      "omitted_bins": 1,
+      "context_events": 143,
+      "target_events": 405,
+      "kernel_target_events_ess_below_5": 0,
+      "status": "supported"
+    },
+    {
+      "region": "sparse_tail",
+      "lower_kev": 2700.0,
+      "upper_kev": 3000.0,
+      "expected_10kev_bins": 30,
+      "retained_bins": 0,
+      "omitted_bins": 30,
+      "context_events": 1,
+      "target_events": 2,
+      "kernel_target_events_ess_below_5": 0,
+      "status": "inconclusive"
+    }
+  ],
+  "continuum_roughness": [
+    {
+      "model": "True CNP",
+      "region": "continuum_1700_2000",
+      "grid_spacing_kev": 3.1289111389236544,
+      "mean_absolute_second_difference": 0.005040918854956932
+    },
+    {
+      "model": "True CNP",
+      "region": "continuum_2200_2400",
+      "grid_spacing_kev": 3.1289111389236544,
+      "mean_absolute_second_difference": 0.007450240879289568
+    },
+    {
+      "model": "Base 1",
+      "region": "continuum_1700_2000",
+      "grid_spacing_kev": 3.1289111389236544,
+      "mean_absolute_second_difference": 0.0040074569557575395
+    },
+    {
+      "model": "Base 1",
+      "region": "continuum_2200_2400",
+      "grid_spacing_kev": 3.1289111389236544,
+      "mean_absolute_second_difference": 0.005494607014040791
+    },
+    {
+      "model": "Base 3",
+      "region": "continuum_1700_2000",
+      "grid_spacing_kev": 3.1289111389236544,
+      "mean_absolute_second_difference": 0.16267354788932395
+    },
+    {
+      "model": "Base 3",
+      "region": "continuum_2200_2400",
+      "grid_spacing_kev": 3.1289111389236544,
+      "mean_absolute_second_difference": 0.09248940984087607
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "continuum_1700_2000",
+      "grid_spacing_kev": 3.1289111389236544,
+      "mean_absolute_second_difference": 0.00767911372666664
+    },
+    {
+      "model": "Cell 15 v5",
+      "region": "continuum_2200_2400",
+      "grid_spacing_kev": 3.1289111389236544,
+      "mean_absolute_second_difference": 0.01142947331551583
+    },
+    {
+      "model": "Cell 17",
+      "region": "continuum_1700_2000",
+      "grid_spacing_kev": 3.1289111389236544,
+      "mean_absolute_second_difference": 0.00810880124568939
+    },
+    {
+      "model": "Cell 17",
+      "region": "continuum_2200_2400",
+      "grid_spacing_kev": 3.1289111389236544,
+      "mean_absolute_second_difference": 0.006610100653863714
+    }
+  ]
+}

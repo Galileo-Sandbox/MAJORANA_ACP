@@ -1,0 +1,9 @@
+region,lower_kev,upper_kev,expected_10kev_bins,retained_bins,omitted_bins,context_events,target_events,kernel_target_events_ess_below_5,status
+full,500.0,3000.0,250,212,38,2000,5074,0,supported
+DEP,1577.0,1606.0,3,3,0,15,58,0,supported
+Bi-214,1606.0,1635.0,2,2,0,32,57,0,supported
+continuum_1700_2000,1700.0,2000.0,30,30,0,161,392,0,supported
+SE,2088.0,2118.0,3,3,0,49,84,0,supported
+continuum_2200_2400,2200.0,2400.0,20,20,0,172,405,0,supported
+FE,2599.0,2629.0,3,2,1,143,405,0,supported
+sparse_tail,2700.0,3000.0,30,0,30,1,2,0,inconclusive

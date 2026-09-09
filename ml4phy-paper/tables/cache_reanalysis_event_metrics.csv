@@ -1,0 +1,55 @@
+model,region,status,n_events,brier,log_loss,prediction_source
+True CNP,full,supported,5074,0.2300412492308323,0.6519446484806853,dense-grid linear interpolation
+True CNP,DEP,supported,58,0.2375775098540305,0.6682609108141642,dense-grid linear interpolation
+True CNP,Bi-214,supported,57,0.25171046015345294,0.6965744668424001,dense-grid linear interpolation
+True CNP,continuum_1700_2000,supported,392,0.2501746607073149,0.6934995852222045,dense-grid linear interpolation
+True CNP,SE,supported,84,0.2578566951274991,0.708865269816705,dense-grid linear interpolation
+True CNP,continuum_2200_2400,supported,405,0.25627947997126505,0.7057916831524579,dense-grid linear interpolation
+True CNP,FE,supported,405,0.16627079988685337,0.5151840997246715,dense-grid linear interpolation
+True CNP,sparse_tail,inconclusive,2,0.00794654641909914,0.09185977442558516,dense-grid linear interpolation
+True CNP,equal_region_mean,supported_regions_only,,0.23664493428340264,,unweighted mean across predefined regions with at least 20 target events
+Base 1,full,supported,5074,0.23064556074545386,0.6535352057617102,dense-grid linear interpolation
+Base 1,DEP,supported,58,0.2347188960429513,0.6625048654914544,dense-grid linear interpolation
+Base 1,Bi-214,supported,57,0.25342157536171744,0.7000222819275976,dense-grid linear interpolation
+Base 1,continuum_1700_2000,supported,392,0.24997604656605554,0.6931006106501162,dense-grid linear interpolation
+Base 1,SE,supported,84,0.25601963328228894,0.705188699704969,dense-grid linear interpolation
+Base 1,continuum_2200_2400,supported,405,0.2584272481003005,0.7101750070473328,dense-grid linear interpolation
+Base 1,FE,supported,405,0.16938498742047198,0.5264576061228369,dense-grid linear interpolation
+Base 1,sparse_tail,inconclusive,2,0.0019839586881838602,0.04317355785407126,dense-grid linear interpolation
+Base 1,equal_region_mean,supported_regions_only,,0.23699139779563097,,unweighted mean across predefined regions with at least 20 target events
+Base 3,full,supported,5074,0.22760110223115831,0.6468912273872407,dense-grid linear interpolation
+Base 3,DEP,supported,58,0.2056651023874173,0.6003829881663649,dense-grid linear interpolation
+Base 3,Bi-214,supported,57,0.24891602219390885,0.6909766251888091,dense-grid linear interpolation
+Base 3,continuum_1700_2000,supported,392,0.25510685936560573,0.7036177782511565,dense-grid linear interpolation
+Base 3,SE,supported,84,0.19266398599186163,0.572334384246123,dense-grid linear interpolation
+Base 3,continuum_2200_2400,supported,405,0.24888834684761466,0.6908575427463653,dense-grid linear interpolation
+Base 3,FE,supported,405,0.16922291997094435,0.5227860543630245,dense-grid linear interpolation
+Base 3,sparse_tail,inconclusive,2,0.031998617956414274,0.19327196526316132,dense-grid linear interpolation
+Base 3,equal_region_mean,supported_regions_only,,0.22007720612622542,,unweighted mean across predefined regions with at least 20 target events
+Cell 15 v5,full,supported,5074,0.2239991644679475,0.639073586921764,dense-grid linear interpolation
+Cell 15 v5,DEP,supported,58,0.19865931302708464,0.5853165583471251,dense-grid linear interpolation
+Cell 15 v5,Bi-214,supported,57,0.22945316015574038,0.6504466121481107,dense-grid linear interpolation
+Cell 15 v5,continuum_1700_2000,supported,392,0.24954817095414797,0.6922429060660902,dense-grid linear interpolation
+Cell 15 v5,SE,supported,84,0.1982479727368618,0.584291575595382,dense-grid linear interpolation
+Cell 15 v5,continuum_2200_2400,supported,405,0.2558558906046862,0.7049179038255181,dense-grid linear interpolation
+Cell 15 v5,FE,supported,405,0.16643376795058917,0.5154705682464854,dense-grid linear interpolation
+Cell 15 v5,sparse_tail,inconclusive,2,0.00019148958999881682,0.013855991217108505,dense-grid linear interpolation
+Cell 15 v5,equal_region_mean,supported_regions_only,,0.21636637923818502,,unweighted mean across predefined regions with at least 20 target events
+Cell 17,full,supported,5074,0.22367417887194524,0.6384599753803515,dense-grid linear interpolation
+Cell 17,DEP,supported,58,0.19973689424075672,0.587743702561885,dense-grid linear interpolation
+Cell 17,Bi-214,supported,57,0.22936301936807119,0.6502349388787239,dense-grid linear interpolation
+Cell 17,continuum_1700_2000,supported,392,0.2487939774702718,0.6907330891356644,dense-grid linear interpolation
+Cell 17,SE,supported,84,0.19397383944710056,0.5757029179535557,dense-grid linear interpolation
+Cell 17,continuum_2200_2400,supported,405,0.2503475054016991,0.6938399704869437,dense-grid linear interpolation
+Cell 17,FE,supported,405,0.16727440631608917,0.5180042720864163,dense-grid linear interpolation
+Cell 17,sparse_tail,inconclusive,2,0.0008526912609114133,0.02942436012734885,dense-grid linear interpolation
+Cell 17,equal_region_mean,supported_regions_only,,0.21491494037399808,,unweighted mean across predefined regions with at least 20 target events
+"Kernel (context-only, h=100 keV)",full,supported,5074,0.22809281047646948,0.647889024465981,event-query kernel
+"Kernel (context-only, h=100 keV)",DEP,supported,58,0.2214672560571101,0.6354048112921464,event-query kernel
+"Kernel (context-only, h=100 keV)",Bi-214,supported,57,0.2610390865054694,0.7156269181911797,event-query kernel
+"Kernel (context-only, h=100 keV)",continuum_1700_2000,supported,392,0.24925247415396148,0.6916561941659989,event-query kernel
+"Kernel (context-only, h=100 keV)",SE,supported,84,0.21814802525686228,0.6290522824661919,event-query kernel
+"Kernel (context-only, h=100 keV)",continuum_2200_2400,supported,405,0.2525561881160041,0.6982651076643359,event-query kernel
+"Kernel (context-only, h=100 keV)",FE,supported,405,0.16642363081699643,0.5157004563937793,event-query kernel
+"Kernel (context-only, h=100 keV)",sparse_tail,inconclusive,2,0.028052131919250895,0.1832871643264265,event-query kernel
+"Kernel (context-only, h=100 keV)",equal_region_mean,supported_regions_only,,0.22814777681773393,,unweighted mean across predefined regions with at least 20 target events

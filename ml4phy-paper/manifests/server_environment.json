@@ -1,0 +1,39 @@
+{
+  "audit_date": "2026-09-08",
+  "repository_commit": "b26457214ca486a4b356723b456510baf6c4cf8e",
+  "python": "3.12.13",
+  "packages": {
+    "torch": "2.11.0+cu129",
+    "numpy": "1.26.4",
+    "h5py": "3.16.0",
+    "scikit_learn": "1.8.0",
+    "pydantic": "2.13.3",
+    "pyyaml": "6.0.3",
+    "matplotlib": "3.10.8",
+    "resum_flex_distribution": "0.0.1"
+  },
+  "accelerator": {
+    "name": "NVIDIA GeForce RTX 5090",
+    "memory_mib": 32607,
+    "driver": "575.64",
+    "cuda_build": "12.9"
+  },
+  "scheduler": {
+    "detected": false,
+    "checked_clients": ["sbatch", "squeue", "qsub", "bsub"],
+    "execution_mode": "direct local process"
+  },
+  "resum_flex": {
+    "installed_as": "editable sibling checkout",
+    "current_commit": "4cd63cf151a422c7bf41e0dcaba73607cd97595c",
+    "current_checkout_status": "tracked files clean; unrelated untracked .claude directory present",
+    "current_schema_compatible_with_historical_yaml": false,
+    "historical_compatible_commit_from_reflog": "edba6a294581fde6f905b330d477f2c1b42d6adb",
+    "provenance_basis": "The reflog shows this revision remained checked out from 2026-05-18 through all 2026-05-20 priority CNP runs until the 2026-09-08 update."
+  },
+  "notes": [
+    "GPU visibility required an unsandboxed read-only status check.",
+    "No training or CNP inference had run when this manifest was written.",
+    "Machine-specific paths and the full server inventory remain in the ignored local directory."
+  ]
+}
