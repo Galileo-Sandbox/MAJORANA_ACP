@@ -1,0 +1,49 @@
+model_id,method,estimator,stream_seed,passes,grid_spacing_kev,region,continuum_mae_percentage_points,normalized_mean_absolute_curvature
+m2_seed0,Attentive CNP + PE,dropout_disabled,,0,0.5,continuum_1700_2000,7.74241045712063,0.07916426658630371
+m2_seed0,Attentive CNP + PE,dropout_disabled,,0,0.5,continuum_2200_2400,7.520382568292495,0.05211644992232323
+m2_seed0,Attentive CNP + PE,dropout_disabled,,0,1.0,continuum_1700_2000,7.74241045712063,0.06593811511993408
+m2_seed0,Attentive CNP + PE,dropout_disabled,,0,1.0,continuum_2200_2400,7.520382568292495,0.04253222048282623
+m2_seed0,Attentive CNP + PE,dropout_mc,10100,50,0.5,continuum_1700_2000,8.153498783961014,0.10275053318235433
+m2_seed0,Attentive CNP + PE,dropout_mc,10100,50,0.5,continuum_2200_2400,8.58547594905887,0.07872996738530638
+m2_seed0,Attentive CNP + PE,dropout_mc,10100,50,1.0,continuum_1700_2000,8.153498783961014,0.06262812235482959
+m2_seed0,Attentive CNP + PE,dropout_mc,10100,50,1.0,continuum_2200_2400,8.58547594905887,0.042356924653502555
+m2_seed0,Attentive CNP + PE,dropout_mc,10100,200,0.5,continuum_1700_2000,8.126778287117292,0.07999476377661022
+m2_seed0,Attentive CNP + PE,dropout_mc,10100,200,0.5,continuum_2200_2400,8.559396683128186,0.056424136093087066
+m2_seed0,Attentive CNP + PE,dropout_mc,10100,200,1.0,continuum_1700_2000,8.126778287117292,0.06137065799383564
+m2_seed0,Attentive CNP + PE,dropout_mc,10100,200,1.0,continuum_2200_2400,8.559396683128186,0.03890820099499507
+m2_seed0,Attentive CNP + PE,dropout_mc,30100,50,0.5,continuum_1700_2000,8.156594520717793,0.10104555647789137
+m2_seed0,Attentive CNP + PE,dropout_mc,30100,50,0.5,continuum_2200_2400,8.567349649978004,0.08164044372718736
+m2_seed0,Attentive CNP + PE,dropout_mc,30100,50,1.0,continuum_1700_2000,8.156594520717793,0.06392599268975264
+m2_seed0,Attentive CNP + PE,dropout_mc,30100,50,1.0,continuum_2200_2400,8.567349649978004,0.04284211038644589
+m2_seed0,Attentive CNP + PE,dropout_mc,30100,200,0.5,continuum_1700_2000,8.133289212957678,0.08084537030348493
+m2_seed0,Attentive CNP + PE,dropout_mc,30100,200,0.5,continuum_2200_2400,8.561891066449318,0.056227682946357216
+m2_seed0,Attentive CNP + PE,dropout_mc,30100,200,1.0,continuum_1700_2000,8.133289212957678,0.0626810896768543
+m2_seed0,Attentive CNP + PE,dropout_mc,30100,200,1.0,continuum_2200_2400,8.561891066449318,0.04096661923865053
+m2_seed0,Attentive CNP + PE,dropout_mc,10100,800,0.5,continuum_1700_2000,8.139903302011255,0.0743013118574542
+m2_seed0,Attentive CNP + PE,dropout_mc,10100,800,0.5,continuum_2200_2400,8.570356062912515,0.050896964377553235
+m2_seed0,Attentive CNP + PE,dropout_mc,10100,800,1.0,continuum_1700_2000,8.139903302011255,0.06128650971038117
+m2_seed0,Attentive CNP + PE,dropout_mc,10100,800,1.0,continuum_2200_2400,8.570356062912515,0.03921416958213676
+m2_seed0,Attentive CNP + PE,dropout_mc,30100,800,0.5,continuum_1700_2000,8.137493652551754,0.07454076375051998
+m2_seed0,Attentive CNP + PE,dropout_mc,30100,800,0.5,continuum_2200_2400,8.57342550400304,0.05023109336689413
+m2_seed0,Attentive CNP + PE,dropout_mc,30100,800,1.0,continuum_1700_2000,8.137493652551754,0.061447929108046605
+m2_seed0,Attentive CNP + PE,dropout_mc,30100,800,1.0,continuum_2200_2400,8.57342550400304,0.04006256486373444
+ours_seed0,Density-guided CNP (ours),dropout_disabled,,0,0.5,continuum_1700_2000,4.257560791511727,0.0015868596965447068
+ours_seed0,Density-guided CNP (ours),dropout_disabled,,0,0.5,continuum_2200_2400,3.9683331116110456,0.0018418534891679883
+ours_seed0,Density-guided CNP (ours),dropout_disabled,,0,1.0,continuum_1700_2000,4.257560791511727,0.0013252244098111987
+ours_seed0,Density-guided CNP (ours),dropout_disabled,,0,1.0,continuum_2200_2400,3.9683331116110456,0.0016113838646560907
+ours_seed0,Density-guided CNP (ours),dropout_mc,10100,50,0.5,continuum_1700_2000,4.2549605231115795,0.01856073963821233
+ours_seed0,Density-guided CNP (ours),dropout_mc,10100,50,0.5,continuum_2200_2400,3.999390941236478,0.02163631382442656
+ours_seed0,Density-guided CNP (ours),dropout_mc,10100,50,1.0,continuum_1700_2000,4.2549605231115795,0.005059365129789781
+ours_seed0,Density-guided CNP (ours),dropout_mc,10100,50,1.0,continuum_2200_2400,3.999390941236478,0.0062086600933841714
+ours_seed0,Density-guided CNP (ours),dropout_mc,10100,200,0.5,continuum_1700_2000,4.254543120643625,0.010051027333398065
+ours_seed0,Density-guided CNP (ours),dropout_mc,10100,200,0.5,continuum_2200_2400,3.999680372203522,0.011856968862968572
+ours_seed0,Density-guided CNP (ours),dropout_mc,10100,200,1.0,continuum_1700_2000,4.254543120643625,0.0028980907214724433
+ours_seed0,Density-guided CNP (ours),dropout_mc,10100,200,1.0,continuum_2200_2400,3.999680372203522,0.0035404540516024174
+ours_seed0,Density-guided CNP (ours),dropout_mc,30100,50,0.5,continuum_1700_2000,4.256824077583456,0.01975364691825065
+ours_seed0,Density-guided CNP (ours),dropout_mc,30100,50,0.5,continuum_2200_2400,3.999150834523796,0.024832821376341633
+ours_seed0,Density-guided CNP (ours),dropout_mc,30100,50,1.0,continuum_1700_2000,4.256824077583456,0.004960571842448765
+ours_seed0,Density-guided CNP (ours),dropout_mc,30100,50,1.0,continuum_2200_2400,3.999150834523796,0.006333831479801014
+ours_seed0,Density-guided CNP (ours),dropout_mc,30100,200,0.5,continuum_1700_2000,4.253218296744992,0.010428074091822146
+ours_seed0,Density-guided CNP (ours),dropout_mc,30100,200,0.5,continuum_2200_2400,4.002245087949463,0.011850561846168988
+ours_seed0,Density-guided CNP (ours),dropout_mc,30100,200,1.0,continuum_1700_2000,4.253218296744992,0.00286043562966845
+ours_seed0,Density-guided CNP (ours),dropout_mc,30100,200,1.0,continuum_2200_2400,4.002245087949463,0.0038889195084871346

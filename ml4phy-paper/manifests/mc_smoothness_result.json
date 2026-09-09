@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "analysis": "nested dropout-MC noise and normalized smoothness diagnostic",
+  "status": "completed",
+  "source_commit": "ecda0d8aaf80fb941c915fce0645f3af6e62412e",
+  "script": "ml4phy-paper/scripts/run_mc_smoothness.py",
+  "script_sha256": "28988f712ea0dbd26ac94be94d86a4bf02b27c65de5a1bb5be621cd7387f844b",
+  "config_sha256": "c4ea5486871e7b89c8776f6829568177119e62c63df314a94ea53beaff51729c",
+  "model_registry_sha256": "4da51c436e9a3e2657e71b8a7edc90532f935b86a47e8d108dec66dce2699027",
+  "protocol_sha256": "104d8975d49dc6896ee339de461b824791ac0d5c3cd03ec24210c521f9783e6f",
+  "context_seed": 100,
+  "context_size": 2000,
+  "stream_seeds": [
+    10100,
+    30100
+  ],
+  "timings": [
+    {
+      "model_id": "m2_seed0",
+      "stream_seed": 10100,
+      "passes": 200,
+      "seconds": 1.7543783076107502
+    },
+    {
+      "model_id": "m2_seed0",
+      "stream_seed": 30100,
+      "passes": 200,
+      "seconds": 1.7632758058607578
+    },
+    {
+      "model_id": "ours_seed0",
+      "stream_seed": 10100,
+      "passes": 200,
+      "seconds": 43.21587089123204
+    },
+    {
+      "model_id": "ours_seed0",
+      "stream_seed": 30100,
+      "passes": 200,
+      "seconds": 43.19165325863287
+    }
+  ],
+  "extensions": {
+    "m2_seed0": {
+      "triggered": true,
+      "projected_two_stream_800_seconds": 14.106206446886063,
+      "affordable_under_1800_seconds": true,
+      "executed": true
+    },
+    "ours_seed0": {
+      "triggered": false,
+      "projected_two_stream_800_seconds": 345.72696712985635,
+      "affordable_under_1800_seconds": true,
+      "executed": false
+    }
+  },
+  "energy_chunking": "none; all target and grid energies share one forward per pass",
+  "dropout_mask_coupling": "ordinary elementwise network dropout in one forward; no forced mask sharing across query energies",
+  "failed_runs": [],
+  "numerical_warnings": [
+    {
+      "category": "RuntimeWarning",
+      "message": "All-NaN slice encountered",
+      "source": "Full-range bin quantiles included empty bins; all reported coverage and widths restrict to bins with at least four events.",
+      "reported_values_affected": false
+    }
+  ],
+  "claim_decision": "Omit the smoother-curve claim because independent-stream and grid-spacing diagnostics show material MC-estimator noise.",
+  "server_only_diagnostics": {
+    "path": "ml4phy-paper/runs/mc/20260909-smoothness-v1/diagnostics.npz",
+    "bytes": 12508820,
+    "sha256": "0cdbe4fd1ae82c6b740dbae29742787f86018c83b60485f2a7af495a41a6fd91"
+  },
+  "outputs": {
+    "ml4phy-paper/tables/mc_smoothness_estimates.csv": {
+      "bytes": 5645,
+      "sha256": "c0fd64f5c327450378b8b16e0517de6c3c9e3583f9deb48c3bd74eea7fc8c261"
+    },
+    "ml4phy-paper/tables/mc_smoothness_stream_comparison.csv": {
+      "bytes": 1296,
+      "sha256": "1a080b6fb37a7a7278187e6dde23122ba183407bb10e90ecb748493b51d11de8"
+    },
+    "ml4phy-paper/tables/mc_smoothness_coverage_width.csv": {
+      "bytes": 3653,
+      "sha256": "41b8b2b6f719cd8771e212b48083ce8855b50127460b1011eb99963b01dc2a4d"
+    },
+    "ml4phy-paper/figures/mc_smoothness_diagnostic.png": {
+      "bytes": 112833,
+      "sha256": "c13dad5550863e3d51816cbe720462f13abd70579d6bf442e428129a038cb312"
+    },
+    "ml4phy-paper/reports/mc_smoothness_result.md": {
+      "bytes": 2969,
+      "sha256": "f3d03c163fbe2e4d1b8c39458e454e176aedc2c0aed157e974d67757c8c48fa9"
+    }
+  },
+  "historical_data_exposure": "Prospectively specified follow-up analysis on historically exposed data; not an untouched test."
+}
