@@ -161,14 +161,20 @@ def main() -> None:
     base_protocol_path = output_root / "manifests/frozen_protocol_v1.json"
     registry_path = output_root / "configs/extension_models_v1.json"
     campaign_path = output_root / "runs/campaigns/20260909-phase1-neural-v1/campaign_record.json"
+    clean_rerun_path = (
+        output_root / "runs/campaigns/20260909-phase1-clean-reruns-v1/record.json"
+    )
     protocol = read_json(protocol_path)
     base_protocol = read_json(base_protocol_path)
     registry = read_json(registry_path)
     campaign = read_json(campaign_path)
+    clean_rerun = read_json(clean_rerun_path)
     if campaign["status"] != "completed" or len(campaign["completed"]) != 419:
         raise ValueError("Neural campaign is not complete")
     if len(campaign["reused_pilot"]) != 1 or campaign["failures"]:
         raise ValueError("Unexpected neural campaign pilot/failure accounting")
+    if clean_rerun["status"] != "completed" or len(clean_rerun["completed"]) != 25:
+        raise ValueError("Clean-provenance rerun campaign is incomplete")
 
     subset_hashes = {
         (item["phase"], item["context_seed"], item["context_size"]): item[
@@ -646,6 +652,16 @@ No binned coverage or interval-width result is therefore invented from these
 files. Model posterior, repeated-context, and finite-reference uncertainty are
 not treated as interchangeable.
 
+## Provenance remediation
+
+Twenty-five original M0 cells recorded a dirty worktree while resume and
+temporary-directory orchestration code was being edited. No numerical model
+code changed, but those cells are excluded from this aggregation. They were
+re-evaluated from a clean commit in unique `-cleanrerun` directories. Every
+event-prediction and curve array agreed with its preserved original to absolute
+tolerance 1e-12. The original files and the comparison record remain on the
+server; this manifest records the comparison-record hash.
+
 ## Interpretation
 
 The reference acceptance is a finite noisy estimate, not exact ground truth.
@@ -670,6 +686,10 @@ local-shape reconstruction. Phase 2 was not started.
         "protocol_sha256": sha256_file(protocol_path),
         "model_registry_sha256": sha256_file(registry_path),
         "campaign_record_sha256": sha256_file(campaign_path),
+        "clean_rerun_record_sha256": sha256_file(clean_rerun_path),
+        "clean_rerun_cells": len(clean_rerun["completed"]),
+        "clean_rerun_array_tolerance": 1e-12,
+        "dirty_original_cells_excluded": 25,
         "cell_count": len(input_rows),
         "new_evaluation_cells": 419,
         "pilot_reuse_cells": 1,
