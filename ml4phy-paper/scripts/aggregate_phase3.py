@@ -146,6 +146,7 @@ def main() -> None:
         "bins": root / "tables/phase3_bin_error_cells.csv",
         "contrasts": root / "tables/phase3_peak_contrast_cells.csv",
         "summary": root / "tables/phase3_training_budget_summary.csv",
+        "support_v2": root / "tables/phase3_training_subset_region_support_v2.csv",
         "cross_budget": root / "tables/phase3_cross_budget_comparison.csv",
         "subset": root / "tables/phase3_5k_subset_robustness.csv",
         "method": root / "tables/phase3_method_comparison_context500.csv",
@@ -188,6 +189,7 @@ def main() -> None:
         raise ValueError("Phase 2 cell table hash mismatch")
 
     subset_specs = {item["subset_id"]: item for item in read_json(root / "configs/phase3_training_v1.json")["subset_inputs"]}
+    frozen_support_path = root / "tables/phase3_training_subset_region_support.csv"
     context_hashes = {
         item["context_seed"]: item["identity_sha256"]
         for item in read_json(root / "manifests/extension_protocol_v1.json")["context_protocol"]["subsets"]
@@ -537,6 +539,12 @@ def main() -> None:
     write_csv(outputs["gp_final"], gp_rows)
     write_csv(outputs["gp_warnings"], gp_warning_rows)
     write_csv(outputs["gp_attempts"], gp_attempt_rows)
+    with frozen_support_path.open() as stream:
+        support_rows = list(csv.DictReader(stream))
+    for row in support_rows:
+        if row["region"] == "Bi-212 1620.74 keV":
+            row["region"] = "1,620.74-keV feature"
+    write_csv(outputs["support_v2"], support_rows)
 
     fig, axes = plt.subplots(1, 2, figsize=(10.8, 4.2), constrained_layout=True)
     for axis, metric, title in (
@@ -673,6 +681,8 @@ The compact method table includes the full-pool neural models, context-only and 
 ## Claim boundary
 
 The result tests acceptance-model training-data efficiency conditional on the classifier pretrained with 18,866 selected events from 377,330 candidates. It does not support end-to-end training on 5k events. All targets and contexts were historically exposed; this is a prospectively specified follow-up analysis, not an untouched test. The 1,620.74-keV structure is named by energy because its isotope identity remains unresolved in the audited sources.
+
+The pre-training frozen support table is retained byte-for-byte for execution provenance, but one of its display labels selected an isotope name before the identity discrepancy was resolved. `phase3_training_subset_region_support_v2.csv` supersedes that label only; event counts, windows, subset identities, and the frozen input hashes are unchanged.
 """
     outputs["report"].write_text(report)
 
@@ -717,6 +727,12 @@ The result tests acceptance-model training-data efficiency conditional on the cl
         },
         "historical_data_exposure": protocol["historical_data_exposure"],
         "claim_boundary": "Acceptance-model training-data efficiency conditional on the fixed pretrained classifier; not end-to-end data efficiency.",
+        "label_correction": {
+            "frozen_source": str(frozen_support_path.relative_to(repo)),
+            "frozen_source_sha256": sha256_file(frozen_support_path),
+            "corrected_output": str(outputs["support_v2"].relative_to(repo)),
+            "scope": "Display label only; counts, windows, identities, and executed protocol are unchanged.",
+        },
         "neural_inputs": neural_inputs,
         "dense_gp_inputs": gp_inputs,
         "outputs": {
