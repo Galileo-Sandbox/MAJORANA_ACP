@@ -1,0 +1,1568 @@
+{
+  "schema_version": 1,
+  "analysis": "Phase 2 acceptance-training-budget study",
+  "status": "completed",
+  "source_commit": "411ce6d3143da3de3626b74fbff25fe1ad7a6a4a",
+  "script": "ml4phy-paper/scripts/aggregate_phase2.py",
+  "script_sha256": "e2faed26dafaed320e40f1d8fa6ea98d6e97bdf2bf973668ed333829e22d41b3",
+  "phase2_protocol_sha256": "b85b890905ab5efa22feef1b9bcddf3f9cf5e1ca40da01e2cd52c4804132e474",
+  "extension_protocol_sha256": "104d8975d49dc6896ee339de461b824791ac0d5c3cd03ec24210c521f9783e6f",
+  "phase2_training_manifest_sha256": "c6ef0a008d5f4313a770f09adcda5faf84036f7ed0726751472932fa16e927ba",
+  "phase1_neural_manifest_sha256": "ab63824a56dd2ac4444ec0a383c9498de862ebc130d5bf7b1fc079fd54d52910",
+  "evaluation_campaign_record_sha256": "d57673150d584d9cb34d6e0ce25f2a1a8fef2cdc6d2288dbaa8fb197b7705e18",
+  "evaluation_campaign": {
+    "source_commit": "73c100a52e7a72495a82648368af031abbc72e42",
+    "script_sha256": "587e6f60bdc54f5b62907341be3ac18784d2ed1e5b12e05dc6d112ff3c31aeac",
+    "evaluator_sha256": "f106848452bcd5aebbf31dad62bb10c80ce43f93d18f811c1fba214e6d72788f",
+    "start_time": "2026-09-09T19:30:24.599805Z",
+    "end_time": "2026-09-09T19:44:40.696112Z",
+    "wall_seconds": 856.096003448125,
+    "summed_cell_wall_seconds": 855.8332798737101,
+    "maximum_peak_memory_mib": 6726.30517578125
+  },
+  "matrix": {
+    "nominal_training_budgets": [
+      2000,
+      5000,
+      18866
+    ],
+    "sampling_eligible_counts": {
+      "2000": 1895,
+      "5000": 4984,
+      "18866": 18836
+    },
+    "architectures": [
+      "m0",
+      "m1",
+      "m2",
+      "ours"
+    ],
+    "training_seeds": [
+      0,
+      1,
+      2
+    ],
+    "context_seeds": [
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109
+    ],
+    "context_size": 500,
+    "new_evaluation_cells": 240,
+    "reused_full_budget_cells": 120,
+    "total_analysis_cells": 360
+  },
+  "training_failures": [],
+  "evaluation_failures": [],
+  "historical_data_exposure": "Prospectively specified follow-up analysis on historically exposed data; not an untouched test.",
+  "claim_boundary": "Acceptance-model training-data efficiency conditional on the fixed classifier; not total end-to-end training-data efficiency.",
+  "inputs": [
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed0-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "8b477802946d16892aa04a735f7aef1050ea051eb7a50704f914238ebb845ab3",
+      "event_predictions_sha256": "0fbae80cd5b52cf7e606ea25e5b702a1e398458858f00f3c98ca6dfec9850c9f",
+      "curve_sha256": "1420663af4eaaac49e1ad7992023d3aae165aac3b39f1af3ce61b66a27543d14"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed0-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "a2cf3e110179eed14e2893ea4fc746931ac90f9a9e1010699dfd8879813bcf94",
+      "event_predictions_sha256": "487ea3dc61738b6de41389aa3ebbd8122b8d118dad4360008e9a23610f048669",
+      "curve_sha256": "578d0498e18f665ff9b8d9419ec60e1805aba903598bb8415466e316a07c2ac5"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed0-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "e27b631b3de703b2ead2e44e6b8b79acdb312584f56b752fd5c063cc7a335e6b",
+      "event_predictions_sha256": "c886032f6c45bc861c7974a9ded3602df9eab57d5b5377011f5d03cb6e443641",
+      "curve_sha256": "8c68230daecc0f7298011332ad033f5d6c391c34f9115c957e5779c731877d0e"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed0-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "5aac307684f2c42fab650c14afb0a05822c4588544efc79ef71d6ca6df9236d9",
+      "event_predictions_sha256": "e8d8fbb96d2421eb87cffc94d45309b2693c8b0d280e9604de964c5660ad6b4f",
+      "curve_sha256": "aba1a9173f5452595919085aa9f8d1c30c1c6f2bd4127a44bd0eac3987135f5f"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed0-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "eb21963491f1314d32e2abf5d43dda18732f9aeb80cd168c178f1bd46b305ab7",
+      "event_predictions_sha256": "d833c0c52dd1cb0c5003250ea9b73718509750112f9bc46374a7dc17c279002f",
+      "curve_sha256": "df630f9d767fca02debdbd416f9bb6afc16ae4c9f38662474df5913683ab0b24"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed0-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "76a63999cc2b5aeb09487eed32c9587c39bcb699fd3fbf8720cbfdc74fd94c07",
+      "event_predictions_sha256": "dc4a3b0a1d009c2529a673753f0a514b72bf9df423924953800eeae1dce95445",
+      "curve_sha256": "b28a2372be3e58526215e8856ab8ec1cc7ca530616ac201396a48ac1bf8b8d0f"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed0-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "ecca6f4ea297aaa837144c3ca1f039ead9ea3b91fc89f567d008a3611ccfa0a9",
+      "event_predictions_sha256": "206d6448b8acfe8f96ec933be289467e015ad1c871572c6867788f782b2b49ec",
+      "curve_sha256": "5ff893a90ad8a59583e1ef545270d0756a539ce3340b39de87b69f6d976f8ead"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed0-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "0b696e6a11495ed477299ae8e528dc501e6389cf91ec6b34289cff5323a0b072",
+      "event_predictions_sha256": "22f34d08b881358c48683066e478ec1dbbf906dfaf235c973ddbad48f369db93",
+      "curve_sha256": "2f485d06ab3d0ab575ba1c1beba38bc879c393ebf6f49893167e15199ba9d8cb"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed0-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "c9ed0b035283c31f983008f97994a3216ea937bab73b04edc2bd66f3fc7880b3",
+      "event_predictions_sha256": "0e0ad1e0b55b9dbdfcce06205ed9603bc6ba1c9b5ad4ded8c9bc259810fbab8d",
+      "curve_sha256": "4ef212bf57f6358219f0baeba12bbd05be367b1a3411bf637ce3b6fde1b22711"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed0-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "b9d73b4e992c8b3aacd9c7c96f17d4ee1d4e8a21930f305db91d42980dc98ea8",
+      "event_predictions_sha256": "ba113a144f33678576b16d4cfb64ba5cafdb705db2900bd8b02fa998bf1d0900",
+      "curve_sha256": "a7899c4d8bfe7ccc6aafc8137c2de1d42563155cbc1fc81378e0f056b98cafa3"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed1-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "ab719bedcd45d36c5fedab9d314be9e02657264f517172fde8fe14735e1f3f6c",
+      "event_predictions_sha256": "3ea46bc328dde97afe0845bb9dfab2c685752411ea1672a5f0fa60b27c227a21",
+      "curve_sha256": "521bbf02ec5c0cfbe4c23e58fbefa6fec0f005e5ce69e85683e914e327338bb7"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed1-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "3faf1f64acd5a5144086add194af61567a16883bcc44bc3b7fc148d60650d085",
+      "event_predictions_sha256": "25694e091ffaae4742776e1678f85126d0017cba81242fd9a8689aa5e71280fa",
+      "curve_sha256": "ffafa69e19ab0a1fb5a88104bf21d60c7cd0b001e8a87869e241531ae3963a56"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed1-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "bab7d8d096c7f564175044feea3b9695eb04740952875cdc61069d352f5550ec",
+      "event_predictions_sha256": "54cfeb84247eba880c9150f0c63bdff3e7192443db9983e6f6c92a5304a960ce",
+      "curve_sha256": "785913ecac643ba0abdc50c7aa06704b4f0e7cb7be428e3af0bf164f5015ee25"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed1-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "03cc8e118c6fe15077e70f6a82af00faac2f026ba321646179f5c4ed26054538",
+      "event_predictions_sha256": "27595d186bfe0b483aa41d86fb8d7dc57969b136e6254112afaa607a27a020b5",
+      "curve_sha256": "2721bfe74b2da736d30423d5d14859728cc36d7734d53f6b332a0067b93f2f54"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed1-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "2c4aa4cccac5652ed546c1c8ca2d5fcf47628a8b398afd4d214f8a8e2e8f32e0",
+      "event_predictions_sha256": "3ec5757dc928ed9ff0645ddf0da96910233af11c613a26d9b56e3648b08574dd",
+      "curve_sha256": "886fefa05942785acd4789d68d37d59a7cb29ce457abbefdd6d33797e2413bec"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed1-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "a5d1fae782c086f024303524bf840637800a00424664712a356eccf4a5f9f7f8",
+      "event_predictions_sha256": "c7b52bb1ba3bb4b9802dfbe718a847ce05e12ef7bc465ab4ac2b137db87e4bf2",
+      "curve_sha256": "441c5e41249c40bda7a8af5a9df109fa0c0d47415baf16528c8fb5e40973ed3a"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed1-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "5ab84602ae93345e3dd8d822eca85604c9381d29b166db22b2d91bfa65e15a26",
+      "event_predictions_sha256": "57e91ccb59a4116a5f35c4fd6e90d2dac5a1dbbbb252ca41128972dd93556b16",
+      "curve_sha256": "2e6fcf0856faab94ca48cca95bd6c6cba26f0ec5f31f63a8c1f024f255f7b7b7"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed1-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "943af824b96ccc360666b9b09e5f52e4c18d7718e6cfe31fc0623db07ebe527b",
+      "event_predictions_sha256": "e196f3189429f019226b2df529343e434fb624cf846e37d8ff40270281f0ceb5",
+      "curve_sha256": "f9cb5063c7c6309f0e4ccf088981976758d9ee0d5f13b0c40fafdd9bbc40cac0"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed1-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "aec998299e24b8d81f564f87b6a403e75a638eacfd23196d6b8af3eec19fae2e",
+      "event_predictions_sha256": "12b9739cca95e6dee7295e6e9a8f0972344f118e75512cef7ea3b96ff1e644df",
+      "curve_sha256": "db3cefc8b80accf49fb348abb25cb19fb73463e2dcf2e2369847cca182efe5b0"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed1-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "8a1e64c59e4eec57ac37bb0ab7d2070c5737acde18a661ad652bb47794bfed81",
+      "event_predictions_sha256": "ae85917c9bfc5dd10ba7d239fd5eb4b2a2efe52059484cba814a3409c2b705a5",
+      "curve_sha256": "6e5abc1419dfa7bcde427229c315ad8f7a04169914e808853819fe1542bb1a22"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed2-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "cb52f853d254f92aa0dedbea2535350f8d4831a888423b807428b88706607a8d",
+      "event_predictions_sha256": "aac8365e257007d3b21ab041e585729cef78d6532a4644bfda8fc9186869c435",
+      "curve_sha256": "09451d8148d6fbfd7a8cd63c4785ef65466a27e331bd69ce56aff5a8e8adc997"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed2-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "2760003f6cacfd58c04a1ca6d9f1753fe1f61096eae9bae6f46979449a27d1c7",
+      "event_predictions_sha256": "50e1b84930acff550890b5e38ca02acd81228cba071c2e25d5fb73889f38e118",
+      "curve_sha256": "3e825ac760bea646bcf9eb44afcdc1a6ba677c96651a53c756156785b280cf36"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed2-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "1c5d6de48ebd417550e71c090ea163f14152df2801b7195c5c03c4fb0ffac3b9",
+      "event_predictions_sha256": "872b0b05d40969fa4b08cb1340202dae0bfac9aa4cde57ec04c24829871c9964",
+      "curve_sha256": "4e8b6d9cd00ba271f921dba76ab61232c9f3a6a921ac8442983bbd5fa4f49637"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed2-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "974d404cc94ef23328f809d4fcd6b43f5c71601d3ec40c9aec82ebc777241fb9",
+      "event_predictions_sha256": "f2fbe9c4f3c4925e2de53f8df12c4136fbe4bc93569c4a08d0b9d4967698df14",
+      "curve_sha256": "08087a2e2b88e7f6fd2e2d2d9315c533b012535e53b0e2e7979762e8512a8848"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed2-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "974326adaf95419adae1725e0e9b12742e6d70838c4ba6c0343e4bddf6c991ec",
+      "event_predictions_sha256": "e4824add27499560e31e90d9c966c04ff54929cfa12de76b95db39da4baca1e7",
+      "curve_sha256": "5fbcfea51017f463bfbcc4f26e49aed2ee19231a0d31ca07e17e7480f83832b6"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed2-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "5411708f0c24b26f239b8116bd3d578a90d2c94b89abef7b930954a51e74467d",
+      "event_predictions_sha256": "0f8b97f82f592f5610cceef7542b143ad2645ee5ea87c2a797febfa086fd2f80",
+      "curve_sha256": "15bb37f163732428ad2038855913d41982bc817e59f2cb7f730bfb6f8be3871f"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed2-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "b6b6861993ae2645249809653e4f87ab18f3d9c8158d1956358643d0bf4711ed",
+      "event_predictions_sha256": "66e126c277c31575d359bfcfea8f96d2c77b4d8aab1ef5ac92965918ead43164",
+      "curve_sha256": "d7026f62b4dffac5483cb1122cef75f2d954a4e6a9ee3ad210e15da5bf6b71e7"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed2-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "396558416934266a4e741d443e2abc5686743f1652305fb98e15be3f1a233353",
+      "event_predictions_sha256": "30b324a3b9ae229be6c1fdd0c12eafe277cc07d51d50bb8362a304f24888c6f9",
+      "curve_sha256": "86ba178634bc137ddfc72536e17797a8e4cc35f629e429bf8c857787dfe596dc"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed2-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "a29d01c00a1ea1dd01a0f9b41f64cf64e863076ecfa802ee915a58c3174cd0b1",
+      "event_predictions_sha256": "ad92dcd4ad8c02eee10aa8971890443bd56b13f8d85ee7157dbf1e86800e758d",
+      "curve_sha256": "85833c2b7624aa4419fe5e24f40eed14cfa0173d8be290238cb8da6cb3fa04b0"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m0-seed2-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "1505f5f7f8b520e509ad5d7517f8aa5ff9623dfe8860a0c9870d513184d98028",
+      "event_predictions_sha256": "a7a4d249da3b05644b43ee6fe2e0c7bce463bc827a95be769e787b4f28d82546",
+      "curve_sha256": "ddb215b5e2568ded7de34a302982dc0e9db860973f8c26166111b37a1a6bce54"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed0-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "f349e5ca7eb9c016850ced8a9440b8578639a6744cbcedf54584212678084911",
+      "event_predictions_sha256": "cc6776eb2bfe3d1b2c5f4cb0684997a8d34d5d51c75ff5ffedb6c1fa158a3a92",
+      "curve_sha256": "4766a496682c4189ba9fe1e39ddb2c840f9907566766864cd47218f30d9271ad"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed0-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "ea0d79ef943c063c204ef34dbdf2e499f2ddf57821385209bca451f641e16c47",
+      "event_predictions_sha256": "f2ac36fba1100bea973c0c4876541aaafd7aa7a5b9e03ad76766194237d87427",
+      "curve_sha256": "0f9eeddc9bbc84a067cc269f171aac04777776b6e986f9a774f3d66203eca148"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed0-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "931538466cfd0032dd0e805a7a3911f7ff1030632de931dc26dc717a611676ee",
+      "event_predictions_sha256": "1f0d7d38e32eaa07230ef0a1fbc075e6a82d411608fe5b5744e743e9ced6eea7",
+      "curve_sha256": "48b73197d34b06ca9497225a5a13570d44db59abf1148927a63da0522b15bdab"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed0-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "61786efb2090b61bfac7b5110925fdd7c7750b47d7fb8b72b6b2bf4452a35cf4",
+      "event_predictions_sha256": "5d610c0dd21a4f531817b79718be3a4ba8514e35181ed21aaa3ef4cc5789678a",
+      "curve_sha256": "eaf861a1ff8071fdbf7b76b9c5f0f492df64efb4c9fe323fd1ffe581b4b7c462"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed0-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "40628e75074ddf14b782e8685bea4d6888ee5c2c4f97d5b6a466aa16b1ba999a",
+      "event_predictions_sha256": "195efd964523405d5c180b725c078f567140ad44a95d843c8e9157145ae760b2",
+      "curve_sha256": "16a9ce5458e14246bb0b2bcec8a425fb3c2f52751665a4f9c9e43991507b918e"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed0-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "964ec80be1d257a9ca87877f94da12f148f5d6da4f845d02e494ee1db2479150",
+      "event_predictions_sha256": "b50d3b115ab2f80e53a6de53381d57ee1013d3b92f814b90244136b448e6b69b",
+      "curve_sha256": "fd28a93f506106cf7d6628b71ae4083dc912798c403a08efcac07134b4d213b6"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed0-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "a47417f43f84d6d6e14ccce58dc17b5e1758ce6c775d64a99b278f7ca1251bd6",
+      "event_predictions_sha256": "62b0103487df074e3d65e8480fd51cecd73b3a4c1c33bc877187aff6ac825234",
+      "curve_sha256": "807b398477df00f0e04aa02684773d8dd1696c71918dd60fccae9ccd7c019e5b"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed0-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "860cbe28a28b977768424aa1b923e480baa776eab92c1655553b6022b619cdd8",
+      "event_predictions_sha256": "6bffeeb7205e3e7a8065a2a6d45db0356add629c77eb1235ab25dba0af8a2146",
+      "curve_sha256": "ccf8c207226520ff17504c0f36bb792452023cce2be83c652b5f8e8e9cd4dafe"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed0-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "8f851073c1dacc09747bf9f86a71e5d970361332a879cf70d478d2b928b58810",
+      "event_predictions_sha256": "09cf612f50c0fa638fb635834983fc9bffc0e75c8b23185536da15a52d52a396",
+      "curve_sha256": "ddf3f4131f3519ec2cd1b2ac6c1edb06b4d15e7ee93c6f7244b94bd9922b63eb"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed0-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "8de04dfcddcf2f2aeeda5e3c747f6e630567949211ecccabe169ca474aa21fab",
+      "event_predictions_sha256": "f2650bcca23968ad1086ab7fff5def7c420cc84d6d469f7e99b1c4cf630af295",
+      "curve_sha256": "9cde2753f3b8c5d1982053f2f3369685b9a120f69feea2135fe31a125ada8048"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed1-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "27ce29bb8a04218205ec75b027cd13b48309069b0776ef7def68e3f4024899f1",
+      "event_predictions_sha256": "e0650ac65084dfb670c7a75064e582e1d35ef2c81feacad49b4ff0049ce13efc",
+      "curve_sha256": "6c117b2cc2c7267edc1c201cfcbae25aa28b081d28df5ca1a7ffd3bbb79fb440"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed1-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "a52548154229c279ac183b9b7fe5c280c58090be82ec16af3ba31802574ac73b",
+      "event_predictions_sha256": "51d2432599be6063e6d60ed3b3b79581a3a79cf7b24cbcbe40ce6765b8291748",
+      "curve_sha256": "2d76bf3103da0003deb4273d933a8914a8dd67df70b341c81307aee529cf8b96"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed1-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "c9e3e2d629d69ca50abba981f89031e6486f01b5b66fbc3b913398416d050dcf",
+      "event_predictions_sha256": "f4cfec5fe7653a29c7e3e696860128eadcdddefc31c13ecc4b3c2bf629be4098",
+      "curve_sha256": "bc0a32c11f5a23916bb2573ae3a8a2e8b227d073df1ed035e73175e267fd9937"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed1-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "c9944fc48ab2a7b492d136640a730008774daf03224150ef1d9c3576846f24dd",
+      "event_predictions_sha256": "c671b529901d19e0b43d8a82ca68b4643f72c810689ebf29fb1cab1c5b9e4d5a",
+      "curve_sha256": "c875169e3307ce0d17c355b819d738692d14eae04b92bd1ff798a92f92ac4316"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed1-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "33c8a28a4e8ea61943a1dce34d5a52aedcfb0aecfba45e21b09c471d8867608a",
+      "event_predictions_sha256": "a1cec4fb9fee74717e8333137299b558ba4cd14916ed20616aec32f83aa9a243",
+      "curve_sha256": "4629c06be20205407b696a2553642843a31bf24ca8c9b53ba2809842eb4e0b26"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed1-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "8256e6b67a4d9dd0d45bc211b56581eb2965506859fb03875915c5ffb3fe964d",
+      "event_predictions_sha256": "49d7f0bd2cb5cc510c109bc499e74fda6e5a1af7f30656585fea040cd6b158ec",
+      "curve_sha256": "526df892fd5c9bb961be45ae49bbb70b3347768290848ec880c3237a0e708962"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed1-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "d679aac10d1b61b8f7ff0fa4fd359d922605f7c43f47e17ab30f137dbfdc4dbc",
+      "event_predictions_sha256": "897b38520aeb7dc975b11b8659ade15b66af105ff2a3c99a81e37ea6526eba74",
+      "curve_sha256": "736ff9d171c4d8313acc7bf68292e27982d9abf8899de12383dbbce5be8d0f9b"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed1-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "101e2b948d776f5837415da72f7cacf368c76861b64804191134118f6e45a2cb",
+      "event_predictions_sha256": "52655ea56d6417f15826ffee3c5611779fac798ea482a3b585482108e8fedb6b",
+      "curve_sha256": "6bd5245273bd327675250cf8289080f6634d1952b444447a5bdbf29a7e91c596"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed1-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "67e973efa06e4f51f19a4ac7d36ada9860b3abd4217015270bf3af88131427e8",
+      "event_predictions_sha256": "7c65779a4595e0f5478cb62d9b993ddebf4a04e41e51072487f7b346635ecae0",
+      "curve_sha256": "3f9705a4ce8adee5ce1dd52622fa82ee8961a5d5e834aa59cbef85f588747e7e"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed1-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "a4ef233f715f36cac8fd9110da87c6e2866eac2dc60d0f147d5dd35883cb551e",
+      "event_predictions_sha256": "b6cda9f0478e0a3755a74c4074466764087cfb8f96bad311eb28633f52172804",
+      "curve_sha256": "38fc61ef94910230a491ee1401268e4f04d3b6e2b035fd49115545781e73f276"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed2-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "c3567028b373fc03f55941839a94f9e276e17bcf9e2c6bdea06732b552de6dee",
+      "event_predictions_sha256": "74de68d2c5167a2a9dfa3c09e80ebc5b4951be9ff93d52873a3856b54da9c327",
+      "curve_sha256": "1ce0a06c6785aca98c698736ddce65896b648717dee871892cd5b60912dbf487"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed2-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "810a3d2a14c49a3cb9f28673b328584ba66690ab156b8d48d7d02bef9ed81b84",
+      "event_predictions_sha256": "105d144ea8e892d3bc245c674a5817a1ef616c0cdf724134069f018467644f4a",
+      "curve_sha256": "89ee07b3f6365edc56e1e52dc508df82c11793a22e63a9ac3f1e7a21215cd5f2"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed2-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "fd796df9f28b14aab59ff934bf19472b2eab75b7135e315271578ea73563d6bf",
+      "event_predictions_sha256": "11dd6b901f848b30818b33d601fd5db7cdb18d568e06d62d2e973c61a6e4bc6b",
+      "curve_sha256": "24bce156db3e9cccb9184887dc3f5ef5fed7678edc13d2f942c2580b355f1e81"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed2-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "0281a773c017227a8e1916becbbfc5221c0215ed6f2ecad140c0709eb625078e",
+      "event_predictions_sha256": "49489a00a7dd3e11fa53076d219da8185f4dfedcd856c19945054f4365b37099",
+      "curve_sha256": "03fe6d67ef50411ea65ef0e0313bfe7617fd400a65a8d0f46ca4db82e5162b49"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed2-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "da0b8420255a502dc1bc08b62612c00aa42c78466b0eb50067070c5197b61c35",
+      "event_predictions_sha256": "988d758dd13d4d5f6232fce1b390a5d2e11153048a82ce949239c64c24966737",
+      "curve_sha256": "0acd7d14c1bc416de947efb2b5acb2cad8244e0590e30dd4402de0d2500f7bf4"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed2-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "e5794dc25993a28865d01b84c7fd292b2a87a8da20633e5466bce2ed996c8f56",
+      "event_predictions_sha256": "9b63bcd850832b92e87c1a5e66dfa8abf6348831464dee36b27057a96a73697a",
+      "curve_sha256": "e6f149fdb4d27c3378bc64e3ec32d0376a7c36ec1e9f666f57cf74ac62d8a4c5"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed2-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "f25bef6dbb1e625ea7e3dbeef35ca7c77b65c3caec117139c4f71656bf96421a",
+      "event_predictions_sha256": "0d1ae7e3d334e0f1891af1ebc6d115b789c073477ad7927314fc0b2ec5b8e707",
+      "curve_sha256": "aef200f80e7a6b7b9929a5603fd8b8908d301f4415eb4521e1f33a8a83ec705d"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed2-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "1cecc69b5bd943d928fad72c761f39cf80dba124626a4a0ddc9691f5c8c1c7e5",
+      "event_predictions_sha256": "074ffd00454289dff0d3c8ceec4c649441c1f1224d3a668f71eed57b24df13ab",
+      "curve_sha256": "8d3fe0a6b280f9a62aa6f51e21a0e26f47650231777c8032cbf81c5b212ffae3"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed2-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "d61734c955b71363f60e633b4d95fdd75adbce4e1ae9cb7303c59aca0dd68d79",
+      "event_predictions_sha256": "2f50686265317ea6f6e94095bb028a85d8fe2e2c95e1448e088735ee9ad7b76d",
+      "curve_sha256": "927384ab821247cd464518d07cafd5fa7051c41bdbcb3913fec326918e1b855b"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m1-seed2-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "20022995b58cbdcf179dc25d54d4f7d711f09eabc2fc23c9ea90f57248d01bf5",
+      "event_predictions_sha256": "6e8f6cc22765f5e7b65870a885e4160c5e869aa0a9bef8a5ccbf408bfce9c67c",
+      "curve_sha256": "9368233002ecceef6ff7641a00c7ea1a793c7c83efc8c965a6816e468b7f87af"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed0-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "0e43058d106b8a4b2cde4d564cf392f6e5f412d1ec95529bd924b2974ea11ef8",
+      "event_predictions_sha256": "1f00139ca228fd8dba9af9a1601de917e1f1eab14853f9d72bce16320d1f126d",
+      "curve_sha256": "7608b25b4213e210227675feca06943f8c69f3508468c6183d9e32ed24889ff0"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed0-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "9bab96300a193490efde972bc4de3f64006bd164a74d24d7c8ce623e7a894d6f",
+      "event_predictions_sha256": "89da7f9a12337941156fdc4ee21a68b89b04e20992b3a7fd387b02955a437c80",
+      "curve_sha256": "a89eba9bfdd4677993d8e737f2040df8fae37dccef230373fb0b557a39a65c45"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed0-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "d09ec07c320c77f06ecb43fd2761c2845d2a4a0d8d4df7798e80e11e0ce305b4",
+      "event_predictions_sha256": "6a5397ae080fe3d8e24b4819461bd597ee68de7b845abbcb0a77653d109fb47f",
+      "curve_sha256": "f15391b9fa2e06cd95f935c4bc4913dac868c8dc61434dff5fa1369ba8ff3c65"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed0-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "9afafb6c58be5b3913293d67a45cacbab3264a1afb29b158086f6e5cea85dc35",
+      "event_predictions_sha256": "5aec36bd83f59954f83ab33cab7891102d79c87f8714229f27a4d2887f9afea1",
+      "curve_sha256": "26b254691d2b7a95bc0a3ba3648470e2400b10844505982790b071df4deb5dbe"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed0-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "cb22311d28dfda48ffe0701efe780b4042425b2d1f10b076188bd9a0823bbf09",
+      "event_predictions_sha256": "0bb7b88bdf43573e02f284d0c4dd5f07a198bf922adb8e18475c1de7e668b386",
+      "curve_sha256": "fbbc7c7900bde38a7c935f89a5af0f081252af504cfa17e847000987a0c967db"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed0-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "354c8e0503f0df5fef4e9a367512c982ea84419b275bce96d0deb261de9cb981",
+      "event_predictions_sha256": "87a2648a8681dac7133f063569f46166892476e34cf17b1c34c77fe2a0450449",
+      "curve_sha256": "5433b66185a9316e7e6a874487903ed4afda496e7a3a599a3f897e72310316d1"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed0-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "d1119095a46eb349c18445338363e052a14789d4cd6aeb33f466fe675775e5c3",
+      "event_predictions_sha256": "0e4f5c6b600883ea19695bc786889d985a924bd436fa7c5f796e902271257335",
+      "curve_sha256": "2893598fb3007383806146a4056fdf91db4a613503ef7a0ba1f5d91409ebb219"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed0-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "f6f55d09869465d6ea1cfe5ccf1e41c715c636104cc944d94ed91ad81ae47ccf",
+      "event_predictions_sha256": "3d14ec3d70a3c8e315c0807ab01d590cb0a0c6081179e9e6474ebac4c086f7a3",
+      "curve_sha256": "b3bef26c0d5212028e609cb6993667ba16b68899eb03a93c05284966ceef53c9"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed0-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "8deb371e6c5dab8d8065f64ff827da7070d3da7947de09c688d72ceda066cc26",
+      "event_predictions_sha256": "59d21209fa0fee912e50cb5b400f41ae6bba865d3d14520254960d7d39eea2ce",
+      "curve_sha256": "574714de8e3f1d91666a4ea340c18070056a4d6880ebf61c55ab9127072bfdba"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed0-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "58d3eca68a8eac6460e5cf2dd69b4510337aa931378297abce1008f8e1dfe903",
+      "event_predictions_sha256": "d0d0b68d53e4931a270605de8b1aaeccfb419142276cc84565a4c316568561a8",
+      "curve_sha256": "ef5a235788e12e58688d9843025944931dd4bfeef1880bfcffb09a40692c7199"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed1-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "e4086bbe223d1187db1fe95bcd8fbbe3eb994b604ef8fc4631a4b58eb4159d22",
+      "event_predictions_sha256": "e6f791b6f083f6835fe7910ac4af596438345da1b4737986c4da3534d860bf17",
+      "curve_sha256": "2d5f24cdd64ced96483db9b4e6f39a08fa0f284c651ad2b2984b2f877ba42a2f"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed1-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "4f461ea90fddcd90d4ebd3a5f431cdbf27a421b564e8fe111f3eb97f1df430e7",
+      "event_predictions_sha256": "e2dec4bd2160cf4cbf0b9afc5a6a932454b5ca7f3ed19b4c5947fd88a77c4f16",
+      "curve_sha256": "47e1c93f8028ed74d4528cf0f545d13132a9a84437a222c98e0df87869a5c756"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed1-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "d445adac247112bf3bf85cc1992d53540ac848b16b8b4c7bf483cc056591e057",
+      "event_predictions_sha256": "f52397c65ae8c493012e2408e0d7155b01157d20c7281f4bbbff43b0627310d8",
+      "curve_sha256": "955183b72ca8b4206d94c18631ca8ac0cec59b597483a178d76f850b11456928"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed1-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "f35aab131ec18e8e9ac43cd980f10c9a537ce32875d30dde847a07a194abb3f9",
+      "event_predictions_sha256": "99e7807e8f1bd00ed4faf46efd60cbcd8610e6b1ee0c6c186b9b864b4939ef6d",
+      "curve_sha256": "92688ea646379efbc6336b3cd09d2e17630376b287092049b3869375e190a449"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed1-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "5207412e2a7e1404e34ef9119c838ac9582bc1f53da174cc6bc8427d19cc7999",
+      "event_predictions_sha256": "ead9f0a253297b6f5a02872c0321e28f4af89e7de56cf9bc18ad8a13e7f459ea",
+      "curve_sha256": "b01c78afcfc461cab8fb072f73643874bd98bfd924e73934a4982f37b3b54845"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed1-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "83a439add37d03485b2d29cfac93833982e85778bf03bc504e57fc665ae7fcb9",
+      "event_predictions_sha256": "4a5a7ca4132820a5a3d99629c099a15a68aa1e200ab55b396ac0cfee40d70955",
+      "curve_sha256": "b3223b86c54ac2e5d1798c807fb02ccc11378f60a81043b12c65563eb8c2a242"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed1-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "bcab1ea2dbb415c9741f3f6c56634f2e7fcfded8718a044f47abe90d9a1d0b0d",
+      "event_predictions_sha256": "c676a05d1e1552f76b4666a44965a200551f0a907b8e5ba2f94c59c46dfce185",
+      "curve_sha256": "115dc8d1092a87afc3bb8f6b8b6f7c47d2a74155871c0606bb4ccdff0af41a67"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed1-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "3b4d260aba24e356f01039c33190821c59317c1114c2a6e4e99609290f714d42",
+      "event_predictions_sha256": "cd172bd55205d559ef59aeb84959ac3729509e780bb0cfa12657d01fa6bb422d",
+      "curve_sha256": "118860387031fd69f4553f720a73084b5b8355a38f99ef19067071eb11f5144e"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed1-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "31b063000e0a32c91d26e3e701bd2c2c1fa082a33a52e921d2daf16b58d02fcb",
+      "event_predictions_sha256": "94b4c9cd30ce5923c5e4080ab552214d7b740657be314e630aadf7e6542aa2f5",
+      "curve_sha256": "dd44e2055a5740284e1f9820832db449769a37d98429201721aa3380066e8956"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed1-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "fa2eb9fce31631074f7f3365c269fb460feb5660070b07130bfaacb2be25f90e",
+      "event_predictions_sha256": "010b6a18500cf1651f76472d7c5a8dca78772f85ae5d989ea13924c45877ea95",
+      "curve_sha256": "bcdda786c555d50e77c8ca7bb8ce7908d0005036bf24615fc8752f36fd4f1802"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed2-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "9da32e4bf22b3f0a07197b3ec09c4fc250bbed5e5985532078c4e12744054936",
+      "event_predictions_sha256": "d9e6e99182fcbef3f7c3341f5b1ff0153d9e6175ffc53110a065f1c4a8651256",
+      "curve_sha256": "b676cc1a994e428dc809bd22f6057e9b702b9d31f21270978395e58d5b09d274"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed2-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "c52a6d285d1e8cba953e1dc2e7ad565f2b95c8a4f350516a216b435d41a04386",
+      "event_predictions_sha256": "e05a06ecc839ddd1a3afde7f90465908bc52e2cfb21f502aa171a7422d461584",
+      "curve_sha256": "b3e391fc2379d57e22597e4e13264a7e2dfae53a5ce842e31283a9489b184c28"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed2-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "757b8357a4d5acab89a52e4a3133cdddf7f36a1242d488948b639d3d8ea5d659",
+      "event_predictions_sha256": "cda4cd6a32f8e4d1dc741b2fa2fbcaba181b8ec85eab779ce979695beb259ec3",
+      "curve_sha256": "85dcfae79dce7a763614d68b708efc68d52dc508cbbf523d9828dc29b6940774"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed2-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "52ee9ed03b43d6587da5bc5109a86c550b193913866b5fcc5edc368d4a884f3f",
+      "event_predictions_sha256": "52d48734a01035d32881097d67b28f67ccb2144a1dfeb20aabc25a54cb905a5b",
+      "curve_sha256": "a79df14ccd78719ac696f12feb6b59a7054393c93fc34384c65396191fdc2a3f"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed2-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "f976d0be22bb72aa783ea4ffd2fbbbe0fab5f1386e93578f97f9af8b7e7ada04",
+      "event_predictions_sha256": "0bfc56f6670d6a62468022120892bba200514f3fc65533bc6bce8acbf2436b22",
+      "curve_sha256": "894038099c6a0f3f63ca04a1a7fcbed30cc65fa77b8722499d8116b76a61485f"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed2-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "16522613a936c8e7888a294a9335e98cac33d58284ad660fe2d2a1ca0e30f7f9",
+      "event_predictions_sha256": "db92947b75a88900293de3e8603001a1f57b3cfbd0b61520fbe6e655120ccdf8",
+      "curve_sha256": "a28187b4fcda3fcd7a74fbcf036cd1c1a7f809125a430fd808788c5548cf4d2a"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed2-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "4e15f0f2d7624f4dc039f9fe1e0916b5a3a97d5dfebce3481686373b07606dbf",
+      "event_predictions_sha256": "98b2d98452dc88f1eeee73342090cb521e56f3ec767cf05c113d7d99a0c8ca3a",
+      "curve_sha256": "453cb58dd1bf101bea36136674e26f5f10220c6fdbb63754e8d5977704c15f5c"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed2-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "878db63c971eef88d037dc85889fcdaa1cd88fbb9457de3293e8d872219a4735",
+      "event_predictions_sha256": "e8294fc609b4f4c16c369a177d04291b85188e28f2ac784d1818f9b5e2f87118",
+      "curve_sha256": "da50d17be71465ba7c30091532285219725a3b42eb89b0b985629b51ce1a018a"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed2-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "679003c5a3092d42fb997ffdd96d4edfc9cf91857aa63c972a01a60a035149ad",
+      "event_predictions_sha256": "f6a31dbf0bf84bc46f40d60374de144eb491bebf816708d22b215d75ebbce21b",
+      "curve_sha256": "65926ee4fddfe6c762e6ed7f444c190de6d31aa13a9db6808e594bacd6e31fbf"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-m2-seed2-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "884c426bec8e7509a5a85816465377b6e989a0e94a70a902c11385731386386a",
+      "event_predictions_sha256": "30fea0ee97b11dcdaa77d62f2f29314a5cbf7c0d5812f6366604ec8ca877f929",
+      "curve_sha256": "3a17355fbdcc24397e4bdbcd1f7430339cfc7f7ee3a3b8d52dbb7cfb61bb1d52"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed0-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "4b0201c42d7bc41c498d3f9b3ee671ee3eedb3706cd1c263095c9d422c79b2c3",
+      "event_predictions_sha256": "a397881acf85a3db20efde49f9621f45fcbd4174f48f3d310cc4a470acea447e",
+      "curve_sha256": "411450ded1d4c368eabd02188091f71f4cec255ec9da4ad8ce5cde80331db2a4"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed0-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "8907f1e847b73800fb5c21a2e9a860426a87d44ae720490b41885b65c66d99a5",
+      "event_predictions_sha256": "b0a3dfa88cd5a055229e3a2f07241447ba6b6804656fd1931699834ab147ade5",
+      "curve_sha256": "a5bdb616936195036bd84a34166767d9d371bb99a8d1641deae86d9722c7b034"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed0-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "75163f2dcfb3654897fbed9aa39f6c426f5fe214d8d0f1d9a7b943c0ec90a07b",
+      "event_predictions_sha256": "e01b9c3d59fa27cac432ede048035891f06208b1c856521558e85a3f96024509",
+      "curve_sha256": "d841e4653140514cf7efa7549cff7623a076ffac927cbeeb59a3b56863a0cdeb"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed0-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "168f18c1094a7b258a9bc1946c3ba0ca356a70cabdb8598c3ac523db5741daee",
+      "event_predictions_sha256": "681b9bff5052753195a6e49a108cef83c95a8d3de8e60f18ea3fca13e555981c",
+      "curve_sha256": "b2da4f5b2882ab1c824cfe48f9a82d05b688bcaa6e2bba9c105323d60e6580fd"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed0-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "b75f3fc622f40587d061cce3ddb28109a6db1f082a3c3a8d1465efecc4f302d9",
+      "event_predictions_sha256": "175a44911576c8fecf5d01d0597bab26d702be87b3110b3711ca2fb0ff1e6973",
+      "curve_sha256": "62d7797b56eb2d6532b2b3e0ee923a958f93c1779064b929e011006aab8577d3"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed0-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "e923d394a6bf42c698b5944349044f9ab675131b7301cdfc2086a952c20519b9",
+      "event_predictions_sha256": "c1d114cd20b93a99650e28b72a3334bef2e9d90e388a7546c85315971f68fb94",
+      "curve_sha256": "4017a743c2ef9f3c184ceec7074b4326e920d3b59f1e2c8fbd15713ddffc8914"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed0-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "bb602ce13ab31df6b4f471b11b3b8ad87bff05f01f59451c405ab200295da84b",
+      "event_predictions_sha256": "9980597ee9f5b046ef27640ee7f6ea77e931493aadff7578c72b45ec1b465963",
+      "curve_sha256": "2dda5be48308798926839fbde8f63fa51e6aa0c56b0da026b2d9fce8d9838be9"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed0-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "ad537668790f318acdfcfb8fdfdba70c08a480f8cb624c6c64540dcaf95eddde",
+      "event_predictions_sha256": "ae387a92e588f657cd28d7f68644077f5939eb4d8c03249ed4bd60d6733b04f3",
+      "curve_sha256": "638eb8ec1571c1be364db7bd6ca49e698adbdfa1e7f02d8c510049b44c9f49ed"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed0-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "3ad053d8b71e943c1eea1d223637241db5749a1a7e824f2f343a4761cebe1784",
+      "event_predictions_sha256": "a58491807f2ab9d6dede8b3386e14405d03ebba5e881ddea6fbeebe4d296624d",
+      "curve_sha256": "9664e0bca4eb614b2ba92dca47ce45d6e09144bf1c7410184a56b43bf760c5e2"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed0-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "b8015ab3401f39a8fda12b56f9e912d7aa30d5347890336d84545ca1b02cc1a1",
+      "event_predictions_sha256": "b81d6c5cdebd5596d9344d89890dc445f4e4bf0eeea6fd4b48ec7d370c4aa15e",
+      "curve_sha256": "f5cb09be2b7c048d06f2ed1e02a0885ef11053c298c7f643f82df26dfacca668"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed1-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "2923cd3025c7d075552e1e337f11d801c5bd7c7db3d427e8670fffa15e9c91c4",
+      "event_predictions_sha256": "58712f7e657353161982c944aa91c8461b8d15bdc6550542defbb4271c03c2d4",
+      "curve_sha256": "e17fb1bdb05ed123e8887d1052e46d9e6eb080e7195f19fa12309499e6580b00"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed1-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "7baa76a083984e8ca487a9276cab58e04075e705b74ddd464150cdf918beac1d",
+      "event_predictions_sha256": "fd556a1aa4eb6a64b14cec1212e6506362669864a15abbe228c4c5a65e1ee713",
+      "curve_sha256": "0e784805b7210034da0d2bbd64b91568cd843a262bd3d86c7f6a4e071f4e61a4"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed1-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "00abf6b9852e3713cc5f83601e39b68aaf9ad11480ecfd6e1828827ebc204ce7",
+      "event_predictions_sha256": "f11306c89a19b8d39b6f4701ca649e2536afadd71452221bcf465f9ef5acdbdc",
+      "curve_sha256": "b90f7b87740f207709230e4b2468e9802d7f2185fb6aeadd19e3760284214827"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed1-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "2b1f06da95777914072d47f93005dfb1d0762296f5537c94e176183b1197ea36",
+      "event_predictions_sha256": "226f9a7663906019a104396ad11777c190f3041db68b94cc839569ede907b74f",
+      "curve_sha256": "fd9d09b09993664833d27142d5f1dbf6de249fafc5c0a547768292fc66acce26"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed1-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "fae2edf586af2a8061ccc7a6ee8713d42dbcdb6c0fd24a015e12c69bef315cc3",
+      "event_predictions_sha256": "628ad5450fce3258c3b3ad75ba0f7bec07eff0c3c38a7cdaef385c4ad638993b",
+      "curve_sha256": "4996040b330f2a4d0f2278032df950fb11ee13970ab400d23289f52f6a3dd0c9"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed1-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "2392faec3ae35e070f3c24d5823247e9b6d972eec81e1c4fc4f731517fcf6367",
+      "event_predictions_sha256": "63354aff1f9980962ceb8c2d25eab4ab458c5846d5e3cbd61bdacf9ed617fa14",
+      "curve_sha256": "168742a240a1d21f9772dcd88d15c3be3a292d0fe8beb41322911d3ee82969dc"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed1-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "8ef7f467f698e26a31b18ede9e47c6f6f0dcc8509b2c699d764c930b21c8e6fe",
+      "event_predictions_sha256": "693e204a6979129d5da5fb502f12c52cd77a508bed07623615c18e7dc88cde1d",
+      "curve_sha256": "dc5d6a43ffe00a5024467ce22e49b54d174e6a12819240f9ba6c066417bd9780"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed1-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "d2797cd004bc913870a17f4a98e18b3e24936f988b40fd4cc3aca6beda7e5691",
+      "event_predictions_sha256": "b3746d593c8319b8437ef9860d046867b06ecbfe58a3707e7abc36630759916c",
+      "curve_sha256": "d8e90638410ee86dd20ad483e7164a400c46da54ce10b900308bea0d40fb4ff5"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed1-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "d943e2748a2c759f996d8deedd232a6fd162a981298ec9aa6ae5227c05b12637",
+      "event_predictions_sha256": "b4d926b2254e481de5ed6ff79603bc238157228680331baf26d8958051ea897b",
+      "curve_sha256": "bffbcde31f668ce843d5b2ae846b7184c1c80f3d4c51e44ae3161a83b8ef4229"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed1-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "61d5c905e1abb6125facd83f0e3a3dceeb620d35bc9a7a3a0f207b58c4d0d738",
+      "event_predictions_sha256": "21dd81a4dd0b494872a838fa672d472eccceac8f78a7063d4c6f91c96b88c0d5",
+      "curve_sha256": "c30852faf9f6d1839a7cd667e0a6a46c3898d7113d7308273c51bafc5ab122bd"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed2-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "ade01a09699bcda0b6d03fc1ddf53792efcc9c3fae4153d426c0966a27c222a9",
+      "event_predictions_sha256": "1c87074b837dd06eccee406ab372565b85f84b940b9be98daa88bc3d229a0cf6",
+      "curve_sha256": "78bba68c296bbb057b18c21214568a44efd4985c2c7d2f692594fa1b0676fceb"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed2-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "0fea568f78e26e21927404bd09693f271c426b9771b1b9bf1d782c534785406c",
+      "event_predictions_sha256": "997f8738f57ac51a180a4585dca278d0e142790b465e0aae02d5d4d0af125dc0",
+      "curve_sha256": "cf39dab8f407a6fe8a01244045f6f2e5061a828e29f3adae57550e7f73e45ccd"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed2-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "535c0f138e98d8a16e7c9ea7b605e3f77e0c20b75933fea5e70481fec6e8cb27",
+      "event_predictions_sha256": "fa2ea1ebca3c79c75b6b7aeb368ec168fd1656fc9a4d1fa69e18ef85ca3251d8",
+      "curve_sha256": "e6f4f6f3e26dc1cc2d71b585f83cc6815b35adfdef7fc315d4ff706b779e2886"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed2-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "91cc278a5ad7716332b1685d19913cd10cd274f87e60640c41b6396582ee6ae0",
+      "event_predictions_sha256": "ed5c4dc2e7fd6116e8bd1f459c654883a0c40e9c7a33e0d01cf70c3a48670eb1",
+      "curve_sha256": "2c206ed4203d5bedb9be5b7ff0ba2e74bed0b9c7640d0d8803de9484a224df80"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed2-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "8a6e1d38cf54de2c588a110d9cffccb7104d4bf02383c8b60f3f0e6819067110",
+      "event_predictions_sha256": "d8556fddc0e6fc97219f105f3f866a1d9437a4d3845c39e552d863d2f7aae19b",
+      "curve_sha256": "5b9c850f54cd19e4e43c9e266b2dcd9dc7642c18eab987c67f867b3e1c8f1773"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed2-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "ee5e2581124309b31e5b3d9bdd1fe673bfe043a3b6960f9a0ce54aa53642ceb5",
+      "event_predictions_sha256": "260ff95234bb3193304de149a402223e1f9cbedfb2cd2463cb4dd0b25dde5c92",
+      "curve_sha256": "b7fb38a5dd59e520d53377daf88d9bc3f813ce1a0ae0c1b125a3e8de0f886b8c"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed2-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "6dae0498f7345c07063fbef257065457956da6880fd11318957d6a7fb2ec5f04",
+      "event_predictions_sha256": "721b8a3d8ec0733ff61a893765d80e8966bb8536bbf61d77e0d54ba0509b1644",
+      "curve_sha256": "b9e14a2153f2869a8caa92ec3a11b830270d7fabab7ceeefc5da0bfc1a5e4af9"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed2-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "a3d8a82a4cbb1b8f744db101918bd88a5ddfef4ef60d0fdafca119739342497f",
+      "event_predictions_sha256": "4355df522f1b0e8d94884a9ae31ccfa02dc2a468fecc583ea66bb5e8195b0aeb",
+      "curve_sha256": "66dcdb69d995ccd1737f2b8c00338f1ae018b23946dc8bfd19d923609d912f07"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed2-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "fdcb56788fe1a283d008be49ce3afe70d8956b26243dec9bfe4473e9e0d6879f",
+      "event_predictions_sha256": "f67e11e16fed80e1100bee9b2bf2500116b838eab4bd8f167300e82902201746",
+      "curve_sha256": "1143b66219c78d14e62a60ab1742e04ee1b69a8c348deaa3eac30c7bda6863a0"
+    },
+    {
+      "run_id": "20260909-phase2-b2000-ours-seed2-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "5738867ed3825fb87c88d91c931360dc936c5bf73dae7a68b04a20dc25920971",
+      "event_predictions_sha256": "ad6bbe54a7cd4e000614ee92b9049ee15abbae47e2558d4cad16ed2702c1a42a",
+      "curve_sha256": "3e390e167146e6d9787cab4e2f52d12b5c2171109e18684f78682a8a139b5fbf"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed0-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "479aa73e7c4675d2a17c4217e55c38b4d71ffb4162f1e2cb49d42ab448505c1b",
+      "event_predictions_sha256": "81fa44318c1bf881e019a212a812d4e0092338ede76ee388062934b9fc8a2c3f",
+      "curve_sha256": "2697d81edf4deb2d4fd086b3cfcf8f54057a83d4ee7f2a15a636efb91aec50f9"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed0-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "d627eb37c0379d61af471bba774e10dd61bd5b110ea1829be8798f349f020e2e",
+      "event_predictions_sha256": "c20c1c1f1764e21a6da41dd6ec979320da7510da636f4005912f255448e4dfae",
+      "curve_sha256": "cd0d413d80be7734bafaacda5491884b2f99f89e1d019c7a47df9670256b707f"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed0-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "691bfb823ac9ce8cb6316cbb9384ee91eadd79521bf9ba76aefeee497db3c3c0",
+      "event_predictions_sha256": "3f7f5ab4172b74c4c046a75ce434c59724e92ca2af0ed9dede2e7accfc305bbf",
+      "curve_sha256": "e89e05e2b8c1dc0d3ed5d4ae015ece07ad8a6b60d03c97e51d02efe6ee8f978e"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed0-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "696a79a9681f87c648a50f30cdb4b2d0739a5d9027e4c7cc2db667834e61bde8",
+      "event_predictions_sha256": "486ae760ec24dda23a5d3fcc06aceb8d0d0517a7f1dc7151756866ac194a8840",
+      "curve_sha256": "9981d9edf879b98962d912e18ac244a9ba816e78f388f31e6222c01b5c4d8588"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed0-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "f6678f05a762ddded033909dd1224a54ee54f8ea5b348d74caa0660645023c47",
+      "event_predictions_sha256": "0ad294a9785830e67fa36016e7a31ed4a2627786da3dac294be741ead13426cb",
+      "curve_sha256": "92ef8e2ede49ad93045cfe1e81a94cb8fc94c6bf6c1390e5f1fa67ee2fb28131"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed0-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "11c8755399673790a252efda44361f2440605d55fc0e6fd48091d3b113a4f57e",
+      "event_predictions_sha256": "3d915a48b63d8b82710a3c3ecc16085ed290b892335ed51757b905e3b21c5562",
+      "curve_sha256": "10d1485881c50385a9fb3849b7e775ff6a37edbc55797c1e271fbfb5d837b316"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed0-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "c8397322ddeb1171655cc9f93469e773fc9a7976eee0e305337e179d7cf7d923",
+      "event_predictions_sha256": "53290e9775f52795e2f20d5948fbbc27e3b8de2a79594d65447dace170136225",
+      "curve_sha256": "61d173ea9881c4e152c6bfa5aacceff2754b34398910fe979d9e07885a410396"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed0-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "7fe7d3abe326b0b9a9f4aeab819b0d3f25abac15d452a7f6bcc4a15b77e69f15",
+      "event_predictions_sha256": "90086b7b9ace47e0d75b2a11180d9073e3170b068d8be1519efe2bdeed09dd44",
+      "curve_sha256": "c171e2409086c2bc037a1672f1dfed59944d76ff082430e3e15e784cbaa5821b"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed0-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "6c123f3a55426a6fcd63d3e7ca958f2b6a3bb21904fe3948989a8f6c24ef0c78",
+      "event_predictions_sha256": "a1c524d38dc96fdd896383f0387c517cfabef4e32b2adc5537669d9892774d64",
+      "curve_sha256": "7ae2e8e36ef29dbe0277d485ce7810d62427fd9f3bdb76b66be358a20c10c980"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed0-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "0c51c115cffcd38a8d3afc9dd51100572ebf93dbf3388142f36f33c51ec18e37",
+      "event_predictions_sha256": "51c5e16fb646fc9c64e0af8e7391bf355f440faed05ecc492a94c312e362fc0b",
+      "curve_sha256": "c26d1d3c91dd692d403fc084dba849e346f121eee2b39c8b7ed2a640ac8bd7e8"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed1-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "8828cc4985bedeb1bb5903eb730a317a5daa36e539df0dad7bd3d203ae1158f2",
+      "event_predictions_sha256": "5710c849efbfe2db27e9e439c6318852035947e2de8c6f78618fb5ff6338cc33",
+      "curve_sha256": "c42110eeb09df3d29d4671ba2286ddbe6472274c671fa20a2b841dd294a8e477"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed1-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "e5ba7925e86b320293b632124b1bf547c7ffa73750db359668752c16b97d4569",
+      "event_predictions_sha256": "ab3f1cafcf1a6b9d6ed3544727ed138344be1e11c90ea7362333978818c43323",
+      "curve_sha256": "ec30e81f1fbb30a54b4c1380ca15106520669b8eea2501fe43f9bd44c575c5de"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed1-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "0c1cd7052355df7301649224af4f3a69320a4895861a05427d33106dd5194e90",
+      "event_predictions_sha256": "1eb44123c4e25a47a6f3c0cd04d11badb8f4252db4e3dacf7f4c2a6644d8272b",
+      "curve_sha256": "d5f372c20d6f3fb150c10b8d438044f73a1f85412f0a98eea356526138047924"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed1-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "ec5b4c355db631f2faf7042c7237f6dc2ce0c898b97471d821c982219b1e1f03",
+      "event_predictions_sha256": "25ea760f807a4548b6eaee5f2f6bdeb9cea39a13b4665886972063d10af474a8",
+      "curve_sha256": "cb7d86e6778e8d4da073fde1a651d248a020b95e28b22d0e3576e02ea35ab11e"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed1-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "69ba2e51dae75ae79a1750d2496bdd1ddcaba264567c3f2c0a43872a3f4120fb",
+      "event_predictions_sha256": "8adc839dfc7e22d20f37d24aac17a03fda50b3137cce982ab44dc70a8a7724dc",
+      "curve_sha256": "01fdf71badf46950aec0646cb0ab720798a09b20d2ff80ef58fa927534c86cb8"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed1-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "530c809dce522cfa66328db3f1ba25ae3dca721064100aefb3d124c2aedaa099",
+      "event_predictions_sha256": "a6c17b35a41b9c1a714e7335b3d77156dd1e6a26602a5a44f329341c84f8e30a",
+      "curve_sha256": "bf98e03a29c988cc15a7f7d2169424789194a0c554e25ce96660d9d0633f6b89"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed1-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "2379f0fa63f716adc3c00b6d7cfa457c34b8460831c3ac3683dc72810a577222",
+      "event_predictions_sha256": "bc8d602121fd8fb42a1a1d73ff17ec12532b44e6862a1b74a5ead6774a575d7c",
+      "curve_sha256": "5355eff416158c22093d69ab8ac52e3635c9ebf2e93085e75ac1dfeb20ef2fae"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed1-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "096981e4c9cc0dfd56b71f4977f86cb0484e35a329ff9de60a4cb3f09f19cfa1",
+      "event_predictions_sha256": "aba96ddc02dd78726c117c9fe609b627a67a9abd01d079e36f83dabbfade4ac4",
+      "curve_sha256": "47e2562e5d239e6ab61bfeb2035b036ce35c3cf28a6e0538190e00515fb452a7"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed1-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "443dba3ca9d9942e22334d28d398c1b9f27ff182ad25634667a628d18b1e2d4c",
+      "event_predictions_sha256": "59ab7c72c0ba623db90f9a1fb12e381c0af000458e9fd3294bb41cde41eaa517",
+      "curve_sha256": "d549be096bf3548689ba544c2bd3a8e4d788c2586452ebea9457d3f35a203b75"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed1-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "c8eeeb6a7b48fe490b2c2d6a7a9137f0f21464611d2c181707fba4257cae0c70",
+      "event_predictions_sha256": "34db4b122b11a8b4260735e82cb683a89af749ea34337d118fd95ab521c1fa61",
+      "curve_sha256": "b1cd31d369ad81ef2eaffa3d20919e5b6aabcf72c42992f73defc4561b1eb1f5"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed2-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "c24fc2814511234ce06ecc8e8f34b5ccd8717a3e6bbfb904eb10adad917f6406",
+      "event_predictions_sha256": "8359fbb9040d4b309772e897525ef8bc367954baef14573241e274e72ebbc335",
+      "curve_sha256": "af61406bd350b114bd0683db1554cafd88994cebffeff13633519514d99c94f1"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed2-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "ba099c5bcd1e692e6f44cb5eea834aececcfb8f329ca3dde37f4f51924bb63c5",
+      "event_predictions_sha256": "72429bfc17f1d65eb71fe3239837b7d15ab4fa061c2fb35a04e30ed33f62847c",
+      "curve_sha256": "3fd3a8b826d86ed4408bac9063a6332c999469363a9cb78b7b9c485b277ded92"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed2-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "93ff9a3affbcbc3d55a00b3f15a0edb72409233218963ee745b16cb07fa67070",
+      "event_predictions_sha256": "3828df14d6a7559ef4e242f050edb650ab3173bbc6a225f9a23bb0fddef5ecd4",
+      "curve_sha256": "be345bac6bbf1382c86b6ced2285c83abe49c4f1e8f0d5efd99c4bf547f1f5d6"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed2-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "4ad49506cdf1656d3122491a3b47bf2e971a539ceebe7fa207a716297e8aa710",
+      "event_predictions_sha256": "cac56e5152ef627e91393b06055b468f345e01c512aed5061c64c382e870e54c",
+      "curve_sha256": "407cf732fa6e058e7ee37e9db5208d6b5a12bdec306ff08f26d7db377d7ae0e5"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed2-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "d086c32a280adf30dfa38ab2a42eb4269e2ff034b58f2e3acda2aa030a7de4a4",
+      "event_predictions_sha256": "8a104402d42c74a260dd1710ccf060eb91b950ff42376149331f1d99c6a92941",
+      "curve_sha256": "8826368afd9642de9563f9234c56b9fa5cf7e890a1be436a7729aded050b893c"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed2-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "a828e5d00be5dcbf9cd9c40b11fd230f2f7bf66fd4f89038b0e147b1f77ddb6c",
+      "event_predictions_sha256": "1911383077bcfd9732f806390dc3816ae30ffac27f3097c22629499293eb9a90",
+      "curve_sha256": "f538adbd78a9fc5bd313582fcfee26a4ada0f839a3ba613bc1b3285785dbcb9c"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed2-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "49a5ee2eb42bc201d30b625ead44e98208f4579b75f752ea564f912f431a04f1",
+      "event_predictions_sha256": "787fc5e3b0540a60fbf61915df6153701d856bcd950da753630fc16b07fd16ee",
+      "curve_sha256": "6de3b3356f8b0458c6b76f2a0dd56626450c869a1fefd25c421f71bc233c3d00"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed2-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "ceffb7f5b87a3854259c3208a8cc6bdeb456fa7644d092aca82958e9846b4147",
+      "event_predictions_sha256": "449c469a7f1060065655036280b061e7c0d85835deba392f27cf00887f66bc10",
+      "curve_sha256": "6591ac10a01117f35c21570bbe8ac537d28fb6f86453f5d2b61831136764eb7f"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed2-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "d88b70b8b83924f6139ef5388ba7eafc441e208cb1d3f70e1e6a5285337f41bc",
+      "event_predictions_sha256": "0000a682f23f6451e774301685cfa6d90c43aedd2d80f04adc0f1c4b541eb8e9",
+      "curve_sha256": "d46a35503c3a55df5d5998af5bb2f09c75df4d0625737a0e1cd29a17f8d22b6d"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m0-seed2-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "56447721ce828f26b731b7f84790398ac2788addfbbae9ab4c50882eae8a6ed8",
+      "event_predictions_sha256": "3f36a526ec721ccb266a69c5c7e0733c7791843b0e1f42909a401ae9d8ef8cfb",
+      "curve_sha256": "c67f11a46bb15116c1853f36ba150c1756e1f15a357ac547f630b0198051cc20"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed0-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "f543680f7e90ab12d2ce562b085edac8010d7a87b4b4feb18bf10bd7d2bdac81",
+      "event_predictions_sha256": "003fa748c86b988d4acbe1b9d22ce189c6359c004e44dff2412125785a2f5bb4",
+      "curve_sha256": "7abc2e20b4650ed2fc9f864bcf47f0aea39d882de1e886bf22d024b49798025d"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed0-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "7b8c44fa2225bfa1329a7eef17aa89a9190a5ed64d3002da2b1052c5ad5bfafb",
+      "event_predictions_sha256": "082ae5e1379af42d40473e02162a0f7ca761be49899f99f43adb9fae8ef971e8",
+      "curve_sha256": "ad6b69f06f45b2cd24abb962fb1e0d4d7b09a5f0a4d7081feef2682f48693c5b"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed0-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "1251ef84149fe0b58fc870f05557ca1c6faa8eb9cd5dc2f056150488a80499f3",
+      "event_predictions_sha256": "e88c7c4619c535237699ca288e78dbbd8794422035d07f9db511c04103a0fc85",
+      "curve_sha256": "a0faa3666e953eed8cf14716720debf27c583bb59ca3ae9455a411222654a0c0"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed0-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "842f4c9a5049bbaa0fe4bd823e858afb6bc94eb3cd1a805d4fa078c6d2b8e511",
+      "event_predictions_sha256": "7350c5df47636d43718b24e6d5195846f4a8bde383de98b80b86184e2b659908",
+      "curve_sha256": "682a885c9147322917b9e9f249834ad2f32ea4a76b38688ba8cc59c3855734fa"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed0-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "e8925acaefdf0575e9e410da2ba16c1be52c5a360130819f4123b4c480f260a8",
+      "event_predictions_sha256": "554a7eec4fea57028eb3f707f8748529c70cc4a4e2af3241552dd99268dca456",
+      "curve_sha256": "362920edb7b92f16b720765d40f4be82c483836f77eb8631cd7fb6a644dc38e7"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed0-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "22d77ab907fa84e9fe1bc642875a844b36ec201c97a8cce74923951374475596",
+      "event_predictions_sha256": "13fc01095e8985cbae2b7cc9b510a90710afaaaa14932afeee5623c3cc3e00cb",
+      "curve_sha256": "b4b87bf863625e5adf4b7493c6efc18f430aa2d77b6ad9cd3695972373d4bd5f"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed0-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "ee44a88c10c1203bd734e39f4d5768ffcef5e11eb45bf4be5310ab84dc1f9782",
+      "event_predictions_sha256": "f227229b8f39e29f5f57836769c281df65e43490983d8a6755a6bab8e2c54068",
+      "curve_sha256": "e8e4c20a76e8b6a9bc0ef4c7c00d34c1fefabb09737cd3764cf8757e1f225f32"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed0-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "0b6185ee9d8f578418776a0035b27fb0a2221b656fdcb4c9b47e7fed93332b15",
+      "event_predictions_sha256": "49a786604d121214703339221cff978445d791b706e889c4a11d3f959e2d8059",
+      "curve_sha256": "85d647739f337f5280b9ae66998a109a19640f7ea775d6ff96357c6ee1f4c60e"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed0-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "53047f4aa01888ce2ade0e4eccc4badecba5fe856f5d41b7abbfc7b66fa244a1",
+      "event_predictions_sha256": "744595f76526199c78dc7f44818c4aac73363747abf2193fc98795eea835b3c8",
+      "curve_sha256": "39aa27fe0f97599c7f99ef43123aa168ac2fa6934892094658b8487f4190d50a"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed0-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "3202463e9bf7dffee720a1e4f27c8c5d3dcfc3a3414f9c3be4de801c65e04a88",
+      "event_predictions_sha256": "4c8464d7c882da2ebff101eace76a1a0f56c141bc88c9b09c24c73898996c14d",
+      "curve_sha256": "df1390583e61164c897066538e12d717884d0c04b00fe5d2c7a32b6d80c36206"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed1-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "b6985ef4ec4b0f6d8718c34b1675229730645feea39dae1fc33f20336875f4fa",
+      "event_predictions_sha256": "1a5a8e768bad9a441e43844b458faaef17d24c0b5c4e830e5494df84e68e78f9",
+      "curve_sha256": "22d248247321337720d7481dea18f436f03f6b2057080749c0991920e5134525"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed1-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "ae4ee84cdac21505e12431207ea68869dff7a60844d7573a69aa43f578b48a6b",
+      "event_predictions_sha256": "f08137a446e2a8f3651fc1e9e72c72e37da7fb4f0e993a15e431ef76011ed629",
+      "curve_sha256": "69943623703abfbc2ad235fb46eba620c2fe7d0601da3d7af82f81631623abc3"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed1-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "4fb429397a146f6d69c5921366fdadcbbcc85fd9e99f591dbbd4932abbd4f38a",
+      "event_predictions_sha256": "e8eaecf94524a6bc2e31b6423331dd1d44173909e88ac96615cdf37b56817aaa",
+      "curve_sha256": "e4d605bc997c460e694bb8f35d85b45349a95f7aad367718a7a47b60e2a17f29"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed1-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "b28dd7b15d5a9e6568d0b92bf25044520a524af9a752367cd27e475d8b968541",
+      "event_predictions_sha256": "71692727936741e30391ddf840b1fac9d97701242a17ab84e413df7146cd8530",
+      "curve_sha256": "db4e35c670aebabaef15b3ac89399124f801f3306b83451d23b5950acc9fc066"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed1-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "a02e5056037e90ded4024615639eb80dcedd2d52b9d8eaa1eea37774a87238b7",
+      "event_predictions_sha256": "eab00a014a2608434c9391d8a1fb311abc2259272268b1f2134b2a2defc42af7",
+      "curve_sha256": "471dd6d8aeb57278183a7c5daccf7dca95d0e07b68b446281cec1af4f1c8df0f"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed1-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "d243482f1ebeb93c96fb005a16eed62ea5ab1c53ffc07e49811cb38127006e9d",
+      "event_predictions_sha256": "51df380d8a78224ed778902bed38c3a7a758dc0ab12d62f522f55c1ff13840b7",
+      "curve_sha256": "dd07d31746990f0c4fbfd1ccb1e27211a7066ec5398c425a822ef352630e909d"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed1-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "123549b3a8d19b9abc1ef3d4afec05b98723143a1baed210428220959c4b5c2e",
+      "event_predictions_sha256": "eb4500ba13351af339086abed0fbc31fced2c9acb5a24aa0b91f08c5e8987bbd",
+      "curve_sha256": "87202fd0f6082f5390cf6535f15affeffac26d6b183d0b6649600e17b6ab11da"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed1-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "44058f54dee5c7aa9e70677c20dc18e5449a92c9c6f5cd2ab2baf89d1cdedbfc",
+      "event_predictions_sha256": "7b06d0d2b282b0c176e3e5a4e8630f9fbcdb92fda6c6b9ad257c12a5e2fe6c94",
+      "curve_sha256": "1e2dbdf134faa1a5218e8585504150adce67efeaf28d2b1abe3f4f8649d9c6c0"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed1-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "24ae05f7be8a4e11532c1395a8bbf30ac17f821135618de15625ea1a68dc7288",
+      "event_predictions_sha256": "ec585661b1687aa8f477030719cad9ca0c82046e084f39dab130871cd22c04e4",
+      "curve_sha256": "0d7e9e20c2d033b1fade0ea0a756464441de736605ab8b24c79caa322e5b5cec"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed1-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "03ff26f7a861404316a17d89a79bf0b7c77bf6953f76b538d5c8bf73854133b2",
+      "event_predictions_sha256": "b72810c8f669de9cf6fb30c6f9d6a458b5208c40d6773dab6d9d4440bb7ac71e",
+      "curve_sha256": "a8d4a11fdc3dbcdd6f2df570502b8da9e4bf700a82ec6fdfd2c4b84855244b62"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed2-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "9731c846b66b1aee41bc7406425ff3763ba484be93e0fa2b76c09681d348dcfe",
+      "event_predictions_sha256": "d0318efcac4b0b6de53adfdcfee070928d47f83128f287a42b6a62dde286fa36",
+      "curve_sha256": "64ea6d1539052cf95c605d8398c21adf0c2ee2d803aa3c5bc93fd7c756795d08"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed2-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "47b2f207b707ac5fe01c1067a121a7502d179c1fcdc0fcbca6355461061fe3ad",
+      "event_predictions_sha256": "f62199f26eb5cab8b906ae4363993d02461a89f1cd1c701f337a47a2c81e5e5d",
+      "curve_sha256": "02fe2904d8b70bbc7ce3fe21ba543937f4be2bd34500ba0dc629921702f39cef"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed2-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "670cbd19f3da1ec087212e031380236c68f810c5fbdb1c476f6efcd6395a03b9",
+      "event_predictions_sha256": "587901458b52a9073c524ba7505dc02ded712ee587b4b72bfc0e29e34831cd6e",
+      "curve_sha256": "c724397cf3ce3bdbe436945316ab8ee9c7c6e67a479f1f2c93051f80b0c0aba7"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed2-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "2ebdb13a5f50a3f6bb6c5240370f215cc8f4d1c5155982225e06797d19ce410c",
+      "event_predictions_sha256": "627ca1a5630ff0e40bf9d5f683b6a3839818f9f3daf6d85b1de8b0dd8e2e433c",
+      "curve_sha256": "53ec5effd039d6f95faef86e6a59682181ab2bf1a008a414443fecc565092e4f"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed2-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "dea607b20950972cc9c72c20675b5f32b0c4452ff92f82ac904e5ad96a0ed581",
+      "event_predictions_sha256": "f511518681a2062b766b1bb91837bcc434e6ddb8353d1a9b0cb71998b9760c12",
+      "curve_sha256": "d245524465bda81e714a6827976190de42b144789af7d9d9ed32203ef452f45b"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed2-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "2b04c0904c5dca4b4c7e88c1effcfcf104a6279f2a12f02d23b2d417abf07872",
+      "event_predictions_sha256": "146fe8c190878691eb58a3d3e1a6a4652acfad3ddd5381b2a46d9107c42cc2fa",
+      "curve_sha256": "99e98897f71c4994b23d23c0d0e1c8c7f5a41771db2c0b8dc636351a17f2c4cb"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed2-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "45b0e9bb4db2b79a29aa7536c8ab845accd232823072270e635261f918748cf3",
+      "event_predictions_sha256": "d6650d6f7d3e4540467d7ffb0d8d96a65db2a74b4b5e7eb70cd69ec3e531f388",
+      "curve_sha256": "7fbc1c2cac70b2e493ff3cfee92af192ba03bf31a4cbcec48ed25b383130fcb3"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed2-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "d5c7913f5a834e1253ae096cfc378b49c9943d19053f671bbe3ea9fb16fc04ec",
+      "event_predictions_sha256": "f71d896913ccb118756e283e18fe85da5092727b1d9071e4bd39544b6d2a82d1",
+      "curve_sha256": "d0df657f7531fb4e65549673fc5ba043931eff3deb1e609fe5442357836f3229"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed2-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "4153b1830ab316cba5d213448a77328087313c866e352157e2097c63609d13a2",
+      "event_predictions_sha256": "bbb359b2c02f8a55fdedd4d0654781eee1e341de2702f29949b72cfe040e750f",
+      "curve_sha256": "b5435d6263566f2369450e2aa525964d0ff9e47951b794feb0093fe31cda6996"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m1-seed2-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "420b0baac9109d8b69260745ee89a5c24244edfc6bf2472ea0ab90f9b7f81061",
+      "event_predictions_sha256": "d6e289c966ed09da5d2a82b1006ef9436812aaefdfc62eb87d2957a67d378aac",
+      "curve_sha256": "c5a9f59db0d2d4737ecfdc4871a838032d84ea7888d738505ab47a4cfc256cc6"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed0-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "9f2c762aa8ec1658feb8f4e1bed5d504bc214cafc154348937973f772f3490e4",
+      "event_predictions_sha256": "1c6a5dd433b051f17357bbb85f93c1eb30f6e8374d9e050e3132f8aae3968884",
+      "curve_sha256": "3b230692c63d15ae4fefcc5fc30c1e1aa692c57a25938b8428cf94e228862982"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed0-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "bb49b4a7497fe4cbc6dd5e5d82976d1bbab640b0a18cbd10aa69348836d1a1ca",
+      "event_predictions_sha256": "310785442ba277b8efedb36381afd3960650edad379fa2af4e314f157ebfd6d9",
+      "curve_sha256": "e534bcda3e4888fde98c9415ab320529a72264bab30b89ece22f2d7d5e054134"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed0-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "2ebb699f753e74f2a0078e5a00d4d3cfc5ee772241556d4e13ff03a9ef30f852",
+      "event_predictions_sha256": "47f4f1687702f3132f35a08dd0e01ec11f138b2c23d041e407c1a0174cd8202a",
+      "curve_sha256": "f4a888bb68ed9acde0d5c6ee2769878a243549bba1a024ccd651ffc2babdf3dd"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed0-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "247dad0aa5ef40c97310e11a38e19ea3607764f655a74fb4eaa60f9f10b0e5c6",
+      "event_predictions_sha256": "591316764bba20847eadddc3474558cb7d28986a97aa0860b03826b3c9e6fe14",
+      "curve_sha256": "0bfe222f23d1e95ecda3044ace6a2dfdf7d49d6c55a4240ea5a817f634c0674e"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed0-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "f855f2cd4d310565bc4d99c6cc8e69e343cf7bc75446583994e117513df5b5eb",
+      "event_predictions_sha256": "320cd0c04bf3a7f4aa6dec77cd0cfc5711f6339ec3ad93e915ef340fbfbdae0e",
+      "curve_sha256": "ab27f11664934a54818991dc11c632f9207f864535ef575dcc2e921516196753"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed0-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "320798912c660ac6bddd5c26db42b288fddb0a3f95f55b3132a4714044e688ed",
+      "event_predictions_sha256": "9e110370a9c6019daeb123d13dc4d0bc0ad138f66d1f24ac6c5791603b7245d2",
+      "curve_sha256": "7382b4012f87ea4dc0ff01f35db9c01fd7b97dd2711a6ef15e673d89562343e0"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed0-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "cdae1cdb88570bd6aa17c6f4910d4acd5dbbca987a5ad3a3469cbdf6b2ecb0cb",
+      "event_predictions_sha256": "096000f5e84756a58b317072aec251ac8e7217fdc0b82e13561235caba46f6e3",
+      "curve_sha256": "c1a3ad1535455c79399ba98901b5f5d51772acf34c81864d472889a7d8b713da"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed0-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "c5b467662c55136bbc337987bb06778dcfca32b90c5c96c44f2a5f374971323b",
+      "event_predictions_sha256": "636c2b243d2bfd50b21953cad55292c6e8c8450b9ee7a3b1572d9218164ec712",
+      "curve_sha256": "8873dbfdb648c95f718c1df3499c82f639714e0f66d18e99c35133d9704749b9"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed0-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "3b536a18e89444aa31e2358bd3652d24e514a055241696c820a3775d97879d57",
+      "event_predictions_sha256": "21649b1d90b3eb00c64af2db749f52c6ef618c8b748299f55bc6eea047c11fe6",
+      "curve_sha256": "56c240e043d8097db49ae2746ade8b1fc77f12a1de1f0c79fbe180a89b0e22b0"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed0-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "695d61b01c532437698fcb3e297bcc2ed51a88d248ea1952792494c829fd78ff",
+      "event_predictions_sha256": "69bce35bc26daf72f2019a674ee1d0da8bbdc0eb5708412ae4d92cf0a69a2044",
+      "curve_sha256": "aac9586230d96edae325a7c92f763e2d45eb7a4f9e7302a1aeb24d600b5373b6"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed1-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "ea7a32c37d0a08c6f15d796fe259bc48dec06ff656031bcbf7023442f42c37bb",
+      "event_predictions_sha256": "ef8c7b2daf077b480365e444c1b9daa47abbdb0baabf545d0096970c74d06f1f",
+      "curve_sha256": "a59dfc37f26e70c8a95a7088c1ee45579a569a59f1c8553c1bede5e63f89f0f4"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed1-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "66c486053bd8c5c7b48852b5e96a4e88334c2b4cc682e4fa8ca534406a3d178e",
+      "event_predictions_sha256": "f7bb52bda67bb3ae93e203ef018cbefed9b251a6c372b9c9d055df8f9f2c340a",
+      "curve_sha256": "6b09f26386c6615146723f0299daf0180e8964180cefffe0370c9f9519ca7b42"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed1-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "099ca72aad8a724e43c471e8b66b74801fda29730822aa283f61d30b5ea1db3c",
+      "event_predictions_sha256": "bc39234ccf2fee1adc16939b0f25199689f1ef5bf93ec75f1195ac6ad9ae3110",
+      "curve_sha256": "2395faed27d499bdf4261f9d67b1edd33ac92207b8ecf1a10ef0392fe5b48594"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed1-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "46a6ec8b5ce96fb4a7980de4ebb56ba7af95bb2241f4307141aff0437de3acd6",
+      "event_predictions_sha256": "22902397dd1e04b61d02e8dde54ddc9e9d78cf93bce0d0b9f04a7c57092b3889",
+      "curve_sha256": "7cc40fa26cb5bd0ba896f5b5a5081e66e5d769ccc628ce03acd35fbc4811f79a"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed1-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "4b7b3aa3af6ba1a3d923dd7ce7e05229ab86ce1a0cd7c49c07827779bd9bc01f",
+      "event_predictions_sha256": "9bbbaf73c2df70ab80eb4200e8c7a542468f6d2cc5f6775d406c67b02f36bde2",
+      "curve_sha256": "6d6fecb2f9e815b3688e9fa7417a603eebdda3faac689d56d6af15e6487e2bbc"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed1-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "9625286dbe2f918c971cbccc866cef11bd69b341b6198d82116ee225ca8e9bc1",
+      "event_predictions_sha256": "c576deec8ec3f9198128555233818fce7d7c7ae266f142be756b079fa3532b68",
+      "curve_sha256": "6e54a6b6fd5c3e41757ba4d8edd3700f99b33dfbbb3439869ebaee37d608f170"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed1-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "6a12f8bdb3b4d92e9c7b9a204fdacb4bb7c5d2c5e25be600525befb2b738a000",
+      "event_predictions_sha256": "b25eaac1d1d648ab5de678482aab421334aaca7ca5dcaf80489cee32c18df90f",
+      "curve_sha256": "d9a18091e56ff995c8ded961e7af5122cafd35f720e46997a8ff3eb54806d4c7"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed1-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "b61fb8887e0e8c18cf9a17e7974f8f214ebaa5ac6780b21354cbb670a8cf61dd",
+      "event_predictions_sha256": "edc18c4a916a899d047385d60615adfca9f41b81a1b0222c2e6d9f40ca1bb772",
+      "curve_sha256": "001a7c68cf8d9dbd94f123af422cb3ef13c35c8650d927638f18eb9045a0fc3d"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed1-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "3a051e208120ddd397918a604785b8a5fda5174ef6924a0b4f7a4c2a08fdabbc",
+      "event_predictions_sha256": "68d11252ebfc7abdfecdab265f196a8ce1598e04cf8f69871e0d5426f5518b7b",
+      "curve_sha256": "ae363a63cd4042793b923feef17cbc7424084aa48cf7d2a9f8b36246f05c3838"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed1-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "25000703977751b5db934d3a668f981bf50dde0226e0d1528ffe630f4bb801a4",
+      "event_predictions_sha256": "5101b69c71a30fd5d7f4b95ed6fd71a1ae6fada1ce4868509244b4a4f8f3b573",
+      "curve_sha256": "29004ceb799f11a538fff3a5e57ab92386fdb0e26c099f8f02e2aaf991ce752d"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed2-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "e86550f126f2028a962a29f3db2bff88a1c509808b2e050e3f3ee622fdb710b2",
+      "event_predictions_sha256": "0db382958d947c1a9aa1bd088034a6538654c91fe64c358ae290ccaa71f8bf6a",
+      "curve_sha256": "3d25d5aa5926bdf9d26aaa612ec45004611fefdb63834410ac6d410a14da2ee7"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed2-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "451f617b3dd85a75e91083c9a04de23a7895482f9fee6f0f53af2feead66b497",
+      "event_predictions_sha256": "a7803beb0ee23ba6af6ce3ca5c27f7c40f6cac11ca01296b35ea27c29fb65384",
+      "curve_sha256": "b181ef841aa376f1914e4ebf38f8e74678eba051816c96bdab28e535bc17268c"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed2-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "1dc4dd1adfbe79edf07ac116d0452c1b2f153a7d760d1731958f56696764ae7b",
+      "event_predictions_sha256": "5cc36b50f39edf9a816e99ae77db51626ef99abce2942bdefbc9bec60194c8ec",
+      "curve_sha256": "abdf4b529258a27ec11461dc9156bebc9bb1ce15045c7f5d1a1c2c3ab49a5daf"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed2-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "6a5fe051f0a1350918dc0963be47caea06a8b3dfcd56bd41bdcc79cade3de93b",
+      "event_predictions_sha256": "07507f4b662ccc3bda041da1c96de0c7eb61f3de7ab7f50512a542997d481dde",
+      "curve_sha256": "100a014085fd0d3e594e8ffc623c672cb0eb530241cab2a772025cdcb1c21316"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed2-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "647b48d15b16a175ace8f48d0d9c866c1f279bd185b533bb9525a7017f68454b",
+      "event_predictions_sha256": "67b17609bf15bfeffc3acefc3d37220790fcf9adc2ed4f536c7211143b36ff67",
+      "curve_sha256": "02a9b528cc881f91ef36ec31539a050b90abea86096a57a2d7bc47b8309b9d87"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed2-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "0f45e03b66bb03ec679fda317563f5f64fc440d7a5e0206eb8af9eade80b25e6",
+      "event_predictions_sha256": "9dc284589858c8a2b9b3cdaa6b5fe45efbbf373508a81b36fbae0f98aa919843",
+      "curve_sha256": "b2641f2ade974d7f207ea5de69ffee754cdb1191d768cd583fd8ae4285dfd95a"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed2-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "80204e9b2b1cebf586bb8d5ca03b7d5543896c21cffce877af080e2ff2a933f1",
+      "event_predictions_sha256": "7258065bfbf12970b421798da92776c912e478656b16b1beaf7f2478f09b8f05",
+      "curve_sha256": "2ed70a16b74e8962cde874c4c0cf1c974afa753036117cf90e75a6afed34c205"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed2-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "36dc7b410d987d9e37d41264ceacc1d409f552b1233515cf1fded9c462509cea",
+      "event_predictions_sha256": "72f13bebbf0b181471b0dc46d8cab1429001f1913309d07ef914e5683a5c992a",
+      "curve_sha256": "d45892c0c717ca31477b89e54df083971c00d8ccb68cb14da434473909d04105"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed2-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "1247cb7093477423bdfee3527b2a141b47d441b8aeb0439a7f7aa1e226e99c2d",
+      "event_predictions_sha256": "eb39d041cf23a1179a7d24a9f5eaa36fb411834c95de729c5113cb384ad36e75",
+      "curve_sha256": "84e273653921d9c764a8488708e4efeef111993544a1cb935e6d01422a0c57d0"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-m2-seed2-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "0f76a2eff070683b3b29d14d7e4e0d8e9d051bf759c98e5904b1044bc031ee63",
+      "event_predictions_sha256": "1fe3747d634eabd09c62e62515cb528e24984697c3489d5361bb1629deadb5d5",
+      "curve_sha256": "4190dba4e4215ae931a8e7871ec024f7c9de4c9e8ce724535cfb7c7b12f8f1b2"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed0-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "26e0da5e42eb7b88155a4d47e4d97be4ae456b9caabd61f9adedbcfefd8da4a7",
+      "event_predictions_sha256": "f9d47d244d789cc1a4ea0474b2f685936284727f07c4f8ebe0aec60deb0d433e",
+      "curve_sha256": "71d104f878dd2b6f8ca5fb2e9507ca9df6bcde4d2ccc3ab56c2e4408a24ecd94"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed0-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "fcdb9f6c93adda3ed481dfb600a57afb53e961a873ddb564c765cc8678601fbe",
+      "event_predictions_sha256": "e39bd0c7d379d87b0cf9d52f49198edf817956c45407d1940cae0a5f916f7fb2",
+      "curve_sha256": "618e0d58ea741d9116c779b6f8c1341abc918dfbd3963369ba6b94ca7c4031a8"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed0-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "ae9859f85627938a85fcb8c0d250ace0ceb93c33412a31e8395bc2ba48aae698",
+      "event_predictions_sha256": "1388835443df3be922100e46d0c4881909a33c3cdfa1ce34756dd1e402430582",
+      "curve_sha256": "1203008f5ce25a2ed50a51742fbd5c5a02085076122eb9a74feb7f3a8e67af71"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed0-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "c9e1c8e30d664f5f80bed2edf7952bbbb996d99dc9e73b3327ac0444292395bf",
+      "event_predictions_sha256": "11b849b1647cec5527fb81c9cf03e40945c5157b7ac166c90e639c8be09c111a",
+      "curve_sha256": "ba52f51c51ab5af0264de2fc3c1e909dfb3f5b4611ac4c4a31de66a6a34c4dc7"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed0-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "6a0ef67454f1015e4ab8c80a361e42f0ed0564f8d27aa27a4f359e0ac7551921",
+      "event_predictions_sha256": "a28e8f93a428e5ac6379973a6fa87317dd882cffc7194521a106617cb6a4fbb0",
+      "curve_sha256": "642ba2f941ebeae30aeaca82d4636dd28a5605d697ed830e64df595ded8cc00a"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed0-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "c40770de5e506bccf939f943bd4e7470149208376e44afd26ba5ed653be19338",
+      "event_predictions_sha256": "097e59aedc00d4034fd63578325302aa22dd18ccc6f2626dc474e5b7d7d6d632",
+      "curve_sha256": "eca0c8b9bc91704fcd95bf172d666a8a445c2d31eb9a32abf6ff3e3db59e0609"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed0-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "0c297fa945922bd963b77c26b71c0be96471301794edd2eb108e60c07921bdd8",
+      "event_predictions_sha256": "f33b69f3c2aff2e1923ab0efcdf6f6791ebf6f43106e01caaca5e918f5f70487",
+      "curve_sha256": "1a10c0f20846730790e6253b4b74332b92fa5ba3479a957b972947189f323281"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed0-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "3450e16006fbd5f4831eedfdd6a6d07fa1390c481c0624469db26b11cbf5aeb7",
+      "event_predictions_sha256": "417ac6563fbacc5e4a0574e3dfa26ccf2d64af70f308d7ea5675e755cc21eacd",
+      "curve_sha256": "0b4f58526dde7d01f7848fb8ebff03cabbeef6aa39e873c26b6a840818dea012"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed0-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "df57d4634894f1eb26b0f8de54746c3505fbe13d3a248cdc82b890ffec97e3c2",
+      "event_predictions_sha256": "0e546d6e7651b4ef5808e5f609f55c53812dcfb757064fe11172b729795897be",
+      "curve_sha256": "8f33316124c52068d5b66b0f1896d46fc4ac79aa4c98b98618c6ceb48fbd01d2"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed0-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "36c58bf6c2d621dae3d302f36b376612b8ca791f8f28c2049efb1926574f77f6",
+      "event_predictions_sha256": "173a5590e85235fa476708d364a2b7597e57471a292fa96d2c84891520729dbc",
+      "curve_sha256": "c6885dc6c76a27cd4389e9a9af529d378d5c83857ef0e56bd9ec6f7c16cf4d29"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed1-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "a14235efc09b51994c5e4b56810c72d650bad29fecf90905fb700bb541821d65",
+      "event_predictions_sha256": "103389e7bc388292779c65f8c229020d2e92e782f52293cc7526b6f48dc67d34",
+      "curve_sha256": "91f84fa747d0740c884be63300a2c46468137057509bd71d8e0eb75c552f3e7a"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed1-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "e8ae1e496b9e8f180dfea773c8e4e9d461ef78f51c46ee1e6dd6142a12bd2dbd",
+      "event_predictions_sha256": "31e8f02a12826722bec50814908431d8e51850ae769b078bc7f929fe86511367",
+      "curve_sha256": "fa2f4ac667a219eeeef4c66ba463ef71003b6a616437aac7d3fcca040b4ee36d"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed1-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "6327b55b4579a3e3df70d536b5a9c0343c14811c0a0edb2e9809e11ff454c243",
+      "event_predictions_sha256": "27e1b1d05f648627a851bb7f708e30ef8cabaceb133eec7900c4694c8ee6a4be",
+      "curve_sha256": "6733e5ddc7718f14e26276a82a703999d5245e0663a1375dc4efa60d45a7d401"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed1-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "7f0efe1471d4fa03e4c69f32dfa96ae444b6df46552574e5b7a887dea533a871",
+      "event_predictions_sha256": "96dfb04d0a1a2a35bceeca73cb1a10b05f5a84319e3e444b09af9827094a8b8c",
+      "curve_sha256": "bfbc0bac48eba2cb79b999a7b3e03c6a52ffb186f8edca3d690dcd91e2c79c36"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed1-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "5dc93cd3a0351b2ff9951e0854e0a4c6ebd3995e82754233af676dfc1ba06a1e",
+      "event_predictions_sha256": "9db8839b45358ed24da4e4676c08784bc69feba285a12e7f15d589a7d61c1d3d",
+      "curve_sha256": "bebfc234373017fb62824235bcfa2b15c71d58f2a4fbab8be14f100bd31601f2"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed1-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "2e5d0c9a9cb1e310e52a086e22978d988d3c9f1284dc171cd290968e09dfa73d",
+      "event_predictions_sha256": "c6fc37fa1d7e6e1beb0620915b56bc44569febfb62163f0aaa4b30b7a93067f9",
+      "curve_sha256": "c105b356b0a696f0c13043ebfc37195fb97044dd69e9b0854bdb1a72f036084c"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed1-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "417bdef95b41ec0979e8e51aa4f2e8faeed290b2c535fe59dc17634a91710f18",
+      "event_predictions_sha256": "ab010d0831ce0807eded7757a7b649632c956f3a56c64652ebed9da3b8c12ef2",
+      "curve_sha256": "f95047d6a175c1c13576d6881237f8d1e22599fea2358fd90ad64779159e64a1"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed1-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "bda63700fc10204e27c2f71d15a9ebbb59a77b17f0a61842b6d3e5653d28298a",
+      "event_predictions_sha256": "f626027db93a2907edb4f8bbf40357ef2ac0b509f324df8df52dc08cced2f3c7",
+      "curve_sha256": "eb69dd0b992e773fc7af7255d74e1d3529e8c2f2578589c765c8667e4fdd4599"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed1-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "3146171f58faf423142b80e0535c108ddacc01a99b711c0feb71816e4b65a5a0",
+      "event_predictions_sha256": "357cf41d628079ebdd8e6b11a76e59031a071d5cbc2dadbb5b45549ed670374c",
+      "curve_sha256": "825a42763d944f416a3b882930a04699c6a285273117446e34cf6224d1ec8c05"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed1-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "2720a4bdb902bc48320df63fdd490d91de24d3388216b32dd9242fbe94a080af",
+      "event_predictions_sha256": "0b45720685a60399fc88b9fc3f694cf7ce88e27889faf4240a3083b9c74b368f",
+      "curve_sha256": "6ee91c921900a78782004a16b335758b9d7a4be1315bc4a2bbb70f3bfc884029"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed2-final-ctx-s100-n500-drop10100-mc50",
+      "summary_sha256": "06133d76dc76ad5995521776c2917612964a2891b00fe623502f2285f4683602",
+      "event_predictions_sha256": "ebdc9626ab11ba500e8a15da8041d3cd9ca9a638cffb941154f7dbda7424263b",
+      "curve_sha256": "d64f0e1f4179622e4ed4e25940600b9a36b35cad330e801f836c9afe56cee357"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed2-final-ctx-s101-n500-drop10100-mc50",
+      "summary_sha256": "09ed576fd94dfaf02c2e9b1364b1b3250a8eb99bf196a5ea25cc0858b3408987",
+      "event_predictions_sha256": "531251007e272b259ab180dcb1f3ff5fc742589a71280f6f8ce8d0d8683af93b",
+      "curve_sha256": "09f1cc0a2b375c30a10904a8c8c338882e46862e586c274b76ecf5ec426cb7c1"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed2-final-ctx-s102-n500-drop10100-mc50",
+      "summary_sha256": "1873cc50ca3bc6567fd89812e6c2cbb63b53c73a826b68cd0c658347cef8d9b7",
+      "event_predictions_sha256": "79f24ba6c33790205ee065df85323f83a2a6da85453b7675da9e1f7183757fb8",
+      "curve_sha256": "c78f8d8c07e1be48fde06634465bebbf85bfd58282fe18b392d012ed3338bff5"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed2-final-ctx-s103-n500-drop10100-mc50",
+      "summary_sha256": "32cd584680461a616646e3cdf912be047aff43855062daa40f9f6cbc787f5c00",
+      "event_predictions_sha256": "23be98c7fd3759e75c7f703d30f3eb1847316f7039578d01861442a580f88d64",
+      "curve_sha256": "10124db99729135ecd0cefa902ba7619fc6d2e16e6ed0f076c46e725d2cb9d95"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed2-final-ctx-s104-n500-drop10100-mc50",
+      "summary_sha256": "ab197f94272d4424cb7f9c9a357b4a08fb23de5259934928619081c6f3057a8f",
+      "event_predictions_sha256": "7b603fc250c289cfd8c9fdd465b0762ce9c1fde1fb6433c66e43d24479e976d0",
+      "curve_sha256": "524fdddc40f97f69a3ae0e7a71b75e1651a0a002a7368761e441482be47dbdf3"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed2-final-ctx-s105-n500-drop10100-mc50",
+      "summary_sha256": "3e08ca99955c45aca0fbdb39c9147615de5d00f0cba9a2d6fd1545dd486180c9",
+      "event_predictions_sha256": "d7d5371125cb5baa2ea6752636c4e55d1f0aeb53b64d6dec891d233662e5f46c",
+      "curve_sha256": "615909e0db31189042e965526c036fafcbd9207af5780626ac22ab346002edd3"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed2-final-ctx-s106-n500-drop10100-mc50",
+      "summary_sha256": "b4ec31a2658655eec9e32372236b216688008300475c81ada88bdd2f36fc5266",
+      "event_predictions_sha256": "5e2449d48529eecb276c7ec957ec85085600726d4982ffcaa2380b0cf5190fbe",
+      "curve_sha256": "4298f1208a4110424783bf0bb6752e5689881e3614a86ce0850080efaf2c87cd"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed2-final-ctx-s107-n500-drop10100-mc50",
+      "summary_sha256": "82d95367733b579263bec29205f31bd90e48dfbccd45a696b1f20ceb09c11e5b",
+      "event_predictions_sha256": "dd0506a161a9707b18cca4114ea2d64ee31a79b2c762d6650b4e80697278b1df",
+      "curve_sha256": "fed67630193b66f94658704c6cef370b261d60abab5f4f542b7a6b6aed0666ce"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed2-final-ctx-s108-n500-drop10100-mc50",
+      "summary_sha256": "8ff9f4c81d8d928d0c6a60c72bbeef5a519ce846c236762f7077d0436ee74d52",
+      "event_predictions_sha256": "0748b4af21193e8c8c670ffa9016f37b2991978e961333a9664e34e4e117743b",
+      "curve_sha256": "21f5252078908fc2d703fce3c9713ad587077e54583370b18d11cf4d9df8ad52"
+    },
+    {
+      "run_id": "20260909-phase2-b5000-ours-seed2-final-ctx-s109-n500-drop10100-mc50",
+      "summary_sha256": "472568a8eb3ca19eef21550dc8475939dd1258ec8fce0e855772540a925a892b",
+      "event_predictions_sha256": "83e1ee8ba91f1ded1b612c9698b8fb3247812fccd32bfb4e7880f10a0e2d8152",
+      "curve_sha256": "43b6f6fda86443d46c5183ea8204b31245b9de75b5fab17a9f3291a536441470"
+    }
+  ],
+  "reused_inputs": {
+    "ml4phy-paper/tables/phase1_neural_cell_metrics.csv": {
+      "bytes": 109596,
+      "sha256": "4ff0522007503ba1e3b910dac8616cfa1836b4061a6d0114572b2f3ed3f60699"
+    },
+    "ml4phy-paper/tables/phase1_neural_bin_error_cells.csv": {
+      "bytes": 412683,
+      "sha256": "e61c3bb0c754f1f6635f5ce1ae91e0d88239483a9a6ca3988f5c2853cad5a1ee"
+    },
+    "ml4phy-paper/tables/phase1_neural_peak_contrast_cells.csv": {
+      "bytes": 252240,
+      "sha256": "2d8313191efccf03103814ba2d94d42f3087b47884244c26104320240f01de57"
+    },
+    "ml4phy-paper/tables/phase1_neural_acceptance_curves.csv": {
+      "bytes": 2002037,
+      "sha256": "2d7cd440eb57da86f967467792fa3414280c25180da2d6cf9e0ef70115287514"
+    }
+  },
+  "outputs": {
+    "ml4phy-paper/tables/phase2_cell_metrics.csv": {
+      "bytes": 89573,
+      "sha256": "2ec598bd168e1eb98b0fd1da398596413f80e18c64090c2707a905c7b26698c1"
+    },
+    "ml4phy-paper/tables/phase2_bin_error_cells.csv": {
+      "bytes": 323866,
+      "sha256": "8991bd92f89a5c26fb26d0fbe799e091734b8c9212c4a586cc89ceff667b112f"
+    },
+    "ml4phy-paper/tables/phase2_peak_contrast_cells.csv": {
+      "bytes": 195906,
+      "sha256": "f38e691078b9f5a2aea829387a6caa495916b23b7b37ded344b7c910d588607b"
+    },
+    "ml4phy-paper/tables/phase2_training_budget_summary.csv": {
+      "bytes": 6265,
+      "sha256": "71cdd6cddccb21d445de51d092486962999a4882256121ef3d9273e5975fe535"
+    },
+    "ml4phy-paper/tables/phase2_acceptance_curves.csv": {
+      "bytes": 2968961,
+      "sha256": "bf901e354f747ad9e82cd3867dec11eba7ffd4a8bb184cfcf4d2935efae470d6"
+    },
+    "ml4phy-paper/tables/phase2_evaluation_runs.csv": {
+      "bytes": 61471,
+      "sha256": "5d99066f303c22c09c0415e70461433e57688e4d5b294836714b15e5553e02c6"
+    },
+    "ml4phy-paper/figures/phase2_training_budget_efficiency.png": {
+      "bytes": 140235,
+      "sha256": "d6ec65c6ab6c8bf8ba22a31c31034a53b771026ff240a91df0a126c58b97b6dd"
+    },
+    "ml4phy-paper/figures/phase2_sparse_tail_diagnostic.png": {
+      "bytes": 98702,
+      "sha256": "5935aa4296445e0b87339e42557d282663f1659b638f49e053b2e82235bfbda8"
+    },
+    "ml4phy-paper/figures/phase2_density_guided_local_curves.png": {
+      "bytes": 262302,
+      "sha256": "1868a18137eeb20f695c828b056d66504b33c5737b9a2029e58c158d48cbe5db"
+    },
+    "ml4phy-paper/reports/phase2_result.md": {
+      "bytes": 4760,
+      "sha256": "1168156584d1cb23e85cf9a14037b3b9b54cc9c8c187036ab5115bc6092b2a89"
+    }
+  }
+}
