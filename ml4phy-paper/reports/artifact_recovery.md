@@ -30,7 +30,7 @@ All listed checkpoints contain a 3,000-step loss history and checkpoint metadata
 | Logical model | Checkpoint SHA-256 | Parameters | Checkpoint-confirmed architecture | Reuse decision |
 |---|---|---:|---|---|
 | True CNP | `fa39ff6270a4588ee73a0ab178a424b31ee0ecafa65d572c57bfb9c8433a` | 116,482 | Mean aggregation, no PE, encoder dropout 0.1 | Reuse for inference; historical training protocol only |
-| Base 1 | `77b0032227a8abcbfc546f3c4e1b2673e92878e35dd0636624ed97804527f4` | 116,482 | Mean aggregation, no PE, flat-stratified | Reuse for secondary historical comparison |
+| Base 1 | `77b0032227a8abcbfc54646f3c4e1b2673e92878e35dd0636624ed97804527f4` | 116,482 | Mean aggregation, no PE, flat-stratified | Reuse for secondary historical comparison |
 | Base 2 | `9b3370e0f4671152823b95349ac8205a74677e9df2dfe2e0bef54408b3530fd6` | 132,866 | 4x64 cross-attention, no PE, physics-anchored | Reuse for secondary historical comparison |
 | Base 3 | `f692b427514e4dc551588b89939be95f6bb825ce9a6e2a671ff0d9dfe2ac5353` | 135,298 | 4x64 cross-attention, PE10, mixed-density | Reuse for secondary historical comparison |
 | `cell15_matched` | `fea9f50af5ecc1238198fa8953df1ef031315a6a19e611b22963d700850df575` | 130,692 | 1x128 attention, PE10, fixed density gate, direct contrast input | Reuse only with its recorded training budget |

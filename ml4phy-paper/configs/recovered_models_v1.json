@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "training_pool_sha256": "c3a7e7a147dcc625d750b676f5e5a980765573dddb3916cf21d18083e71fc227",
+  "training_predictions": "runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5",
+  "training_predictions_sha256": "ea2eb5594acdd181ebc18926fd8deabc7b2f6910b117dec863d87c3b70057159",
+  "classifier_config": "configs/small_data_configs/simple_cnn_small.yaml",
+  "classifier_config_sha256": "ad8f147aabe1fcd13f79932eaaa2950a0054253120f10b175692420c0236429f",
+  "models": {
+    "v9": {
+      "display_name": "Cell 15 v9",
+      "config": "experiments/configs/cut_acceptance/simple_cnn_small/sweeps/cell15_v9/bin10/inclusive.yaml",
+      "config_sha256": "bc16a338507d8aab9857aadd9d3cf5f02994f064a34a27e52e283811f2956f8d",
+      "checkpoint": "experiments/results/cut_acceptance/simple_cnn_small/sweeps/cell15_v9/bin10/inclusive/cnp.ckpt",
+      "checkpoint_sha256": "1d20c0563b842c3a49ed78abbf74d204e93719e094859aa631d7d8627914f35a",
+      "training_seed": 0,
+      "comparison_role": "candidate"
+    },
+    "v5": {
+      "display_name": "Cell 15 v5",
+      "config": "configs/cut_acceptance/simple_cnn_small/sweeps/cell15_v5/bin10/inclusive.yaml",
+      "config_sha256": "4161f4c6003397b55a80902197b9427fe98991cbd84ea3e1e4d7c8c410366a91",
+      "checkpoint": "results/cut_acceptance/simple_cnn_small/sweeps/cell15_v5/bin10/inclusive/cnp.ckpt",
+      "checkpoint_sha256": "f32ba045d449d5002c694156b525ffb7052532ac929b4ebc77726fd2976f3d25",
+      "training_seed": 0,
+      "comparison_role": "candidate"
+    },
+    "cell17": {
+      "display_name": "Cell 17",
+      "config": "configs/cut_acceptance/simple_cnn_small/sweeps/cell17/bin10/inclusive.yaml",
+      "config_sha256": "373ae88fb01c3a8fbbfd1158d4c3865938a28cc531d5fc64de498c09b7707dff",
+      "checkpoint": "results/cut_acceptance/simple_cnn_small/sweeps/cell17/bin10/inclusive/cnp.ckpt",
+      "checkpoint_sha256": "e21af9988a220aa4b203e54d63f59f37778a41570cd283591f27b7a29af38867",
+      "training_seed": 0,
+      "comparison_role": "candidate"
+    },
+    "true_cnp": {
+      "display_name": "True CNP",
+      "config": "configs/cut_acceptance/simple_cnn_small/true_cnp/bin10/inclusive.yaml",
+      "config_sha256": "ac8b4f4c4c813ce309ebe5ee247ff73d758bd36aec0de5cd8d3222b140e2a4b7",
+      "checkpoint": "results/cut_acceptance/simple_cnn_small/true_cnp/bin10/inclusive/cnp.ckpt",
+      "checkpoint_sha256": "fa39ff6270a4588ee73a0ab178a424b31ee0eabc8f64a65d572c57bfb9c8433a",
+      "training_seed": 0,
+      "comparison_role": "historical_baseline"
+    },
+    "base1": {
+      "display_name": "Base 1",
+      "config": "configs/cut_acceptance/simple_cnn_small/sweeps/base1_matched/bin10/inclusive.yaml",
+      "config_sha256": "247ad9bd76432d6c7ed079db2aa703b0ce32ad10e6a8da214a393e43d2681515",
+      "checkpoint": "results/cut_acceptance/simple_cnn_small/sweeps/base1_matched/bin10/inclusive/cnp.ckpt",
+      "checkpoint_sha256": "77b0032227a8abcbfc54646f3c4e1b2673e92878e35dd0636624ed97804527f4",
+      "training_seed": 0,
+      "comparison_role": "historical_baseline"
+    },
+    "base2": {
+      "display_name": "Base 2",
+      "config": "experiments/configs/cut_acceptance/simple_cnn_small/sweeps/base2_matched/bin10/inclusive.yaml",
+      "config_sha256": "f2bc6a0a62d1995d7a42e05fb4732aef17c865ebb3f5b8042ddbf611b76fbdc9",
+      "checkpoint": "experiments/results/cut_acceptance/simple_cnn_small/sweeps/base2_matched/bin10/inclusive/cnp.ckpt",
+      "checkpoint_sha256": "9b3370e0f4671152823b95349ac8205a74677e9df2dfe2e0bef54408b3530fd6",
+      "training_seed": 0,
+      "comparison_role": "historical_baseline"
+    },
+    "base3": {
+      "display_name": "Base 3",
+      "config": "configs/cut_acceptance/simple_cnn_small/sweeps/base3_matched/bin10/inclusive.yaml",
+      "config_sha256": "af22f2aedef5e72367fc8c3358b463350d5aff0089a4091127b353d039c175ab",
+      "checkpoint": "results/cut_acceptance/simple_cnn_small/sweeps/base3_matched/bin10/inclusive/cnp.ckpt",
+      "checkpoint_sha256": "f692b427514e4dc551588b89939be95f6bb825ce9a6e2a671ff0d9dfe2ac5353",
+      "training_seed": 0,
+      "comparison_role": "historical_baseline"
+    }
+  }
+}

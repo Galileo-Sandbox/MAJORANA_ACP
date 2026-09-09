@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "commit": "edba6a294581fde6f905b330d477f2c1b42d6adb",
+  "selection_basis": "The lab checkout reflog shows this revision remained active from 2026-05-18 through all priority CNP training timestamps on 2026-05-20.",
+  "local_archive_sha256": "23dc43d5cf1272f32f20746749947bf857a07920c63f96b0b5fb578447626b83",
+  "source_hashes": {
+    "core/training.py": "6819d96e30f6806f309a43f91d0e53cf982c54daaeb59d9c5c8cc6fc7af9c35f",
+    "core/surrogate_cnp.py": "fec0942550ca9093295fcde1486b9695d9f9b0b8ce6ce5a52202cac8e97a6d63",
+    "schemas/config.py": "90daae749b4cf54e6d4e157fe38e9a978d04a44349d7af370e3a414982ef6446",
+    "schemas/data_models.py": "11f005c9cf6467cf1e204bf724119594d26873a5b94943ca2853000395b3bdda"
+  },
+  "validation": {
+    "historical_yaml_schema_compatible": true,
+    "loaded_models": ["v9", "v5", "cell17", "true_cnp", "base1", "base2", "base3"],
+    "checkpoint_state_dict_parameter_counts_matched": true,
+    "model_inference_run": false
+  },
+  "usage": "Prepend the ignored extracted source directory to PYTHONPATH. Do not modify the current sibling RESUM_FLEX checkout."
+}

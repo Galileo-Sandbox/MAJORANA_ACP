@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "status": "frozen_before_paper_model_inference",
+  "source_commit": "9693ce34ecafd950b609b9788e36ece74a0a5087",
+  "script_sha256": "379a308deb105f5f7e6db33ab26f9492560777b20dd824ceae55d0791ff0d8c7",
+  "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python ml4phy-paper/scripts/build_protocol.py --repo .",
+  "identity_fields": [
+    "run_number",
+    "detector",
+    "id",
+    "tp0"
+  ],
+  "energy_range_kev": [
+    500.0,
+    3000.0
+  ],
+  "split_seed": 20260908,
+  "inputs": {
+    "historical_development": {
+      "logical_path": "runs/small_data_configs/simple_cnn_small/eval/predictions.h5",
+      "bytes": 322426,
+      "sha256": "d318b49a99dd3d1ead3b1aa9c8d3e97d78aaf3cc0ab97c040bbc2235436ba5cd",
+      "count": 7074,
+      "identity_sha256": "90ce96e0db33f7c405c953c17f6d1dc9872b784217b33705818351f44d65313d"
+    },
+    "full_test": {
+      "logical_path": "runs/small_data_configs/simple_cnn_small/eval_full_test/predictions.h5",
+      "bytes": 6370426,
+      "sha256": "47f55e0ba08102462b5348bc3ba7e575dd2c653cc15adadc54ef6393d2e505fb",
+      "count": 141474,
+      "identity_sha256": "e7cb6e7977d00499a972a8e65b277f5942c98ac51cc0c564059e01c256b17572"
+    }
+  },
+  "subset_checks": {
+    "development_is_exact_identity_subset_of_full_test": true,
+    "full_test_minus_development_count": 134400,
+    "all_roles_pairwise_disjoint_within_each_evaluation_stage": true
+  },
+  "roles": {
+    "threshold_calibration": {
+      "count": 2000,
+      "identity_sha256": "9e6985c6138726fdbc2c05035c5daa3779826842e735985c7441e61a23cb1021",
+      "energy_min_kev": 500.1280822753906,
+      "energy_max_kev": 2814.136474609375,
+      "positive": 651,
+      "negative": 1349
+    },
+    "development_context_reservoir": {
+      "count": 3000,
+      "identity_sha256": "4a96d126e6dc38a738d5746267a655f936a4d58aeab4fa6a394b9b7769d93fbf",
+      "energy_min_kev": 500.0303039550781,
+      "energy_max_kev": 2893.4619140625
+    },
+    "development_target": {
+      "count": 2074,
+      "identity_sha256": "fbbaefc5ab880c8837ce8582c21bac0f5286dafc67775726edbbe3ea8bb3c6f3",
+      "energy_min_kev": 500.80303955078125,
+      "energy_max_kev": 2620.643798828125
+    },
+    "final_context_reservoir": {
+      "count": 20000,
+      "identity_sha256": "2ea72e8682c10a6d09e7dfc0981525394c6f834d981aaca6f076e39aa0594347",
+      "energy_min_kev": 500.0274353027344,
+      "energy_max_kev": 2995.04833984375
+    },
+    "final_target": {
+      "count": 114400,
+      "identity_sha256": "03853bd1c4a3f596b4e0614152b3a1f5306f4ea1a0485a4cb384c70b17faec73",
+      "energy_min_kev": 500.0016784667969,
+      "energy_max_kev": 2993.802001953125
+    }
+  },
+  "threshold": {
+    "value": 0.540643572807312,
+    "method": "Youden-J maximum on threshold_calibration only",
+    "calibration_count": 2000,
+    "calibration_identity_sha256": "9e6985c6138726fdbc2c05035c5daa3779826842e735985c7441e61a23cb1021",
+    "roc_auc": 0.9486915835704662,
+    "target_outcomes_used": false
+  },
+  "context_protocol": {
+    "primary_context_count": 2000,
+    "paired_context_seeds": [
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109
+    ],
+    "mc_passes_after_pilot": 50,
+    "dropout_seed_rule": "10000 + context_seed"
+  },
+  "local_role_archive": {
+    "logical_path": "ml4phy-paper/local/protocol/frozen_roles_v1.npz",
+    "sha256": "6206d88d9e5c7223ea3607ee4d5cf6e619a015ba205f9f968f433c2c203e9fa6",
+    "git_policy": "ignored; contains HDF5 row indices"
+  },
+  "exposure_statement": "The final target was historically inspected, including for the talk. This is a prospectively frozen repeated-split evaluation, not an untouched test."
+}
