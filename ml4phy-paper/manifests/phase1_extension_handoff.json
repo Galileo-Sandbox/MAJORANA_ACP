@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "analysis": "Phase 1 extension synthesis and Phase 2 approval gate",
+  "status": "phase1_completed_phase2_awaiting_approval",
+  "source_commit": "ccb94b5d69ace61ae1ce54b06fe18ea0f2615645",
+  "script": "ml4phy-paper/scripts/build_extension_handoff.py",
+  "script_sha256": "9d9b85a116f8374cd888bc5330c65357348efcf08ef23d98b4ad30db5f91849d",
+  "inputs": {
+    "ml4phy-paper/manifests/data_budget_ledger.json": "6a0e84cd826c45478fe36ec3589f1679709625f1eeada6d44cd764cacb48e103",
+    "ml4phy-paper/manifests/extension_training_result.json": "27ee1379f3f902c6fab545a71007a9540b445df047c12437865a1383d1074f29",
+    "ml4phy-paper/manifests/phase1_neural_result.json": "ab63824a56dd2ac4444ec0a383c9498de862ebc130d5bf7b1fc079fd54d52910",
+    "ml4phy-paper/manifests/phase1_kernel_result.json": "ddb22445613ed05997c78d875b0567a46e45b78445cf71eecacad25026e4c6da",
+    "ml4phy-paper/manifests/gp_pilot_gate.json": "7b8eaea30ba1cf9467511e72141a41c13b74074663f60490876215ac42a87436",
+    "ml4phy-paper/manifests/mc_smoothness_result.json": "977a74a23ed2202ea9eff9e426ec2b73c9a28d008ad2c9e3d3e21e2599f952f3"
+  },
+  "execution_summary": {
+    "new_baseline_training_jobs": 6,
+    "neural_cells_total": 480,
+    "neural_cells_new": 419,
+    "neural_cells_pilot_reused": 1,
+    "neural_cells_archived_reused": 60,
+    "kernel_cells": 80,
+    "dense_gp_campaign_completed": false,
+    "dense_gp_projected_hours": 2.40631789471081,
+    "smoother_curve_claim_supported": false
+  },
+  "phase2_gate": {
+    "status": "awaiting_explicit_approval",
+    "new_training_jobs": 24,
+    "evaluation_cells": 240,
+    "projected_training_seconds": 2119.8158998372965,
+    "projected_evaluation_seconds": 1242.6443914081144,
+    "projected_total_seconds": 3362.460291245411,
+    "projected_total_with_25_percent_allowance_seconds": 4203.075364056764,
+    "campaign_launched": false
+  },
+  "outputs": {
+    "ml4phy-paper/tables/phase1_extension_method_comparison.csv": {
+      "bytes": 8177,
+      "sha256": "6b52a59141025556a918920f1c682e3c8d5193b2364c3db86c8979756dc557b1"
+    },
+    "ml4phy-paper/figures/phase1_extension_context_efficiency.png": {
+      "bytes": 177947,
+      "sha256": "ed279f6a114cd66bce4420a882891c897a2b539d0cce5ffaa89aaf3ba3e49a3d"
+    },
+    "ml4phy-paper/figures/extension_data_workflow.png": {
+      "bytes": 275614,
+      "sha256": "5d2aa3581101edb5bc712353f0656b7b66ead931700b76f072f789fbb3cbcf21"
+    },
+    "ml4phy-paper/reports/phase1_extension_handoff.md": {
+      "bytes": 4946,
+      "sha256": "34768f5e3a7a2074e60c3e50cd92bcd57ee31297f6eac0d479e633814304cdf4"
+    },
+    "ml4phy-paper/reports/phase2_approval_request.md": {
+      "bytes": 2493,
+      "sha256": "cfebb71a6b084ea37c177459302877d11dbcfca5fc42dc1d8570cacfa1db92a1"
+    }
+  },
+  "historical_data_exposure": "Prospectively specified follow-up analyses on historically exposed data; not an untouched test."
+}
