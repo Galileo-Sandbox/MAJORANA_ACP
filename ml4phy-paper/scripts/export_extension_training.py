@@ -72,7 +72,10 @@ def checkpoint_summary(path: Path) -> tuple[int, float]:
     state = payload["model_state"]
     parameter_count = sum(int(tensor.numel()) for tensor in state.values())
     history = payload["history"]
-    if not history["step"] or int(history["step"][-1]) != EXPECTED_STEPS:
+    if (
+        len(history["step"]) != EXPECTED_STEPS
+        or int(history["step"][-1]) != EXPECTED_STEPS - 1
+    ):
         raise ValueError(f"Unexpected final training step in {path}")
     final_loss = float(history["loss"][-1])
     if not math.isfinite(final_loss):
