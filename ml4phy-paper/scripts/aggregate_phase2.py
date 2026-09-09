@@ -395,9 +395,6 @@ def main() -> None:
                         "mc_passes_per_cell": 50,
                     }
                 )
-    full_curve_context_sd = phase1_curves[
-        "mean_context_sd_within_training_seed"
-    ].to_numpy()
     for architecture in ARCHITECTURES:
         group = phase1_curves[phase1_curves["architecture_id"] == architecture].sort_values(
             "energy_kev"
@@ -423,8 +420,6 @@ def main() -> None:
                     "mc_passes_per_cell": 50,
                 }
             )
-    del full_curve_context_sd
-
     write_csv(outputs["cells"], cell_rows)
     write_csv(outputs["bins"], bin_rows)
     write_csv(outputs["contrasts"], contrast_rows)
@@ -569,7 +564,8 @@ def main() -> None:
             ].idxmin()
         ]
         best_lines.append(
-            f"- At {budget:,} nominal events, the lowest peak MAE is "
+            f"- Among the four neural architectures at {budget:,} nominal events, "
+            f"the lowest peak MAE is "
             f"{peak_best['method']} ({peak_best['peak_region_mean_mae_percentage_points_mean_of_seed_means']:.2f} pp); "
             f"the lowest continuum MAE is {continuum_best['method']} "
             f"({continuum_best['continuum_region_mean_mae_percentage_points_mean_of_seed_means']:.2f} pp)."
@@ -601,6 +597,13 @@ averages the 1,700--2,000 and 2,200--2,400-keV regions.
 
 The full-precision tables retain regional RMSE, support, excluded-bin counts,
 peak/sideband contrasts, Brier checks, and all unfavorable outcomes. The
+simpler CNP variants are more robust at the 2,000-event budget: the
+density-guided model degrades to 9.40 pp peak MAE and 12.89 pp continuum MAE.
+The density-guided advantage appears at 5,000 and improves further at 18,866,
+but one frozen nested pool ordering does not identify a precise transition
+budget or establish robustness to alternative training-pool draws.
+
+The
 sparse tail remains a separate diagnostic: only 13 target bins meet the
 four-event rule and 47 are excluded. The 2,000- and 5,000-event training
 subsets contain no sample-eligible sparse-tail event, so no broad all-region
