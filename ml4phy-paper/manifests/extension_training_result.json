@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "analysis": "matched CNP and Attentive CNP baseline training",
+  "status": "completed",
+  "source_commit": "a8ca60a26db0f71b40b2e418533f602ac2b71258",
+  "script": "ml4phy-paper/scripts/export_extension_training.py",
+  "script_sha256": "c389d602e6ec07983a3455666a621fffefef0f67eeb384c9c09dbc1421b32a05",
+  "expected_training_source_commit": "51282963417d334cc3343ad48c735f8cfaeca511",
+  "historical_data_exposure": "Follow-up training on historically exposed data under a prospectively recorded extension protocol.",
+  "checkpoint_selection": "final 3000-step checkpoint; no validation selection",
+  "failed_runs": [],
+  "runner_inputs": [
+    {
+      "run_id": "20260909-m0-seed0-train3000",
+      "runner_record_sha256": "caedc2ba67debb327d56af14a3df723848b311c87d36119ed3a3230a8bb9cde1",
+      "resolved_config_sha256": "5e16b408a6f50a542e9cc1a6113ffe6887c61e6c41fd74c9b352c2aebf4379be",
+      "training_log_sha256": "dafdedaa46223ff0815dd8975005847bf9cd34bf8aea8e98d7d09bc5157d0d36",
+      "run_summary_sha256": "5702c781a4f6d951dc85cf463c1d0409ba24e5c2211e004d525f08092a5e1e70",
+      "training_pool_sha256": "c3a7e7a147dcc625d750b676f5e5a980765573dddb3916cf21d18083e71fc227",
+      "checkpoint_sha256": "1984eac4b15493ae7ab5438c148c98aadc5bd0c0c646fad9798c027de05229df",
+      "warnings": []
+    },
+    {
+      "run_id": "20260909-m0-seed1-train3000",
+      "runner_record_sha256": "4e93b90b4ff7ce52b308e24de47cb5220f08267cdd3862a3f1ff13fa62e051c4",
+      "resolved_config_sha256": "5d93a814ba92b67ad16cdb08c4f5796a2e6a40f370655b75f6751199fbd8b997",
+      "training_log_sha256": "5b9e57c25ad01a7897ff9e70e1726463ae376d5787570243241403a261632815",
+      "run_summary_sha256": "bcae35e610e1b5291f143c0450ba0189e26360a244b490b37ba14733be459d6e",
+      "training_pool_sha256": "c3a7e7a147dcc625d750b676f5e5a980765573dddb3916cf21d18083e71fc227",
+      "checkpoint_sha256": "563108969aed4c5627268528c7d8d53a6de7fb259cf46761d9bf02883839d953",
+      "warnings": []
+    },
+    {
+      "run_id": "20260909-m0-seed2-train3000",
+      "runner_record_sha256": "2e63e09076a63f8efcbf97e5c4963ee30b7412ae1e1b361daebac8ffd618c1f9",
+      "resolved_config_sha256": "e35b347f4deab531951af8156104ff6c50a94686889b379e13888436f2c6ee27",
+      "training_log_sha256": "7ae2622d5d5b89d98d199a752d49349c761e38a9321b20b32de440d0b37cc270",
+      "run_summary_sha256": "280aaaaba63f369e66c32fa2a487d56d083f025ef54ed1b1d67146503129eb6c",
+      "training_pool_sha256": "c3a7e7a147dcc625d750b676f5e5a980765573dddb3916cf21d18083e71fc227",
+      "checkpoint_sha256": "9dc7fa64e13f54b67c1b1b56aa31a0468887f954bb70355c58b7b91cd4656a45",
+      "warnings": []
+    },
+    {
+      "run_id": "20260909-m1-seed0-train3000",
+      "runner_record_sha256": "2cc17d073565ef1e175ec48921313896daf175fa28f1e9b06f9a790781a69ee4",
+      "resolved_config_sha256": "02707eb76c13b97b326eeb988942ac55062ffe2bc4924ff219a672d9d511cfb8",
+      "training_log_sha256": "0b1185ea804393ff6de9d78f2346360ede6cabb4c6c74eee2bb1ba3785d97dc8",
+      "run_summary_sha256": "7fda356311b5aa1c2c2287ec1b062f5d8b89da8450531db6c4b30f20d9db2f4f",
+      "training_pool_sha256": "c3a7e7a147dcc625d750b676f5e5a980765573dddb3916cf21d18083e71fc227",
+      "checkpoint_sha256": "0a6fc7b03ea582f0ab4dafc8feb1d973a51c9327ffed3a5f7c53b5da261ade43",
+      "warnings": []
+    },
+    {
+      "run_id": "20260909-m1-seed1-train3000",
+      "runner_record_sha256": "6dc792fbb34a6bab8f490767b62778c58af731f6721ef56e9288cf5ce4460b67",
+      "resolved_config_sha256": "cd2da9d0f091451f531544328c292aad640b08c6bcc6f187453feb2d5c08c4a3",
+      "training_log_sha256": "1d9aaeee3e65d29d1c6adff0841bfcf3c9ae3206edcd39fc9c8539d48cad6e81",
+      "run_summary_sha256": "097bc68299bd33556569f1bb277f5f03867e6cadc7ea09e4e900063a34bc453a",
+      "training_pool_sha256": "c3a7e7a147dcc625d750b676f5e5a980765573dddb3916cf21d18083e71fc227",
+      "checkpoint_sha256": "9d3d04b7803dae2963b575b3f1af6b429351bb8b6735995f9fb1f28948ba1d14",
+      "warnings": []
+    },
+    {
+      "run_id": "20260909-m1-seed2-train3000",
+      "runner_record_sha256": "6e71af964e3531b0fb2735d8ca56d48f129742bd88dc547e0f3dd6638ccdda9f",
+      "resolved_config_sha256": "0cd53012ac01d24fa43d2f5b45cb5bb721acc32ca2d6e71106c66a365634b08b",
+      "training_log_sha256": "7b3b804a4a14dc7dcf78761ee6347cbf4ead51a9e7e6fd459a715ca7d1210c9d",
+      "run_summary_sha256": "49bdd5826119400c0282ccbff662de6a0bceea4059e85959bcf47800ad43d9d1",
+      "training_pool_sha256": "c3a7e7a147dcc625d750b676f5e5a980765573dddb3916cf21d18083e71fc227",
+      "checkpoint_sha256": "f3e7ac1bbc93ff0de7ddd91caf513a9a601c9ff4d7414cb3ad96fb462d690cb4",
+      "warnings": []
+    }
+  ],
+  "outputs": {
+    "ml4phy-paper/configs/extension_models_v1.json": {
+      "bytes": 9426,
+      "sha256": "4da51c436e9a3e2657e71b8a7edc90532f935b86a47e8d108dec66dce2699027"
+    },
+    "ml4phy-paper/tables/extension_training_runs.csv": {
+      "bytes": 1277,
+      "sha256": "64008cc9083053bc6876d86b30aa8550941e5b56fadab5851b6b9c9802f1b709"
+    },
+    "ml4phy-paper/reports/extension_training_result.md": {
+      "bytes": 1592,
+      "sha256": "77f9069a0384cd3d4184b8b6568adea04564c3b65dbcf188387984558759008f"
+    }
+  }
+}
