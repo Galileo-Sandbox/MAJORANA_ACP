@@ -1,0 +1,5 @@
+run_id,status,phase,family,context_size,context_seed,canonical_run_id,server_only_output_hashes_match,scientific_result_admitted,note
+20260909-phase3-gp-development-rbf-ctx-s101-n250,redundant_completed_exact,development,rbf,250,101,20260909-phase3-gp-development-rbf-ctx-s101-n250-attempt2,True,False,Accidental duplicate campaign child; preserved but excluded from the 120-cell matrix.
+20260909-phase3-gp-development-rbf-ctx-s102-n250,redundant_completed_exact,development,rbf,250,102,20260909-phase3-gp-development-rbf-ctx-s102-n250-attempt2,True,False,Accidental duplicate campaign child; preserved but excluded from the 120-cell matrix.
+20260909-phase3-gp-development-rbf-ctx-s103-n250,interrupted_no_scientific_result,development,rbf,250,103,20260909-phase3-gp-development-rbf-ctx-s103-n250-attempt3,False,False,Interrupted during scheduler recovery; no summary or scientific result.
+20260909-phase3-gp-development-rbf-ctx-s103-n250-attempt2,interrupted_no_scientific_result,development,rbf,250,103,20260909-phase3-gp-development-rbf-ctx-s103-n250-attempt3,False,False,Interrupted during scheduler recovery; no summary or scientific result.
