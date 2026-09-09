@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import hashlib
 import json
 import os
@@ -125,9 +126,18 @@ def select_family(run_root: Path) -> dict:
         for size in CONTEXT_SIZES:
             for seed in CONTEXT_SEEDS:
                 identifier = run_id("development", family, size, seed)
-                summary = validate_summary(
-                    run_root / identifier, "development", family, size, seed
+                _, _, summary, _ = resolve_attempt(
+                    run_root,
+                    identifier,
+                    "development",
+                    family,
+                    size,
+                    seed,
                 )
+                if summary is None:
+                    raise FileNotFoundError(
+                        f"No completed dense GP development cell: {identifier}"
+                    )
                 events = {item["region"]: item for item in summary["metrics"]["event"]}
                 global_scores.append(float(events["full"]["brier"]))
                 regional_scores.append(float(events["equal_region_mean"]["brier"]))
@@ -167,7 +177,19 @@ def select_family(run_root: Path) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.parse_args()
+    parser.add_argument("--max-workers", type=int, default=1)
+    parser.add_argument("--threads-per-worker", type=int, default=1)
+    parser.add_argument(
+        "--max-new-cells",
+        type=int,
+        default=None,
+        help="Operational pilot limit; omitted for the complete campaign",
+    )
+    args = parser.parse_args()
+    if args.max_workers < 1 or args.threads_per_worker < 1:
+        parser.error("worker and thread counts must be positive")
+    if args.max_new_cells is not None and args.max_new_cells < 1:
+        parser.error("--max-new-cells must be positive")
     repo = Path(".").resolve()
     worktree = subprocess.check_output(
         ["git", "-C", str(repo), "status", "--short"], text=True
@@ -202,6 +224,9 @@ def main() -> None:
                 "source_commit": source_commit,
                 "runner_sha256": sha256_file(runner),
                 "campaign_script_sha256": sha256_file(Path(__file__)),
+                "max_workers": args.max_workers,
+                "threads_per_worker": args.threads_per_worker,
+                "max_new_cells": args.max_new_cells,
             }
         )
         record["status"] = "running"
@@ -252,9 +277,22 @@ def main() -> None:
             "terminated_at_limit": [],
             "incomplete_attempts": [],
             "family_selection": None,
+            "execution_settings": {
+                "max_workers": args.max_workers,
+                "threads_per_worker": args.threads_per_worker,
+                "max_new_cells": args.max_new_cells,
+            },
         }
     write_json(record_path, record)
-    completed_ids = {item["run_id"] for item in record["completed"]}
+    completed_logical_cells = {
+        (
+            item["phase"],
+            item["family"],
+            item["context_size"],
+            item["context_seed"],
+        )
+        for item in record["completed"]
+    }
     session_start = time.perf_counter()
 
     def elapsed_total() -> float:
@@ -269,7 +307,7 @@ def main() -> None:
         record["accumulated_active_seconds"] = elapsed_total()
         write_json(record_path, record)
 
-    def execute_cell(phase: str, family: str, size: int, seed: int, log) -> bool:
+    def prepare_cell(phase: str, family: str, size: int, seed: int) -> dict | None:
         base_identifier = run_id(phase, family, size, seed)
         identifier, directory, existing_summary, incomplete = resolve_attempt(
             run_root, base_identifier, phase, family, size, seed
@@ -281,7 +319,8 @@ def main() -> None:
                 known_incomplete.add(item["run_id"])
         if existing_summary is not None:
             summary = existing_summary
-            if identifier not in completed_ids:
+            logical_cell = (phase, family, size, seed)
+            if logical_cell not in completed_logical_cells:
                 record["completed"].append(
                     {
                         "run_id": identifier,
@@ -294,35 +333,54 @@ def main() -> None:
                         "recovered_after_interruption": True,
                     }
                 )
-                completed_ids.add(identifier)
+                completed_logical_cells.add(logical_cell)
                 save_progress()
-            return True
+            return None
+        return {
+            "run_id": identifier,
+            "directory": directory,
+            "phase": phase,
+            "family": family,
+            "context_size": size,
+            "context_seed": seed,
+        }
+
+    def execute_prepared(cell: dict) -> dict:
         remaining = HARD_LIMIT_SECONDS - elapsed_total()
         if remaining <= 0:
-            return False
+            return {**cell, "outcome": "time_limit", "returncode": None, "output": ""}
         command = [
             str(repo / ".venv/bin/python"),
             str(runner),
             "--repo",
             str(repo),
             "--phase",
-            phase,
+            cell["phase"],
             "--family",
-            family,
+            cell["family"],
             "--context-size",
-            str(size),
+            str(cell["context_size"]),
             "--context-seed",
-            str(seed),
+            str(cell["context_seed"]),
             "--run-id",
-            identifier,
+            cell["run_id"],
         ]
+        thread_count = str(args.threads_per_worker)
         process = subprocess.Popen(
             command,
             cwd=repo,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+            env={
+                **os.environ,
+                "PYTHONDONTWRITEBYTECODE": "1",
+                "OMP_NUM_THREADS": thread_count,
+                "OPENBLAS_NUM_THREADS": thread_count,
+                "MKL_NUM_THREADS": thread_count,
+                "NUMEXPR_NUM_THREADS": thread_count,
+                "VECLIB_MAXIMUM_THREADS": thread_count,
+            },
         )
         try:
             output, _ = process.communicate(timeout=remaining)
@@ -333,67 +391,130 @@ def main() -> None:
             except subprocess.TimeoutExpired:
                 process.kill()
                 output, _ = process.communicate()
-            log.write(output)
-            log.flush()
-            record["terminated_at_limit"].append(
-                {
-                    "run_id": identifier,
-                    "phase": phase,
-                    "family": family,
-                    "context_size": size,
-                    "context_seed": seed,
-                    "returncode": process.returncode,
-                }
-            )
-            return False
-        print(output, end="", flush=True)
-        log.write(output)
-        log.flush()
-        if process.returncode != 0:
-            record["failures"].append(
-                {"run_id": identifier, "returncode": process.returncode}
-            )
-            save_progress()
-            raise RuntimeError(f"Dense GP cell failed: {identifier}")
-        summary = validate_summary(directory, phase, family, size, seed)
-        record["completed"].append(
-            {
-                "run_id": identifier,
-                "phase": phase,
-                "family": family,
-                "context_size": size,
-                "context_seed": seed,
-                "summary_sha256": sha256_file(directory / "summary.json"),
-                "total_seconds": summary["runtime"]["total_seconds"],
-                "recovered_after_interruption": False,
+            return {
+                **cell,
+                "outcome": "time_limit",
+                "returncode": process.returncode,
+                "output": output,
             }
-        )
-        completed_ids.add(identifier)
-        save_progress()
-        return True
+        if process.returncode != 0:
+            return {
+                **cell,
+                "outcome": "failed",
+                "returncode": process.returncode,
+                "output": output,
+            }
+        return {**cell, "outcome": "completed", "returncode": 0, "output": output}
+
+    new_cells_started = 0
+
+    def execute_matrix(cells: list[tuple[str, str, int, int]], log) -> str:
+        nonlocal new_cells_started
+        prepared = []
+        for phase, family, size, seed in cells:
+            cell = prepare_cell(phase, family, size, seed)
+            if cell is not None:
+                prepared.append(cell)
+        if args.max_new_cells is not None:
+            remaining_slots = args.max_new_cells - new_cells_started
+            if remaining_slots <= 0:
+                return "operator_limit"
+            prepared = prepared[:remaining_slots]
+        if not prepared:
+            return "complete"
+        hit_time_limit = False
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=args.max_workers
+        ) as executor:
+            futures = []
+            for cell in prepared:
+                if elapsed_total() >= HARD_LIMIT_SECONDS:
+                    hit_time_limit = True
+                    break
+                futures.append(executor.submit(execute_prepared, cell))
+                new_cells_started += 1
+            for future in concurrent.futures.as_completed(futures):
+                result = future.result()
+                output = result.pop("output")
+                print(output, end="", flush=True)
+                log.write(output)
+                log.flush()
+                outcome = result.pop("outcome")
+                directory = result.pop("directory")
+                if outcome == "time_limit":
+                    record["terminated_at_limit"].append(result)
+                    hit_time_limit = True
+                elif outcome == "failed":
+                    record["failures"].append(result)
+                else:
+                    summary = validate_summary(
+                        directory,
+                        result["phase"],
+                        result["family"],
+                        result["context_size"],
+                        result["context_seed"],
+                    )
+                    logical_cell = (
+                        result["phase"],
+                        result["family"],
+                        result["context_size"],
+                        result["context_seed"],
+                    )
+                    if logical_cell not in completed_logical_cells:
+                        record["completed"].append(
+                            {
+                                **{key: result[key] for key in (
+                                    "run_id", "phase", "family", "context_size", "context_seed"
+                                )},
+                                "summary_sha256": sha256_file(directory / "summary.json"),
+                                "total_seconds": summary["runtime"]["total_seconds"],
+                                "recovered_after_interruption": False,
+                            }
+                        )
+                        completed_logical_cells.add(logical_cell)
+                save_progress()
+        if record["failures"]:
+            raise RuntimeError("One or more dense GP cells failed")
+        if hit_time_limit:
+            return "time_limit"
+        if args.max_new_cells is not None and new_cells_started >= args.max_new_cells:
+            return "operator_limit"
+        return "complete"
 
     log_mode = "a" if resuming else "x"
     with log_path.open(log_mode) as log:
         try:
-            for size in CONTEXT_SIZES:
-                for family in FAMILIES:
-                    for seed in CONTEXT_SEEDS:
-                        if not execute_cell("development", family, size, seed, log):
-                            record["status"] = "partial_time_limit"
-                            record["end_time"] = utc_now()
-                            save_progress()
-                            return
+            development_cells = [
+                ("development", family, size, seed)
+                for size in CONTEXT_SIZES
+                for family in FAMILIES
+                for seed in CONTEXT_SEEDS
+            ]
+            outcome = execute_matrix(development_cells, log)
+            if outcome != "complete":
+                record["status"] = (
+                    "partial_time_limit" if outcome == "time_limit" else "paused_operator_limit"
+                )
+                record["end_time"] = utc_now()
+                save_progress()
+                return
             if record["family_selection"] is None:
                 record["family_selection"] = select_family(run_root)
                 save_progress()
             selected = record["family_selection"]["selected_family"]
-            for size in CONTEXT_SIZES:
-                for seed in CONTEXT_SEEDS:
-                    if not execute_cell("final", selected, size, seed, log):
-                        record["status"] = "partial_time_limit"
-                        record["end_time"] = utc_now()
-                        save_progress()
-                        return
+            final_cells = [
+                ("final", selected, size, seed)
+                for size in CONTEXT_SIZES
+                for seed in CONTEXT_SEEDS
+            ]
+            outcome = execute_matrix(final_cells, log)
+            if outcome != "complete":
+                record["status"] = (
+                    "partial_time_limit" if outcome == "time_limit" else "paused_operator_limit"
+                )
+                record["end_time"] = utc_now()
+                save_progress()
+                return
         except Exception:
             record["status"] = "failed"
             record["end_time"] = utc_now()
