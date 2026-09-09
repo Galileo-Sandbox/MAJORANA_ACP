@@ -1,0 +1,310 @@
+{
+  "schema_version": 1,
+  "analysis": "controlled three-training-seed Cell 17 versus M2 development comparison",
+  "script": "ml4phy-paper/scripts/aggregate_training_seeds.py",
+  "script_sha256": "c942670160028e134eff228826e0e94012cb44cd556147be4be6a0e65e560d61",
+  "source_commit": "de4b4b51add08fde495bb58bc9382429c05683fe",
+  "registry": {
+    "path": "ml4phy-paper/configs/trained_models_v1.json",
+    "sha256": "3995bbc93d735eb0f115f588a1c983bc304a27c32e060065d9322f9b012f2d43"
+  },
+  "training_inputs": [
+    {
+      "run_id": "20260908-m2-seed0-pilot3000",
+      "runner_record_sha256": "ceab65b846bb52a7cb6e94ddc3ee5255c824170e56a5d553599a582a01289cb8",
+      "run_summary_sha256": "b335256863a25efe5ac3abf61778c61575e0f1533d561558aad12260a52b3d8e"
+    },
+    {
+      "run_id": "20260908-m2-seed1-train3000",
+      "runner_record_sha256": "4f73675993ed5e3b8e4df6fb5ea0ee033ac70e063ed2c70af58bb9e4459da1ac",
+      "run_summary_sha256": "bff04f592ab319e31e3e209e48752f62d76ffb3f9ae9e83e9b09248fb8ff3b4d"
+    },
+    {
+      "run_id": "20260908-m2-seed2-train3000",
+      "runner_record_sha256": "4c40cbe5d244c100c7f769fda091b821e2012bdfc70c2edc9d83a5b672dd1fbc",
+      "run_summary_sha256": "69a8664ac630e06f2fc2ddc09ceeec7b8bad9c9ee550a77f293c0006446151cc"
+    },
+    {
+      "run_id": "20260908-cell17-seed1-train3000",
+      "runner_record_sha256": "1ce4ce825fe81ce3b16de129679cc91b99b8d6c525c6e89040945dd489b543aa",
+      "run_summary_sha256": "6b63ad48295f39c054a3b2018c4a39949aa51f554452e4e067f834adfb15ed55"
+    },
+    {
+      "run_id": "20260908-cell17-seed2-train3000",
+      "runner_record_sha256": "b872c74157819cc64dd809b889dccd3fbe239785c170c2b1eb39584e4e70588b",
+      "run_summary_sha256": "54e316561b8b5b85cdfc06d5cb344dfbcbeef9638e8c4f9f0cb2de2980c86216"
+    }
+  ],
+  "inference_inputs": [
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s100-drop10100-mc50",
+      "summary_sha256": "3a3c006bbe3367508810f2b5c7cbafc28ca8651c10831b03f522eba2fe495a81"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s101-drop10100-mc50",
+      "summary_sha256": "259487865504dfcb98bdf902129e936070b6e8f130a63f50d2e93d8e56de866c"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s102-drop10100-mc50",
+      "summary_sha256": "506500515918cf1e71edd6819c1f6fc5caf2e246486dfc894d5030a825934b27"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s103-drop10100-mc50",
+      "summary_sha256": "f550fd7052c4037864e79cf774ca0c3ea3361671752d2133577b726f295eccbd"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s104-drop10100-mc50",
+      "summary_sha256": "cc9d0f45a40c1add3434cbc76a33be2a570dfd09be7cb139d7b3fe4d14ce8681"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s105-drop10100-mc50",
+      "summary_sha256": "55e077ec7ec5d41b28de59bb4f30a1469d8b72cf9030e8ca057ef1ab19c5a44c"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s106-drop10100-mc50",
+      "summary_sha256": "888273001870303dba660d2f9a3af098572f640a94bafdac11e35d65caadd446"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s107-drop10100-mc50",
+      "summary_sha256": "956172af748ac91959bb08b5dc039b4b370a25f23a3cef241d6bb0aef2a4b0dd"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s108-drop10100-mc50",
+      "summary_sha256": "e8b07119b38557043420cf6b9fe7a3e2d5b4a46e217393ed2714640adf2676be"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s109-drop10100-mc50",
+      "summary_sha256": "e292b65575fdd0c580b8d3729155923f3cfbd73535ad4bc2aa1b340e77187b14"
+    },
+    {
+      "run_id": "20260908-m2_seed1-dev-ctx-s100-drop10100-mc50",
+      "summary_sha256": "39c7c3c6f5b3576a4c9feefd6a9656ae6a3cdb35a790fdf683182a3fa271749a"
+    },
+    {
+      "run_id": "20260908-m2_seed1-dev-ctx-s101-drop10100-mc50",
+      "summary_sha256": "fa522e397f5b95d35bfdf69671db576f7211a91dac7bd36c323f4eef39ddf6b9"
+    },
+    {
+      "run_id": "20260908-m2_seed1-dev-ctx-s102-drop10100-mc50",
+      "summary_sha256": "89eb47b35f2dffc131be1d23ce0eeaaa08bacba1148ea8d9a450e5cb8794865c"
+    },
+    {
+      "run_id": "20260908-m2_seed1-dev-ctx-s103-drop10100-mc50",
+      "summary_sha256": "ddef87db7f928162527fe5c632d379b041a1c9f818f9ebba829108ae3f907744"
+    },
+    {
+      "run_id": "20260908-m2_seed1-dev-ctx-s104-drop10100-mc50",
+      "summary_sha256": "fd5c3dce8acdd4d954c52cbf4f37f3fbd69d99d101f956b9c1aa0e1db694d775"
+    },
+    {
+      "run_id": "20260908-m2_seed1-dev-ctx-s105-drop10100-mc50",
+      "summary_sha256": "516f9ae3ef7bdda3d5ad709aaeb2c52d483e52865bda19411bae3ea58a46cd20"
+    },
+    {
+      "run_id": "20260908-m2_seed1-dev-ctx-s106-drop10100-mc50",
+      "summary_sha256": "8ae245a8e7556d356b657a6a0c61ebad136aa052ec6de2cfd3706e7cbd867dff"
+    },
+    {
+      "run_id": "20260908-m2_seed1-dev-ctx-s107-drop10100-mc50",
+      "summary_sha256": "77e58ceb79c8160c9fd0452df65768b1488d334998f62d67fbdbed505a4a8a79"
+    },
+    {
+      "run_id": "20260908-m2_seed1-dev-ctx-s108-drop10100-mc50",
+      "summary_sha256": "8e54b1460292383c24052c7cabef6e54825db7a827b73e20a2ca748755e97f1f"
+    },
+    {
+      "run_id": "20260908-m2_seed1-dev-ctx-s109-drop10100-mc50",
+      "summary_sha256": "f238d56786c3c3ae91f8ab801cfe57b89cf9e2413b3e5f41ad79740372d48f70"
+    },
+    {
+      "run_id": "20260908-m2_seed2-dev-ctx-s100-drop10100-mc50",
+      "summary_sha256": "1cf2a16d5a62d3ddfb29ea02e099245032b99501cbd245945fc118e65a6cf98c"
+    },
+    {
+      "run_id": "20260908-m2_seed2-dev-ctx-s101-drop10100-mc50",
+      "summary_sha256": "865d1d9321bfac4b5f6d9c9966af40fe35cf1d8050729412245eba5af48506d4"
+    },
+    {
+      "run_id": "20260908-m2_seed2-dev-ctx-s102-drop10100-mc50",
+      "summary_sha256": "a241bc51940e3b7848234b194a8bdf6c9ff8c99335d7c0b4d0d0799201f5a7f0"
+    },
+    {
+      "run_id": "20260908-m2_seed2-dev-ctx-s103-drop10100-mc50",
+      "summary_sha256": "2064a696ccdb3afc300aafeb51643414929cda0d657bb956d3f483cfce48de56"
+    },
+    {
+      "run_id": "20260908-m2_seed2-dev-ctx-s104-drop10100-mc50",
+      "summary_sha256": "1366be685df5ac54b28cd6a72423692d0ef9a2d8dc33ef53d338d8660f1f8545"
+    },
+    {
+      "run_id": "20260908-m2_seed2-dev-ctx-s105-drop10100-mc50",
+      "summary_sha256": "6be25e3d866a8e76ca8c27d1f46c25ef29d8742227cd10fa2fa12b9c876b198f"
+    },
+    {
+      "run_id": "20260908-m2_seed2-dev-ctx-s106-drop10100-mc50",
+      "summary_sha256": "81726b7ffb5f2b801d7514838f58b58c3ebda00e9fede03d804ac0db4d335786"
+    },
+    {
+      "run_id": "20260908-m2_seed2-dev-ctx-s107-drop10100-mc50",
+      "summary_sha256": "3fde3839671726fa0324491d94d7e871ee7a7cb7d1eb035691eca14ac71a7a73"
+    },
+    {
+      "run_id": "20260908-m2_seed2-dev-ctx-s108-drop10100-mc50",
+      "summary_sha256": "0b6d475b6bb5bf37c3973b31baacd2792bb9f160417eeb39593440dc7582420f"
+    },
+    {
+      "run_id": "20260908-m2_seed2-dev-ctx-s109-drop10100-mc50",
+      "summary_sha256": "0793d3410c8bd1dfb55ae0fc82f884036bdba127119e9ed03a53530298e2f44f"
+    },
+    {
+      "run_id": "20260908-cell17-dev-s100-mc50",
+      "summary_sha256": "b120b1fc988ba4d9c41375349f4627d74a0067d2877be4c234f213b3a9ca9c43"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s101-drop10100-mc50",
+      "summary_sha256": "6ce0027965eb107f042e194cd0f5a79d08a7cf6f040fee5c9005f64b532dafcf"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s102-drop10100-mc50",
+      "summary_sha256": "9d7a91f6191721e3f12619b3bb405570d236f38f6a908b17584bc807922e7fff"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s103-drop10100-mc50",
+      "summary_sha256": "d6d2162efcc0ef0ad6266e4c704cbe94dfb5e90558b669c63522afa24b884d6a"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s104-drop10100-mc50",
+      "summary_sha256": "3a70f58be9bfc20dd8ef2b4e55eb499f012ef47be3175b8a2f6f4915f56fd67a"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s105-drop10100-mc50",
+      "summary_sha256": "4898c01067e7f4e06fd6182e9949b13ff8978937378fb569e5622437aafe3f51"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s106-drop10100-mc50",
+      "summary_sha256": "f4f96df2b970c6921f2302f2cbd799741c6df60e26e903a55ec0cf44ff651fb4"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s107-drop10100-mc50",
+      "summary_sha256": "1a54ee194af746a806b20efbc01ff80077f003e6ba90a925e69716f3289f44a0"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s108-drop10100-mc50",
+      "summary_sha256": "869aff729f8c14b44e0a725e1ee6592e730de2acca222ca380a760fb28da4033"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s109-drop10100-mc50",
+      "summary_sha256": "c25a27a16de8914f2f65a39dfdf84135b59d81084a19c4acef6bc57937b8a655"
+    },
+    {
+      "run_id": "20260908-cell17_seed1-dev-ctx-s100-drop10100-mc50",
+      "summary_sha256": "89070ad923ba55bab4e936baef01bf4753ef01458d48b591c59de21525bdfbf1"
+    },
+    {
+      "run_id": "20260908-cell17_seed1-dev-ctx-s101-drop10100-mc50",
+      "summary_sha256": "c3ff2b76760b35e39b45a883362ee0e1ba1552636f0979955005ac19ba58c816"
+    },
+    {
+      "run_id": "20260908-cell17_seed1-dev-ctx-s102-drop10100-mc50",
+      "summary_sha256": "8c2f96d2aa25940898be0e7430d7456634b891fe8dc48f66c739ba6840c20404"
+    },
+    {
+      "run_id": "20260908-cell17_seed1-dev-ctx-s103-drop10100-mc50",
+      "summary_sha256": "bb092cd27f5914387c76ba9d73b62536768da97792f798c1f51efad2c3608dc9"
+    },
+    {
+      "run_id": "20260908-cell17_seed1-dev-ctx-s104-drop10100-mc50",
+      "summary_sha256": "00221d31f9b4147e235d41512f8941d35ea9734e8684b448a7ebdecd7e57bb7d"
+    },
+    {
+      "run_id": "20260908-cell17_seed1-dev-ctx-s105-drop10100-mc50",
+      "summary_sha256": "adfa07862cc85e636932492e508791490941cebc79214b94a5bcffbd82167187"
+    },
+    {
+      "run_id": "20260908-cell17_seed1-dev-ctx-s106-drop10100-mc50",
+      "summary_sha256": "7c69693d0fd8b4908adfae8aae1fdff99540be6708126b438be8e2cd6212022f"
+    },
+    {
+      "run_id": "20260908-cell17_seed1-dev-ctx-s107-drop10100-mc50",
+      "summary_sha256": "790fffedd4884014e5621746eb8855d3c2d8ffcea5e7863170121b12ccb5287f"
+    },
+    {
+      "run_id": "20260908-cell17_seed1-dev-ctx-s108-drop10100-mc50",
+      "summary_sha256": "accada043437e9b1891e8d4b6e3c903073b1ebd17400e9c1cf0f5c22ef4f0c6d"
+    },
+    {
+      "run_id": "20260908-cell17_seed1-dev-ctx-s109-drop10100-mc50",
+      "summary_sha256": "3b61394c69453c305fdec54a46c2f6f3b0b43cf440af6b6a256849da8b29576b"
+    },
+    {
+      "run_id": "20260908-cell17_seed2-dev-ctx-s100-drop10100-mc50",
+      "summary_sha256": "78a6b6f3f391bb8a0cb3c7b1ad452be9efdb96a812f036f22ea6f61cfc0cf23d"
+    },
+    {
+      "run_id": "20260908-cell17_seed2-dev-ctx-s101-drop10100-mc50",
+      "summary_sha256": "02286ce9aab58afae80ae6700c087550c948ab656511e9cb2b22539eb3e73b3d"
+    },
+    {
+      "run_id": "20260908-cell17_seed2-dev-ctx-s102-drop10100-mc50",
+      "summary_sha256": "db43a75792ca072d6d1257f4a6899eb4f18c04acfdbfdc651890f112f2a4c3ab"
+    },
+    {
+      "run_id": "20260908-cell17_seed2-dev-ctx-s103-drop10100-mc50",
+      "summary_sha256": "4d0f1c57c3e63534c59c31d8572c99d7b10abd73f7e5c48efec8e5445ed01f56"
+    },
+    {
+      "run_id": "20260908-cell17_seed2-dev-ctx-s104-drop10100-mc50",
+      "summary_sha256": "1136740fd3efc47fac16b44da43fde7cc39e2ffe079a796b160c2cae7600b831"
+    },
+    {
+      "run_id": "20260908-cell17_seed2-dev-ctx-s105-drop10100-mc50",
+      "summary_sha256": "87a0f203eb8300af5100775342c3992e3d2f9e1558510759d2ba06f0264a7ba6"
+    },
+    {
+      "run_id": "20260908-cell17_seed2-dev-ctx-s106-drop10100-mc50",
+      "summary_sha256": "0f0266a38b8127998743ad12c2b7ddb583f7f40c4214c672e5b3ac78838af912"
+    },
+    {
+      "run_id": "20260908-cell17_seed2-dev-ctx-s107-drop10100-mc50",
+      "summary_sha256": "cd3604598d4d3d5623509543a84893d09de50d4391faaf1fd3800cf85c828320"
+    },
+    {
+      "run_id": "20260908-cell17_seed2-dev-ctx-s108-drop10100-mc50",
+      "summary_sha256": "bf23b77546cf5a9648335274093d4830277b129fd9660c8d5eff8c75f2763a94"
+    },
+    {
+      "run_id": "20260908-cell17_seed2-dev-ctx-s109-drop10100-mc50",
+      "summary_sha256": "564381cbe7bc6a95e5acfb75874f44f2c9a8b448ccb9d2d5ada285f1c39b73e7"
+    }
+  ],
+  "outputs": {
+    "ml4phy-paper/tables/controlled_seed_summary.csv": {
+      "sha256": "ca35fb8679796fb4c968b2ccd2c866cae0b32197b4d88c6cc0b0117fc48fd87b",
+      "bytes": 5617
+    },
+    "ml4phy-paper/tables/controlled_seed_paired_differences.csv": {
+      "sha256": "900374b7ea00797ff2384a7a5bbe5a55091782d363cd4a7ad68292bce2e05561",
+      "bytes": 1740
+    },
+    "ml4phy-paper/tables/controlled_architecture_summary.csv": {
+      "sha256": "426a21206a2e60c16af21fa8e42cf65e5c3203bca1dd17aa34f88eaa3c467ab5",
+      "bytes": 2007
+    },
+    "ml4phy-paper/tables/controlled_training_runs.csv": {
+      "sha256": "f2b07786bc7298d6614f01b699adea3a143da518d00981a206a8ca93802e6e14",
+      "bytes": 942
+    },
+    "ml4phy-paper/tables/controlled_three_seed_metrics.json": {
+      "sha256": "d4c47a74adc4a484b65bf5d05517ed371fe3dd86a36165dd5395bccb83fe4333",
+      "bytes": 1377
+    },
+    "ml4phy-paper/figures/controlled_three_seed_scores.png": {
+      "sha256": "95c3bdd5f92d553883c73d7a84222905da6ea50074a2e3c67505f0f43ed82a25",
+      "bytes": 97878
+    },
+    "ml4phy-paper/reports/controlled_three_seed_result.md": {
+      "sha256": "79d7174569bea483722ed3b668bff85cd74547667f221be30f79a912e54e4e22",
+      "bytes": 1901
+    }
+  }
+}

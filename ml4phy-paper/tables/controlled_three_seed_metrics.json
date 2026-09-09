@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "comparison": "Cell 17 minus M2 attentive PE10",
+  "primary": {
+    "full": {
+      "mean_of_paired_training_seed_differences": -0.005364473997449805,
+      "std_across_paired_training_seed_differences": 0.0006670497427858968,
+      "cell17_better_training_seeds": 3,
+      "training_seed_differences": {
+        "0": -0.006134400550643787,
+        "1": -0.004960400870883314,
+        "2": -0.004998620570822315
+      }
+    },
+    "equal_region_mean": {
+      "mean_of_paired_training_seed_differences": -0.0027532237539918563,
+      "std_across_paired_training_seed_differences": 0.0008843828529228474,
+      "cell17_better_training_seeds": 3,
+      "training_seed_differences": {
+        "0": -0.0028210484275581873,
+        "1": -0.001836881311882682,
+        "2": -0.003601741522534699
+      }
+    }
+  },
+  "training_seed_count": 3,
+  "context_draws_per_training_seed": 10,
+  "fixed_dropout_seed": 10100,
+  "target_identity_sha256": "fbbaefc5ab880c8837ce8582c21bac0f5286dafc67775726edbbe3ea8bb3c6f3",
+  "interpretation": "Training seeds are the top-level replication unit. Context draws are paired, overlapping sensitivity checks on a shared target and are not independent datasets.",
+  "decision": "Freeze Cell 17 as the three-seed development candidate; retain regional trade-offs and proceed only to a timed final-protocol inference pilot."
+}
