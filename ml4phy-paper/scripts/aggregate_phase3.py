@@ -151,6 +151,8 @@ def main() -> None:
         "method": root / "tables/phase3_method_comparison_context500.csv",
         "gp_development": root / "tables/phase3_gp_development_selection.csv",
         "gp_final": root / "tables/phase3_gp_final_summary.csv",
+        "gp_warnings": root / "tables/phase3_gp_warnings.csv",
+        "gp_attempts": root / "tables/phase3_gp_attempt_audit.csv",
         "budget_figure": root / "figures/phase3_training_budget_efficiency.png",
         "subset_figure": root / "figures/phase3_subset_robustness.png",
         "gp_figure": root / "figures/phase3_gp_context_efficiency.png",
@@ -358,6 +360,7 @@ def main() -> None:
 
     gp_completed = {item["run_id"]: item for item in gp_campaign["completed"]}
     gp_inputs = []
+    gp_warning_rows = []
     gp_development_rows = gp_campaign["family_selection"]["family_scores"]
     gp_final_cells = []
     for item in gp_campaign["completed"]:
@@ -377,6 +380,16 @@ def main() -> None:
                 key: value["sha256"] for key, value in gp["server_only_outputs"].items()
             },
         })
+        for warning in gp["warnings"]:
+            gp_warning_rows.append({
+                "run_id": item["run_id"],
+                "phase": gp["phase"],
+                "family": gp["estimator"]["family_id"],
+                "context_size": gp["context"]["size"],
+                "context_seed": gp["context"]["seed"],
+                "category": warning["category"],
+                "message": warning["message"],
+            })
         if gp["phase"] != "final":
             continue
         events = {entry["region"]: entry for entry in gp["metrics"]["event"]}
@@ -411,6 +424,61 @@ def main() -> None:
         row["total_warning_count"] = int(group["warning_count"].sum())
         gp_rows.append(row)
     gp_summary = pd.DataFrame(gp_rows)
+
+    canonical = {}
+    for item in gp_campaign["completed"]:
+        summary = read_json(root / "runs/gp/phase3" / item["run_id"] / "summary.json")
+        key = (
+            summary["phase"], summary["estimator"]["family_id"],
+            summary["context"]["size"], summary["context"]["seed"],
+        )
+        canonical[key] = (item["run_id"], summary)
+    gp_attempt_rows = []
+    for directory in sorted((root / "runs/gp/phase3").iterdir()):
+        summary_path = directory / "summary.json"
+        state_path = directory / "runner_state.json"
+        if summary_path.is_file():
+            item = read_json(summary_path)
+            key = (
+                item["phase"], item["estimator"]["family_id"],
+                item["context"]["size"], item["context"]["seed"],
+            )
+            canonical_id, canonical_summary = canonical[key]
+            if directory.name == canonical_id:
+                continue
+            output_match = all(
+                item["server_only_outputs"][name]["sha256"]
+                == canonical_summary["server_only_outputs"][name]["sha256"]
+                for name in item["server_only_outputs"]
+            )
+            gp_attempt_rows.append({
+                "run_id": directory.name,
+                "status": "redundant_completed_exact" if output_match else "redundant_completed_mismatch",
+                "phase": key[0],
+                "family": key[1],
+                "context_size": key[2],
+                "context_seed": key[3],
+                "canonical_run_id": canonical_id,
+                "server_only_output_hashes_match": output_match,
+                "scientific_result_admitted": False,
+                "note": "Accidental duplicate campaign child; preserved but excluded from the 120-cell matrix.",
+            })
+        elif state_path.is_file():
+            state = read_json(state_path)
+            gp_attempt_rows.append({
+                "run_id": directory.name,
+                "status": "interrupted_no_scientific_result",
+                "phase": state["phase"],
+                "family": state["family"],
+                "context_size": state["context_size"],
+                "context_seed": state["context_seed"],
+                "canonical_run_id": canonical[(state["phase"], state["family"], state["context_size"], state["context_seed"])][0],
+                "server_only_output_hashes_match": False,
+                "scientific_result_admitted": False,
+                "note": "Interrupted during scheduler recovery; no summary or scientific result.",
+            })
+    if len(gp_attempt_rows) != 4 or len(gp_warning_rows) != 3:
+        raise ValueError("Unexpected GP attempt or warning audit count")
 
     kernels = pd.read_csv(phase1_kernel_path)
     kernel500 = kernels[kernels["context_size"] == 500]
@@ -467,6 +535,8 @@ def main() -> None:
     write_csv(outputs["method"], method_rows)
     write_csv(outputs["gp_development"], gp_development_rows)
     write_csv(outputs["gp_final"], gp_rows)
+    write_csv(outputs["gp_warnings"], gp_warning_rows)
+    write_csv(outputs["gp_attempts"], gp_attempt_rows)
 
     fig, axes = plt.subplots(1, 2, figsize=(10.8, 4.2), constrained_layout=True)
     for axis, metric, title in (
@@ -515,6 +585,10 @@ def main() -> None:
         axis.set_title(title)
         axis.grid(alpha=0.2)
     axes[0].legend(frameon=False, fontsize=8)
+    fig.suptitle(
+        "5k subset robustness (faint lines: 18.9k same-method references)",
+        fontsize=12,
+    )
     fig.savefig(outputs["subset_figure"], dpi=180)
     plt.close(fig)
 
@@ -574,6 +648,8 @@ Values below are peak/continuum MAE in percentage points, averaged hierarchicall
 
 The 2k degradation remains visible and no method is uniformly best across every region and budget. Sparse-tail results are retained in the CSV tables; the small training subsets have no sampling-eligible sparse-tail events, so peak-region findings must not be generalized to the tail.
 
+The original-ordering curve is not monotonic: Density-guided CNP changes from 5.29/3.96 pp at 5k to 5.84/4.01 pp at 10k before reaching 3.56/4.07 pp at 18.9k. This supports direct measured-budget comparisons, not interpolation to an exact sample threshold.
+
 ## Five-thousand-event subset robustness
 
 For Density-guided CNP, peak/continuum MAE across the original, seed-20260910, and seed-20260911 orderings is:
@@ -582,11 +658,15 @@ For Density-guided CNP, peak/continuum MAE across the original, seed-20260910, a
 - Seed 20260910: {ours_5k.iloc[1]['peak_mae_percentage_points']:.2f}/{ours_5k.iloc[1]['continuum_mae_percentage_points']:.2f} pp.
 - Seed 20260911: {ours_5k.iloc[2]['peak_mae_percentage_points']:.2f}/{ours_5k.iloc[2]['continuum_mae_percentage_points']:.2f} pp.
 
+All three 5k peak errors are below the best full-budget non-density-guided neural peak error (6.00 pp), while the continuum errors span 3.95--4.56 pp. This supports robust competitive local peak reconstruction at the acceptance-model stage, not superiority in every region. The 5k Density-guided CNP sparse-tail errors span 18.96--21.12 pp, compared with 2.99 pp for the pooled-data kernel control.
+
 These are three overlapping random subsets of one finite parent pool, not independent datasets. The tables separate initialization-seed SD, mean within-seed context SD, and between-subset SD. They do not identify an exact minimum sample requirement or justify interpolation between budgets.
 
 ## Dense GP and method boundary
 
 Development-only selection chose ConstantKernel × Matern(ν=1.5): mean global development Brier was {gp_campaign['family_selection']['family_scores'][1]['mean_global_brier']:.6f}, versus {gp_campaign['family_selection']['family_scores'][0]['mean_global_brier']:.6f} for RBF. At 500 context events the selected context-only GP has {gp500_peak:.2f} pp peak MAE and {gp500_cont:.2f} pp continuum MAE. It uses no acceptance pretraining, whereas the neural models are conditional on acceptance-model pretraining; this is not an equal-total-information comparison.
+
+Three fits reported a length-scale-at-upper-bound convergence warning (one development and two final cells); no bound was changed after seeing results. Scheduler recovery also left two bitwise-identical redundant completed outputs and two interrupted attempts with no scientific result. The attempt audit excludes all four from the prespecified 120-cell matrix and preserves their provenance.
 
 The compact method table includes the full-pool neural models, context-only and pooled-data kernel controls, and selected GP. Brier remains secondary. No dropout interval is presented as calibrated, and no MC smoothness claim is made.
 
@@ -624,6 +704,8 @@ The result tests acceptance-model training-data efficiency conditional on the cl
             "maximum_neural_inference_memory_mib": max(item["peak_memory_mib"] for item in eval_campaign["completed"]),
         },
         "dense_gp_selection": gp_campaign["family_selection"],
+        "dense_gp_numerical_warnings": gp_warning_rows,
+        "dense_gp_attempt_audit": gp_attempt_rows,
         "matrix": {
             "budget_labels": ["2k", "5k", "10k", "18.9k"],
             "exact_nominal_budgets": [2000, 5000, 10000, 18866],
