@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "status": "frozen_before_gp_pilot",
+  "estimator": "scikit-learn GaussianProcessClassifier",
+  "likelihood": "Bernoulli-logistic",
+  "approximation": "Laplace",
+  "prediction": "posterior-integrated predict_proba",
+  "dtype": "float64",
+  "energy_normalization": "(energy_kev - 500) / 2500",
+  "covariance_families": [
+    "ConstantKernel * RBF",
+    "ConstantKernel * Matern(nu=1.5)"
+  ],
+  "initial_length_scale_kev": 50.0,
+  "length_scale_bounds_kev": [1.0, 1000.0],
+  "initial_amplitude": 1.0,
+  "amplitude_bounds": [0.01, 100.0],
+  "optimizer": "bounded L-BFGS-B",
+  "optimizer_initial_fit": 1,
+  "optimizer_restarts": 2,
+  "optimizer_max_iterations": 200,
+  "laplace_max_iterations": 100,
+  "pilot": {
+    "covariance_family": "RBF",
+    "phase": "development",
+    "context_seed": 100,
+    "context_size": 2000,
+    "optimizer_random_seed": 31000,
+    "include_development_target_prediction": true,
+    "include_final_target_prediction_timing": true
+  },
+  "campaign_optimizer_seed_rule": "31000 + 100 * context_size_index + context_seed, where context_size_index is 0,1,2,3 for 250,500,1000,2000",
+  "family_selection": "lowest mean global development Brier; equal-region Brier tie-breaker within 1e-6; then prefer RBF",
+  "campaign_cost_model": "80 development fits (two families x ten contexts x four sizes) plus 40 final fits using the selected family",
+  "stopping_rule": "Do not launch the campaign if the pilot-rate projection exceeds 7200 wall seconds"
+}
