@@ -97,6 +97,7 @@ def gaussian_components(
     query_energy: np.ndarray,
     bandwidth_kev: float,
     chunk_size: int = 1024,
+    require_nonzero: bool = True,
 ) -> tuple[np.ndarray, np.ndarray]:
     numerator = np.empty(query_energy.size, dtype=np.float64)
     denominator = np.empty(query_energy.size, dtype=np.float64)
@@ -106,7 +107,7 @@ def gaussian_components(
         weight = np.exp(-0.5 * scaled**2)
         numerator[start:stop] = weight @ train_outcome
         denominator[start:stop] = weight.sum(axis=1)
-    if np.any(denominator == 0):
+    if require_nonzero and np.any(denominator == 0):
         raise FloatingPointError("Pooled Gaussian-kernel denominator underflowed to zero")
     return numerator, denominator
 
@@ -136,7 +137,9 @@ def main() -> None:
     existing = [str(path) for path in outputs.values() if path.exists()]
     if existing:
         raise FileExistsError("Refusing to overwrite: " + ", ".join(existing))
-    server_output = output_root / "runs/kernel/20260909-phase1-kernel-v1/predictions.npz"
+    server_output = (
+        output_root / "runs/kernel/20260909-phase1-kernel-v1-attempt2/predictions.npz"
+    )
     server_output.parent.mkdir(parents=True, exist_ok=False)
 
     extension_path = output_root / "manifests/extension_protocol_v1.json"
@@ -272,10 +275,16 @@ def main() -> None:
                 else:
                     pool_numerator, pool_denominator = pooled_components[bandwidth]
                     context_numerator, context_denominator = gaussian_components(
-                        context_energy, context_outcome, query_energy, bandwidth
+                        context_energy,
+                        context_outcome,
+                        query_energy,
+                        bandwidth,
+                        require_nonzero=False,
                     )
                     numerator = pool_numerator + context_numerator
                     denominator = pool_denominator + context_denominator
+                    if np.any(denominator == 0):
+                        raise FloatingPointError("Combined pooled-kernel denominator is zero")
                     prediction = numerator / denominator
                     effective_n = np.full(prediction.size, np.nan)
                     if context_size == 250 and context_seed == 100:
