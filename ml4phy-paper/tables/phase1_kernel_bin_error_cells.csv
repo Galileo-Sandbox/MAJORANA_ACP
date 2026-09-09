@@ -1,0 +1,641 @@
+variant,method,context_size,context_seed,region,valid_bin_count,excluded_bin_count,events_in_valid_bins,mae_percentage_points,rmse_percentage_points
+context_only,Gaussian kernel regression (context only),250,100,full,442,58,114299,13.141290238791647,16.712473644664296
+context_only,Gaussian kernel regression (context only),250,100,DEP,6,0,1323,18.14387475705933,20.398907618631263
+context_only,Gaussian kernel regression (context only),250,100,Bi-214,6,0,1361,13.202469215466872,14.07635938472031
+context_only,Gaussian kernel regression (context only),250,100,continuum_1700_2000,60,0,8230,15.103131607330052,16.71364373143621
+context_only,Gaussian kernel regression (context only),250,100,SE,6,0,2023,22.350325632583125,25.057107564941905
+context_only,Gaussian kernel regression (context only),250,100,continuum_2200_2400,40,0,9093,12.131001096299228,14.993657849677906
+context_only,Gaussian kernel regression (context only),250,100,FE,5,1,8709,3.640319784963522,4.419018566468893
+context_only,Gaussian kernel regression (context only),250,100,sparse_tail,13,47,68,17.330131669054893,18.40117425856435
+context_only,Gaussian kernel regression (context only),250,101,full,442,58,114299,12.482462156178695,14.165835077300473
+context_only,Gaussian kernel regression (context only),250,101,DEP,6,0,1323,7.922221075227897,9.965092816253062
+context_only,Gaussian kernel regression (context only),250,101,Bi-214,6,0,1361,10.331479865401025,15.201660609590803
+context_only,Gaussian kernel regression (context only),250,101,continuum_1700_2000,60,0,8230,13.871211595224903,15.07417180425643
+context_only,Gaussian kernel regression (context only),250,101,SE,6,0,2023,8.587393014521487,11.200397560608346
+context_only,Gaussian kernel regression (context only),250,101,continuum_2200_2400,40,0,9093,16.95490104396793,17.36645460260143
+context_only,Gaussian kernel regression (context only),250,101,FE,5,1,8709,15.49792100551583,15.717548403636956
+context_only,Gaussian kernel regression (context only),250,101,sparse_tail,13,47,68,8.490267266651642,8.554058611471723
+context_only,Gaussian kernel regression (context only),250,102,full,442,58,114299,7.961291827549144,10.015450994742583
+context_only,Gaussian kernel regression (context only),250,102,DEP,6,0,1323,10.679645163891282,11.288468474367535
+context_only,Gaussian kernel regression (context only),250,102,Bi-214,6,0,1361,15.644678703274476,19.636486662746407
+context_only,Gaussian kernel regression (context only),250,102,continuum_1700_2000,60,0,8230,10.820278417055967,12.884300626314152
+context_only,Gaussian kernel regression (context only),250,102,SE,6,0,2023,9.902883276536862,11.177955943206566
+context_only,Gaussian kernel regression (context only),250,102,continuum_2200_2400,40,0,9093,7.4761242269509225,8.279073687974634
+context_only,Gaussian kernel regression (context only),250,102,FE,5,1,8709,4.851842165172794,5.433606817603309
+context_only,Gaussian kernel regression (context only),250,102,sparse_tail,13,47,68,11.812088563090544,12.34981714491574
+context_only,Gaussian kernel regression (context only),250,103,full,442,58,114299,8.222378607738527,10.000948269062715
+context_only,Gaussian kernel regression (context only),250,103,DEP,6,0,1323,17.65207644922631,20.080692010497565
+context_only,Gaussian kernel regression (context only),250,103,Bi-214,6,0,1361,13.234780292403656,14.164529449747679
+context_only,Gaussian kernel regression (context only),250,103,continuum_1700_2000,60,0,8230,5.7852479672528085,7.141927739685877
+context_only,Gaussian kernel regression (context only),250,103,SE,6,0,2023,23.16842522868022,25.58945842306008
+context_only,Gaussian kernel regression (context only),250,103,continuum_2200_2400,40,0,9093,5.986081365211342,6.897235075409915
+context_only,Gaussian kernel regression (context only),250,103,FE,5,1,8709,9.799714444359504,10.138933056963271
+context_only,Gaussian kernel regression (context only),250,103,sparse_tail,13,47,68,12.198563992018537,12.820496996721218
+context_only,Gaussian kernel regression (context only),250,104,full,442,58,114299,10.831370734342379,13.43048783995634
+context_only,Gaussian kernel regression (context only),250,104,DEP,6,0,1323,15.781380212016563,16.666553431982912
+context_only,Gaussian kernel regression (context only),250,104,Bi-214,6,0,1361,24.89961958604248,27.567069104266146
+context_only,Gaussian kernel regression (context only),250,104,continuum_1700_2000,60,0,8230,15.128292235970402,17.115899528139376
+context_only,Gaussian kernel regression (context only),250,104,SE,6,0,2023,12.561702415408973,16.630709171836866
+context_only,Gaussian kernel regression (context only),250,104,continuum_2200_2400,40,0,9093,9.377178128937398,10.699919818692393
+context_only,Gaussian kernel regression (context only),250,104,FE,5,1,8709,2.5271175938808184,2.9132296175401398
+context_only,Gaussian kernel regression (context only),250,104,sparse_tail,13,47,68,16.053965716443027,16.986026765292394
+context_only,Gaussian kernel regression (context only),250,105,full,442,58,114299,8.038364318805089,10.700863100816402
+context_only,Gaussian kernel regression (context only),250,105,DEP,6,0,1323,7.189960782040774,11.11825359164845
+context_only,Gaussian kernel regression (context only),250,105,Bi-214,6,0,1361,9.416780205365015,12.377319526834423
+context_only,Gaussian kernel regression (context only),250,105,continuum_1700_2000,60,0,8230,3.975397803433363,5.1247092036467015
+context_only,Gaussian kernel regression (context only),250,105,SE,6,0,2023,10.315109916640221,14.956657612803573
+context_only,Gaussian kernel regression (context only),250,105,continuum_2200_2400,40,0,9093,4.01377600356358,5.038099362037141
+context_only,Gaussian kernel regression (context only),250,105,FE,5,1,8709,8.069161910466557,8.481624912978564
+context_only,Gaussian kernel regression (context only),250,105,sparse_tail,13,47,68,29.618393902018838,30.28585856060606
+context_only,Gaussian kernel regression (context only),250,106,full,442,58,114299,7.920726917200375,9.614360498430713
+context_only,Gaussian kernel regression (context only),250,106,DEP,6,0,1323,8.141781558303947,11.93680289333961
+context_only,Gaussian kernel regression (context only),250,106,Bi-214,6,0,1361,10.418352270218422,11.88456899789875
+context_only,Gaussian kernel regression (context only),250,106,continuum_1700_2000,60,0,8230,10.503763596331453,12.438519322870278
+context_only,Gaussian kernel regression (context only),250,106,SE,6,0,2023,11.783223169334462,16.145594356159798
+context_only,Gaussian kernel regression (context only),250,106,continuum_2200_2400,40,0,9093,7.975101908363241,8.752266730882683
+context_only,Gaussian kernel regression (context only),250,106,FE,5,1,8709,5.454019206179319,6.032994317318218
+context_only,Gaussian kernel regression (context only),250,106,sparse_tail,13,47,68,15.262578501081133,16.155247474710176
+context_only,Gaussian kernel regression (context only),250,107,full,442,58,114299,10.633160782529252,12.878380283684521
+context_only,Gaussian kernel regression (context only),250,107,DEP,6,0,1323,9.56762647401826,10.760849838242441
+context_only,Gaussian kernel regression (context only),250,107,Bi-214,6,0,1361,11.684020122770981,16.466579404692812
+context_only,Gaussian kernel regression (context only),250,107,continuum_1700_2000,60,0,8230,15.785261407556877,17.19696710526759
+context_only,Gaussian kernel regression (context only),250,107,SE,6,0,2023,10.027060550156863,14.239952545705215
+context_only,Gaussian kernel regression (context only),250,107,continuum_2200_2400,40,0,9093,12.917279431654084,13.625412706576343
+context_only,Gaussian kernel regression (context only),250,107,FE,5,1,8709,7.136571320138849,7.596057294544386
+context_only,Gaussian kernel regression (context only),250,107,sparse_tail,13,47,68,27.727444632083888,28.42308432120394
+context_only,Gaussian kernel regression (context only),250,108,full,442,58,114299,8.47997333693214,10.61311959774769
+context_only,Gaussian kernel regression (context only),250,108,DEP,6,0,1323,7.581859485866538,11.531344724244812
+context_only,Gaussian kernel regression (context only),250,108,Bi-214,6,0,1361,9.386246196393772,12.389543316907163
+context_only,Gaussian kernel regression (context only),250,108,continuum_1700_2000,60,0,8230,13.935903172566858,15.445333055220845
+context_only,Gaussian kernel regression (context only),250,108,SE,6,0,2023,12.776258301693716,16.861924222181454
+context_only,Gaussian kernel regression (context only),250,108,continuum_2200_2400,40,0,9093,10.745140261135207,11.824516915099776
+context_only,Gaussian kernel regression (context only),250,108,FE,5,1,8709,2.255827868276894,2.6349219925648786
+context_only,Gaussian kernel regression (context only),250,108,sparse_tail,13,47,68,14.257250696226878,15.721804337586418
+context_only,Gaussian kernel regression (context only),250,109,full,442,58,114299,9.754677084544387,12.082705610740652
+context_only,Gaussian kernel regression (context only),250,109,DEP,6,0,1323,7.976902705449479,11.856935788022929
+context_only,Gaussian kernel regression (context only),250,109,Bi-214,6,0,1361,9.884544912055805,12.074807364166706
+context_only,Gaussian kernel regression (context only),250,109,continuum_1700_2000,60,0,8230,8.115303033244087,9.404893213605977
+context_only,Gaussian kernel regression (context only),250,109,SE,6,0,2023,8.58295742618152,12.635295917263752
+context_only,Gaussian kernel regression (context only),250,109,continuum_2200_2400,40,0,9093,4.105442737851199,4.888533678692491
+context_only,Gaussian kernel regression (context only),250,109,FE,5,1,8709,7.621447395204328,8.044080786843073
+context_only,Gaussian kernel regression (context only),250,109,sparse_tail,13,47,68,13.521547563606182,14.264091081279446
+context_only,Gaussian kernel regression (context only),500,100,full,442,58,114299,9.327607354830015,11.428073539155417
+context_only,Gaussian kernel regression (context only),500,100,DEP,6,0,1323,9.92298443456201,13.752182398106022
+context_only,Gaussian kernel regression (context only),500,100,Bi-214,6,0,1361,10.70802294976801,11.854864348449578
+context_only,Gaussian kernel regression (context only),500,100,continuum_1700_2000,60,0,8230,8.736921637598764,9.942607006225296
+context_only,Gaussian kernel regression (context only),500,100,SE,6,0,2023,13.731263557154314,17.566389038893675
+context_only,Gaussian kernel regression (context only),500,100,continuum_2200_2400,40,0,9093,3.6889914698276014,4.79318622234147
+context_only,Gaussian kernel regression (context only),500,100,FE,5,1,8709,2.171589134419634,2.517796806044609
+context_only,Gaussian kernel regression (context only),500,100,sparse_tail,13,47,68,17.00955432441707,18.120390380966445
+context_only,Gaussian kernel regression (context only),500,101,full,442,58,114299,9.413664105867204,10.900587925761222
+context_only,Gaussian kernel regression (context only),500,101,DEP,6,0,1323,9.786742384679238,10.743439604310469
+context_only,Gaussian kernel regression (context only),500,101,Bi-214,6,0,1361,13.456028238189996,17.92183201907848
+context_only,Gaussian kernel regression (context only),500,101,continuum_1700_2000,60,0,8230,8.233254330890533,9.383222359116221
+context_only,Gaussian kernel regression (context only),500,101,SE,6,0,2023,9.390061116606534,10.994590219476274
+context_only,Gaussian kernel regression (context only),500,101,continuum_2200_2400,40,0,9093,8.954719638977181,9.727782257062888
+context_only,Gaussian kernel regression (context only),500,101,FE,5,1,8709,12.78810274309258,13.041642842714927
+context_only,Gaussian kernel regression (context only),500,101,sparse_tail,13,47,68,7.792903883280503,8.638267042485626
+context_only,Gaussian kernel regression (context only),500,102,full,442,58,114299,6.72054937108209,8.3913976729188
+context_only,Gaussian kernel regression (context only),500,102,DEP,6,0,1323,8.242986092687934,9.910410582846914
+context_only,Gaussian kernel regression (context only),500,102,Bi-214,6,0,1361,11.314594253814704,16.161808332256726
+context_only,Gaussian kernel regression (context only),500,102,continuum_1700_2000,60,0,8230,6.470077189293461,7.918158516443739
+context_only,Gaussian kernel regression (context only),500,102,SE,6,0,2023,10.175739514553507,14.846998470811096
+context_only,Gaussian kernel regression (context only),500,102,continuum_2200_2400,40,0,9093,4.438415497098066,5.594305919247658
+context_only,Gaussian kernel regression (context only),500,102,FE,5,1,8709,9.63190631883947,9.950728736070747
+context_only,Gaussian kernel regression (context only),500,102,sparse_tail,13,47,68,9.695693177918335,9.855592483300628
+context_only,Gaussian kernel regression (context only),500,103,full,442,58,114299,7.7900819865425035,9.748441973871563
+context_only,Gaussian kernel regression (context only),500,103,DEP,6,0,1323,12.680321976486475,15.84909080729687
+context_only,Gaussian kernel regression (context only),500,103,Bi-214,6,0,1361,11.35151486015431,12.019985558968749
+context_only,Gaussian kernel regression (context only),500,103,continuum_1700_2000,60,0,8230,4.1985408396507315,5.447377241604589
+context_only,Gaussian kernel regression (context only),500,103,SE,6,0,2023,18.391764418894894,21.376221897817242
+context_only,Gaussian kernel regression (context only),500,103,continuum_2200_2400,40,0,9093,3.9593086431078244,4.775183917219387
+context_only,Gaussian kernel regression (context only),500,103,FE,5,1,8709,2.2138429523522425,2.6680757389350376
+context_only,Gaussian kernel regression (context only),500,103,sparse_tail,13,47,68,21.732102029001318,22.61620427135498
+context_only,Gaussian kernel regression (context only),500,104,full,442,58,114299,9.44883845907954,11.540380939901155
+context_only,Gaussian kernel regression (context only),500,104,DEP,6,0,1323,13.563152163908807,14.12656211298359
+context_only,Gaussian kernel regression (context only),500,104,Bi-214,6,0,1361,19.38700558186229,22.721503559797522
+context_only,Gaussian kernel regression (context only),500,104,continuum_1700_2000,60,0,8230,6.238066910958839,7.32560120903931
+context_only,Gaussian kernel regression (context only),500,104,SE,6,0,2023,8.354054541467464,12.264731512753633
+context_only,Gaussian kernel regression (context only),500,104,continuum_2200_2400,40,0,9093,10.426788390471982,11.217374168023813
+context_only,Gaussian kernel regression (context only),500,104,FE,5,1,8709,2.2088246323808836,2.6950376297981946
+context_only,Gaussian kernel regression (context only),500,104,sparse_tail,13,47,68,18.615617184863165,19.48642444422876
+context_only,Gaussian kernel regression (context only),500,105,full,442,58,114299,7.5491663097009445,10.040281737226577
+context_only,Gaussian kernel regression (context only),500,105,DEP,6,0,1323,9.337884329698753,13.204066626946142
+context_only,Gaussian kernel regression (context only),500,105,Bi-214,6,0,1361,10.172681260932443,11.891594807524875
+context_only,Gaussian kernel regression (context only),500,105,continuum_1700_2000,60,0,8230,5.227667623997689,5.902376310644631
+context_only,Gaussian kernel regression (context only),500,105,SE,6,0,2023,10.416756125014636,15.014533411892685
+context_only,Gaussian kernel regression (context only),500,105,continuum_2200_2400,40,0,9093,3.3301089037770035,4.119419772959153
+context_only,Gaussian kernel regression (context only),500,105,FE,5,1,8709,9.252083410915276,9.614831567800882
+context_only,Gaussian kernel regression (context only),500,105,sparse_tail,13,47,68,30.074461526837254,30.730868605155326
+context_only,Gaussian kernel regression (context only),500,106,full,442,58,114299,6.274982322893,8.261266124979064
+context_only,Gaussian kernel regression (context only),500,106,DEP,6,0,1323,6.758138539409569,10.532709699439614
+context_only,Gaussian kernel regression (context only),500,106,Bi-214,6,0,1361,9.102334512825026,12.73685779981773
+context_only,Gaussian kernel regression (context only),500,106,continuum_1700_2000,60,0,8230,6.264748602233032,7.693707499572755
+context_only,Gaussian kernel regression (context only),500,106,SE,6,0,2023,13.023259411336285,16.9989252264016
+context_only,Gaussian kernel regression (context only),500,106,continuum_2200_2400,40,0,9093,3.5727906597683505,4.357741841418884
+context_only,Gaussian kernel regression (context only),500,106,FE,5,1,8709,2.3994490183023807,2.969867625428858
+context_only,Gaussian kernel regression (context only),500,106,sparse_tail,13,47,68,18.19798188168827,19.209433875250955
+context_only,Gaussian kernel regression (context only),500,107,full,442,58,114299,8.283864956598414,10.334617281626825
+context_only,Gaussian kernel regression (context only),500,107,DEP,6,0,1323,10.825843732527018,11.51391762519395
+context_only,Gaussian kernel regression (context only),500,107,Bi-214,6,0,1361,14.921921584679918,19.045235978957297
+context_only,Gaussian kernel regression (context only),500,107,continuum_1700_2000,60,0,8230,6.641365240422266,7.618541871986041
+context_only,Gaussian kernel regression (context only),500,107,SE,6,0,2023,8.844468330948503,12.812640720301843
+context_only,Gaussian kernel regression (context only),500,107,continuum_2200_2400,40,0,9093,11.437126455184316,12.217860831565629
+context_only,Gaussian kernel regression (context only),500,107,FE,5,1,8709,3.495952081218723,4.274311584022114
+context_only,Gaussian kernel regression (context only),500,107,sparse_tail,13,47,68,23.204855645523534,24.040947249053033
+context_only,Gaussian kernel regression (context only),500,108,full,442,58,114299,6.877448458467166,8.649609420607291
+context_only,Gaussian kernel regression (context only),500,108,DEP,6,0,1323,8.466569359651306,12.225313088392443
+context_only,Gaussian kernel regression (context only),500,108,Bi-214,6,0,1361,10.39873276942264,11.854813420024861
+context_only,Gaussian kernel regression (context only),500,108,continuum_1700_2000,60,0,8230,7.039743401097567,8.76747248013282
+context_only,Gaussian kernel regression (context only),500,108,SE,6,0,2023,8.510134308152173,12.243258234186305
+context_only,Gaussian kernel regression (context only),500,108,continuum_2200_2400,40,0,9093,10.648527827744084,11.377350394034478
+context_only,Gaussian kernel regression (context only),500,108,FE,5,1,8709,3.059510793601996,3.672529441655276
+context_only,Gaussian kernel regression (context only),500,108,sparse_tail,13,47,68,14.07010284518046,15.224537665629848
+context_only,Gaussian kernel regression (context only),500,109,full,442,58,114299,7.7404796480857785,9.998483432597084
+context_only,Gaussian kernel regression (context only),500,109,DEP,6,0,1323,8.935801071518434,12.697491484358995
+context_only,Gaussian kernel regression (context only),500,109,Bi-214,6,0,1361,10.561604218273253,11.853529163163955
+context_only,Gaussian kernel regression (context only),500,109,continuum_1700_2000,60,0,8230,6.0287057220134255,7.223346174819087
+context_only,Gaussian kernel regression (context only),500,109,SE,6,0,2023,13.91645956581407,17.621293184311945
+context_only,Gaussian kernel regression (context only),500,109,continuum_2200_2400,40,0,9093,3.797724307306769,4.5929199632161435
+context_only,Gaussian kernel regression (context only),500,109,FE,5,1,8709,2.6171760618002415,3.1906907314968267
+context_only,Gaussian kernel regression (context only),500,109,sparse_tail,13,47,68,19.405245789626917,20.39010065836862
+context_only,Gaussian kernel regression (context only),1000,100,full,442,58,114299,8.475943242788873,10.406259179326696
+context_only,Gaussian kernel regression (context only),1000,100,DEP,6,0,1323,11.169265838010773,14.630593726639093
+context_only,Gaussian kernel regression (context only),1000,100,Bi-214,6,0,1361,10.740962771187291,11.843237139430657
+context_only,Gaussian kernel regression (context only),1000,100,continuum_1700_2000,60,0,8230,7.054045898993373,8.489940921196885
+context_only,Gaussian kernel regression (context only),1000,100,SE,6,0,2023,8.307941274171256,12.287747960309973
+context_only,Gaussian kernel regression (context only),1000,100,continuum_2200_2400,40,0,9093,3.89876604314496,4.718945401057388
+context_only,Gaussian kernel regression (context only),1000,100,FE,5,1,8709,4.899394695068848,5.535188011945323
+context_only,Gaussian kernel regression (context only),1000,100,sparse_tail,13,47,68,22.407811066843124,23.634225845203797
+context_only,Gaussian kernel regression (context only),1000,101,full,442,58,114299,8.940165849450628,10.665543402353562
+context_only,Gaussian kernel regression (context only),1000,101,DEP,6,0,1323,7.2238149059015715,11.167503291998568
+context_only,Gaussian kernel regression (context only),1000,101,Bi-214,6,0,1361,9.42611897881578,12.36726055496431
+context_only,Gaussian kernel regression (context only),1000,101,continuum_1700_2000,60,0,8230,4.841202786363371,6.83567949884964
+context_only,Gaussian kernel regression (context only),1000,101,SE,6,0,2023,10.03372556842131,11.357528109421693
+context_only,Gaussian kernel regression (context only),1000,101,continuum_2200_2400,40,0,9093,12.679404668875701,13.31395480142861
+context_only,Gaussian kernel regression (context only),1000,101,FE,5,1,8709,3.437808997352347,4.127225340301355
+context_only,Gaussian kernel regression (context only),1000,101,sparse_tail,13,47,68,14.50456223903823,15.304326556565428
+context_only,Gaussian kernel regression (context only),1000,102,full,442,58,114299,7.080879779702166,8.737702168141519
+context_only,Gaussian kernel regression (context only),1000,102,DEP,6,0,1323,7.100388178233576,10.98626495948705
+context_only,Gaussian kernel regression (context only),1000,102,Bi-214,6,0,1361,9.320888989114907,12.490353267452727
+context_only,Gaussian kernel regression (context only),1000,102,continuum_1700_2000,60,0,8230,4.459075633843149,5.708558597135083
+context_only,Gaussian kernel regression (context only),1000,102,SE,6,0,2023,8.973596176459587,13.363653636192224
+context_only,Gaussian kernel regression (context only),1000,102,continuum_2200_2400,40,0,9093,11.806702506036885,12.828302180324142
+context_only,Gaussian kernel regression (context only),1000,102,FE,5,1,8709,11.429725719086878,11.711125593952648
+context_only,Gaussian kernel regression (context only),1000,102,sparse_tail,13,47,68,9.522773178983808,9.653522531100558
+context_only,Gaussian kernel regression (context only),1000,103,full,442,58,114299,6.931489071058862,8.977549728299683
+context_only,Gaussian kernel regression (context only),1000,103,DEP,6,0,1323,7.572291500012489,11.560966549231297
+context_only,Gaussian kernel regression (context only),1000,103,Bi-214,6,0,1361,9.313821656767741,12.500506927535959
+context_only,Gaussian kernel regression (context only),1000,103,continuum_1700_2000,60,0,8230,6.95775802777216,8.396381608813929
+context_only,Gaussian kernel regression (context only),1000,103,SE,6,0,2023,13.134330081148757,17.026110063342976
+context_only,Gaussian kernel regression (context only),1000,103,continuum_2200_2400,40,0,9093,3.6856319042270673,4.566047166752736
+context_only,Gaussian kernel regression (context only),1000,103,FE,5,1,8709,3.838854242322874,4.648869802987692
+context_only,Gaussian kernel regression (context only),1000,103,sparse_tail,13,47,68,22.42604981660258,23.649874830574337
+context_only,Gaussian kernel regression (context only),1000,104,full,442,58,114299,8.376941957472804,10.490870450299884
+context_only,Gaussian kernel regression (context only),1000,104,DEP,6,0,1323,12.390843378667963,12.95456874565907
+context_only,Gaussian kernel regression (context only),1000,104,Bi-214,6,0,1361,16.645991988215453,20.436277013892663
+context_only,Gaussian kernel regression (context only),1000,104,continuum_1700_2000,60,0,8230,5.285539259129579,6.241406468912726
+context_only,Gaussian kernel regression (context only),1000,104,SE,6,0,2023,8.34510313337537,12.225028719915267
+context_only,Gaussian kernel regression (context only),1000,104,continuum_2200_2400,40,0,9093,7.616500040597838,8.319115279397774
+context_only,Gaussian kernel regression (context only),1000,104,FE,5,1,8709,2.305150107063391,2.6035244605137957
+context_only,Gaussian kernel regression (context only),1000,104,sparse_tail,13,47,68,16.898651356996965,17.847745454273657
+context_only,Gaussian kernel regression (context only),1000,105,full,442,58,114299,6.480313141766861,8.887410574906138
+context_only,Gaussian kernel regression (context only),1000,105,DEP,6,0,1323,6.941908102429699,10.75857334352446
+context_only,Gaussian kernel regression (context only),1000,105,Bi-214,6,0,1361,8.97672357432144,12.839009529730053
+context_only,Gaussian kernel regression (context only),1000,105,continuum_1700_2000,60,0,8230,4.240659200266135,5.615751684105591
+context_only,Gaussian kernel regression (context only),1000,105,SE,6,0,2023,8.592692320516582,13.018587950214162
+context_only,Gaussian kernel regression (context only),1000,105,continuum_2200_2400,40,0,9093,3.9788435698417315,4.938151034144955
+context_only,Gaussian kernel regression (context only),1000,105,FE,5,1,8709,5.421871662798757,6.012870441729563
+context_only,Gaussian kernel regression (context only),1000,105,sparse_tail,13,47,68,26.379659667638943,27.110525438838312
+context_only,Gaussian kernel regression (context only),1000,106,full,442,58,114299,5.9414043957630795,7.840035352396753
+context_only,Gaussian kernel regression (context only),1000,106,DEP,6,0,1323,9.415987024757682,13.174481674608717
+context_only,Gaussian kernel regression (context only),1000,106,Bi-214,6,0,1361,10.76636573714493,11.851044985412743
+context_only,Gaussian kernel regression (context only),1000,106,continuum_1700_2000,60,0,8230,5.191872725559841,6.2803897737562036
+context_only,Gaussian kernel regression (context only),1000,106,SE,6,0,2023,11.657088110081471,15.906187679278661
+context_only,Gaussian kernel regression (context only),1000,106,continuum_2200_2400,40,0,9093,3.2261668581359384,3.9081726715397327
+context_only,Gaussian kernel regression (context only),1000,106,FE,5,1,8709,2.3631522864177414,2.66275082301469
+context_only,Gaussian kernel regression (context only),1000,106,sparse_tail,13,47,68,16.97156130452782,17.854829058268585
+context_only,Gaussian kernel regression (context only),1000,107,full,442,58,114299,7.6585552484371835,9.43119314191144
+context_only,Gaussian kernel regression (context only),1000,107,DEP,6,0,1323,6.934689965229461,9.47901182997963
+context_only,Gaussian kernel regression (context only),1000,107,Bi-214,6,0,1361,11.478973158797103,16.479977914692903
+context_only,Gaussian kernel regression (context only),1000,107,continuum_1700_2000,60,0,8230,7.733219801880844,8.89082097350977
+context_only,Gaussian kernel regression (context only),1000,107,SE,6,0,2023,9.079563372157486,13.36397720879739
+context_only,Gaussian kernel regression (context only),1000,107,continuum_2200_2400,40,0,9093,12.140147674151727,12.971025589737884
+context_only,Gaussian kernel regression (context only),1000,107,FE,5,1,8709,4.241118174124218,4.969897687746152
+context_only,Gaussian kernel regression (context only),1000,107,sparse_tail,13,47,68,15.747167244744226,16.625389889819367
+context_only,Gaussian kernel regression (context only),1000,108,full,442,58,114299,7.047878920177098,9.036227472859053
+context_only,Gaussian kernel regression (context only),1000,108,DEP,6,0,1323,14.806160139492835,17.683235120115775
+context_only,Gaussian kernel regression (context only),1000,108,Bi-214,6,0,1361,12.412810938264231,12.979874316234408
+context_only,Gaussian kernel regression (context only),1000,108,continuum_1700_2000,60,0,8230,5.579656526054484,6.660985888733794
+context_only,Gaussian kernel regression (context only),1000,108,SE,6,0,2023,9.485775101435502,13.94191000987887
+context_only,Gaussian kernel regression (context only),1000,108,continuum_2200_2400,40,0,9093,14.456394119359874,15.294336406702428
+context_only,Gaussian kernel regression (context only),1000,108,FE,5,1,8709,2.546815439841446,3.0106129986195844
+context_only,Gaussian kernel regression (context only),1000,108,sparse_tail,13,47,68,14.61453436067682,15.730561122073643
+context_only,Gaussian kernel regression (context only),1000,109,full,442,58,114299,6.956179083764709,8.947977192425
+context_only,Gaussian kernel regression (context only),1000,109,DEP,6,0,1323,9.288139813535157,13.083219360271409
+context_only,Gaussian kernel regression (context only),1000,109,Bi-214,6,0,1361,10.482977870106437,11.838102837186982
+context_only,Gaussian kernel regression (context only),1000,109,continuum_1700_2000,60,0,8230,4.8009377236280875,6.238489720091678
+context_only,Gaussian kernel regression (context only),1000,109,SE,6,0,2023,8.221456470535198,12.017333590504647
+context_only,Gaussian kernel regression (context only),1000,109,continuum_2200_2400,40,0,9093,3.649885766492346,4.526460665805818
+context_only,Gaussian kernel regression (context only),1000,109,FE,5,1,8709,2.945763902331778,3.5496694903924544
+context_only,Gaussian kernel regression (context only),1000,109,sparse_tail,13,47,68,19.256055667412973,20.247421880368844
+context_only,Gaussian kernel regression (context only),2000,100,full,442,58,114299,6.7655563292984775,8.7544075330639
+context_only,Gaussian kernel regression (context only),2000,100,DEP,6,0,1323,7.15759349651212,11.068962510877993
+context_only,Gaussian kernel regression (context only),2000,100,Bi-214,6,0,1361,9.196143875196947,12.60183467344495
+context_only,Gaussian kernel regression (context only),2000,100,continuum_1700_2000,60,0,8230,4.267421086721698,5.0659779652946115
+context_only,Gaussian kernel regression (context only),2000,100,SE,6,0,2023,8.940986123419814,13.237558090797652
+context_only,Gaussian kernel regression (context only),2000,100,continuum_2200_2400,40,0,9093,4.332739321591694,5.055620580470884
+context_only,Gaussian kernel regression (context only),2000,100,FE,5,1,8709,3.1552936943302314,3.8706257033964597
+context_only,Gaussian kernel regression (context only),2000,100,sparse_tail,13,47,68,20.14895383214403,21.19568977118931
+context_only,Gaussian kernel regression (context only),2000,101,full,442,58,114299,7.399472972997137,9.009724776215123
+context_only,Gaussian kernel regression (context only),2000,101,DEP,6,0,1323,8.076134475161519,12.037579605164037
+context_only,Gaussian kernel regression (context only),2000,101,Bi-214,6,0,1361,9.371619394240595,12.378919212003971
+context_only,Gaussian kernel regression (context only),2000,101,continuum_1700_2000,60,0,8230,4.3629039957369535,5.573893459368198
+context_only,Gaussian kernel regression (context only),2000,101,SE,6,0,2023,9.595683775716202,11.056723973422976
+context_only,Gaussian kernel regression (context only),2000,101,continuum_2200_2400,40,0,9093,6.065556263797136,6.889774446388673
+context_only,Gaussian kernel regression (context only),2000,101,FE,5,1,8709,2.8944986048851296,3.479486496612203
+context_only,Gaussian kernel regression (context only),2000,101,sparse_tail,13,47,68,7.796438316032756,11.990852348496228
+context_only,Gaussian kernel regression (context only),2000,102,full,442,58,114299,5.913305691807972,7.520689731441836
+context_only,Gaussian kernel regression (context only),2000,102,DEP,6,0,1323,7.029349775161066,10.881551622508235
+context_only,Gaussian kernel regression (context only),2000,102,Bi-214,6,0,1361,9.125613458854389,12.681241356502145
+context_only,Gaussian kernel regression (context only),2000,102,continuum_1700_2000,60,0,8230,4.144103619030114,5.427133659226393
+context_only,Gaussian kernel regression (context only),2000,102,SE,6,0,2023,8.294820610198963,11.761689912355934
+context_only,Gaussian kernel regression (context only),2000,102,continuum_2200_2400,40,0,9093,6.157539465647123,7.076789992073416
+context_only,Gaussian kernel regression (context only),2000,102,FE,5,1,8709,5.3975298487273315,5.974832128713751
+context_only,Gaussian kernel regression (context only),2000,102,sparse_tail,13,47,68,13.936272256001619,14.591641327250024
+context_only,Gaussian kernel regression (context only),2000,103,full,442,58,114299,6.518713694493409,8.592732598357
+context_only,Gaussian kernel regression (context only),2000,103,DEP,6,0,1323,7.68010877257536,11.651050760801299
+context_only,Gaussian kernel regression (context only),2000,103,Bi-214,6,0,1361,9.332348211238228,12.469561444794234
+context_only,Gaussian kernel regression (context only),2000,103,continuum_1700_2000,60,0,8230,4.612502792766708,5.88177982404933
+context_only,Gaussian kernel regression (context only),2000,103,SE,6,0,2023,9.741858834896217,14.563051569063242
+context_only,Gaussian kernel regression (context only),2000,103,continuum_2200_2400,40,0,9093,4.128521999364526,5.22667410614443
+context_only,Gaussian kernel regression (context only),2000,103,FE,5,1,8709,3.6176681592260937,4.406424664418322
+context_only,Gaussian kernel regression (context only),2000,103,sparse_tail,13,47,68,20.655418646384476,21.76366961545293
+context_only,Gaussian kernel regression (context only),2000,104,full,442,58,114299,6.629030284401057,8.567127464447715
+context_only,Gaussian kernel regression (context only),2000,104,DEP,6,0,1323,9.671773588074846,10.622998859852348
+context_only,Gaussian kernel regression (context only),2000,104,Bi-214,6,0,1361,13.70875791455549,18.11697056826445
+context_only,Gaussian kernel regression (context only),2000,104,continuum_1700_2000,60,0,8230,4.829428144892638,5.924305224565335
+context_only,Gaussian kernel regression (context only),2000,104,SE,6,0,2023,8.707666138524129,13.012867913309082
+context_only,Gaussian kernel regression (context only),2000,104,continuum_2200_2400,40,0,9093,5.2927863928382655,6.048595124458655
+context_only,Gaussian kernel regression (context only),2000,104,FE,5,1,8709,2.2786675180418827,2.7191701625186857
+context_only,Gaussian kernel regression (context only),2000,104,sparse_tail,13,47,68,18.071685427914023,19.153811948393415
+context_only,Gaussian kernel regression (context only),2000,105,full,442,58,114299,5.845605736445717,7.64919651238885
+context_only,Gaussian kernel regression (context only),2000,105,DEP,6,0,1323,6.9783073806652895,10.808067226043578
+context_only,Gaussian kernel regression (context only),2000,105,Bi-214,6,0,1361,8.994823339566265,12.819624862688814
+context_only,Gaussian kernel regression (context only),2000,105,continuum_1700_2000,60,0,8230,4.452039178047113,5.294078200699176
+context_only,Gaussian kernel regression (context only),2000,105,SE,6,0,2023,8.835758912580923,13.481510632877484
+context_only,Gaussian kernel regression (context only),2000,105,continuum_2200_2400,40,0,9093,3.8361166253608516,4.736417396607396
+context_only,Gaussian kernel regression (context only),2000,105,FE,5,1,8709,2.283721950336349,2.579183749034671
+context_only,Gaussian kernel regression (context only),2000,105,sparse_tail,13,47,68,17.87960797508926,18.675961302810855
+context_only,Gaussian kernel regression (context only),2000,106,full,442,58,114299,6.013379584843702,7.665096891786948
+context_only,Gaussian kernel regression (context only),2000,106,DEP,6,0,1323,6.80610050732058,10.368491273406818
+context_only,Gaussian kernel regression (context only),2000,106,Bi-214,6,0,1361,9.07579332397878,12.681785105850828
+context_only,Gaussian kernel regression (context only),2000,106,continuum_1700_2000,60,0,8230,5.68764492235864,6.968035277247085
+context_only,Gaussian kernel regression (context only),2000,106,SE,6,0,2023,7.851547148161241,11.253782299419203
+context_only,Gaussian kernel regression (context only),2000,106,continuum_2200_2400,40,0,9093,3.32809413952744,4.12379859292193
+context_only,Gaussian kernel regression (context only),2000,106,FE,5,1,8709,5.363364619630726,5.977135760415283
+context_only,Gaussian kernel regression (context only),2000,106,sparse_tail,13,47,68,5.514454426127976,9.080821938578747
+context_only,Gaussian kernel regression (context only),2000,107,full,442,58,114299,6.622410531367208,8.285393606217422
+context_only,Gaussian kernel regression (context only),2000,107,DEP,6,0,1323,6.4277282718232005,10.120368563576475
+context_only,Gaussian kernel regression (context only),2000,107,Bi-214,6,0,1361,9.216901359196443,13.867318642211693
+context_only,Gaussian kernel regression (context only),2000,107,continuum_1700_2000,60,0,8230,4.972257496382235,5.841156394438043
+context_only,Gaussian kernel regression (context only),2000,107,SE,6,0,2023,8.851506566631743,13.073665341361837
+context_only,Gaussian kernel regression (context only),2000,107,continuum_2200_2400,40,0,9093,9.283838063417289,10.093639007390502
+context_only,Gaussian kernel regression (context only),2000,107,FE,5,1,8709,3.1012123772099294,3.703261525776462
+context_only,Gaussian kernel regression (context only),2000,107,sparse_tail,13,47,68,15.37964010521114,16.292599195506998
+context_only,Gaussian kernel regression (context only),2000,108,full,442,58,114299,6.685797925235729,8.378120975917152
+context_only,Gaussian kernel regression (context only),2000,108,DEP,6,0,1323,14.46443140969105,17.28705595197017
+context_only,Gaussian kernel regression (context only),2000,108,Bi-214,6,0,1361,11.935672584564742,12.450387062223303
+context_only,Gaussian kernel regression (context only),2000,108,continuum_1700_2000,60,0,8230,4.590884683677025,6.018742019442286
+context_only,Gaussian kernel regression (context only),2000,108,SE,6,0,2023,8.60902559400294,10.834760031978353
+context_only,Gaussian kernel regression (context only),2000,108,continuum_2200_2400,40,0,9093,9.847912229624377,10.676080344624346
+context_only,Gaussian kernel regression (context only),2000,108,FE,5,1,8709,3.2053654304394787,3.8578863057423836
+context_only,Gaussian kernel regression (context only),2000,108,sparse_tail,13,47,68,7.1326839873360655,10.817630780866288
+context_only,Gaussian kernel regression (context only),2000,109,full,442,58,114299,6.788242967519757,8.570270283070357
+context_only,Gaussian kernel regression (context only),2000,109,DEP,6,0,1323,12.750766869610395,15.984680313877917
+context_only,Gaussian kernel regression (context only),2000,109,Bi-214,6,0,1361,11.565162995287585,12.14153537508544
+context_only,Gaussian kernel regression (context only),2000,109,continuum_1700_2000,60,0,8230,5.452652687995452,6.52177723317227
+context_only,Gaussian kernel regression (context only),2000,109,SE,6,0,2023,8.348442948218953,10.71033435828507
+context_only,Gaussian kernel regression (context only),2000,109,continuum_2200_2400,40,0,9093,3.107104176025579,3.769355108992334
+context_only,Gaussian kernel regression (context only),2000,109,FE,5,1,8709,3.858493740910677,4.6896023255559065
+context_only,Gaussian kernel regression (context only),2000,109,sparse_tail,13,47,68,12.643003091742417,15.489173634321277
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,full,442,58,114299,6.648403145318256,8.896510642128044
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,DEP,6,0,1323,6.319608988807958,8.312558931303771
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,Bi-214,6,0,1361,10.128511770941644,11.606369225678357
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,continuum_1700_2000,60,0,8230,6.628314256536745,8.877454085530259
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,SE,6,0,2023,2.7517126086899326,3.085639275217787
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,continuum_2200_2400,40,0,9093,5.029371135756069,6.229529865993896
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,FE,5,1,8709,6.802981820361727,9.58544380892174
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,full,442,58,114299,5.542037317154829,7.292632213715732
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,DEP,6,0,1323,10.21754137182433,10.896140397691845
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,Bi-214,6,0,1361,9.883431526131899,12.83757010222061
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,continuum_1700_2000,60,0,8230,4.854953784359082,6.0943521367234075
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,SE,6,0,2023,9.171341872685112,10.000361441044996
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,continuum_2200_2400,40,0,9093,3.2088388050931878,3.734995344853857
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,FE,5,1,8709,4.384371273885752,5.120166682982094
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,full,442,58,114299,5.5415672200548745,7.2994297026424455
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,DEP,6,0,1323,10.60831142725357,11.292093331101194
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,Bi-214,6,0,1361,9.894582380481117,12.71439360437914
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,continuum_1700_2000,60,0,8230,4.602749296678616,5.844632317045289
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,SE,6,0,2023,9.00312510732113,9.883696766503572
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,continuum_2200_2400,40,0,9093,3.1748318140533347,3.699724172488149
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,FE,5,1,8709,4.276191544779516,5.028857416653975
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,full,442,58,114299,5.749185022138643,7.732896686164784
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,DEP,6,0,1323,9.05868268551505,10.98799340975766
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,Bi-214,6,0,1361,10.587173310158143,13.12141237776618
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,continuum_1700_2000,60,0,8230,5.078770207735691,6.7740373519257036
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,SE,6,0,2023,6.558313681676554,7.482753446770237
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,continuum_2200_2400,40,0,9093,3.7661080937748057,4.581582600716486
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,FE,5,1,8709,4.349518948328468,5.183406794358064
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,full,442,58,114299,5.523227219200777,7.053196629283463
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,DEP,6,0,1323,8.386515673805594,9.811153537280312
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,Bi-214,6,0,1361,9.855570596242654,11.714684849351165
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,continuum_1700_2000,60,0,8230,4.977625508522234,5.879380454554652
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,SE,6,0,2023,9.083304064770548,10.467374604614957
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,continuum_2200_2400,40,0,9093,2.97509204251387,3.530866124788624
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,FE,5,1,8709,4.107108232326999,4.876316939005213
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,sparse_tail,13,47,68,2.6374584858772994,6.8167306535620416
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,full,442,58,114299,5.75329661945087,7.6893292584211475
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,DEP,6,0,1323,9.83800648416216,11.377908438667598
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,Bi-214,6,0,1361,10.798456513979556,13.34871614299082
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,continuum_1700_2000,60,0,8230,5.195580767845712,6.825297158287991
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,SE,6,0,2023,6.992780246994195,7.8466311654543555
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,continuum_2200_2400,40,0,9093,3.9194568187656866,4.686698325956302
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,FE,5,1,8709,4.211262113745566,5.064037733492851
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,full,442,58,114299,5.522617884208082,7.051246666430097
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,DEP,6,0,1323,8.158829892915202,9.71007358226707
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,Bi-214,6,0,1361,9.786705178717794,11.685528267939556
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,continuum_1700_2000,60,0,8230,4.857475503173678,5.7999748784817
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,SE,6,0,2023,9.031452350073536,10.44550245906902
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,continuum_2200_2400,40,0,9093,2.980438763306952,3.5462949747379997
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,FE,5,1,8709,4.204026003278535,4.958373943294673
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,sparse_tail,13,47,68,2.637458787532141,6.81673063698436
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,full,442,58,114299,5.550661011635166,7.097266923874546
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,DEP,6,0,1323,8.296795662606936,9.789558283878808
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,Bi-214,6,0,1361,9.83809600550684,11.676166695840298
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,continuum_1700_2000,60,0,8230,4.882652032985499,5.856871101692717
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,SE,6,0,2023,9.083707818711256,10.483578223668216
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,continuum_2200_2400,40,0,9093,2.9336803372250575,3.5283940240651326
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,FE,5,1,8709,4.040266570128524,4.821605969059548
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,sparse_tail,13,47,68,2.637460270006553,6.816730635538105
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,full,442,58,114299,5.517952955438471,7.261752884669477
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,DEP,6,0,1323,10.16755914968778,10.82653744480545
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,Bi-214,6,0,1361,9.738378974968445,12.47566550927599
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,continuum_1700_2000,60,0,8230,4.794580925714988,5.982487042598632
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,SE,6,0,2023,9.08510364015742,9.93415447201482
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,continuum_2200_2400,40,0,9093,3.188814490334977,3.729600924151086
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,FE,5,1,8709,4.1320435796348125,4.8922441096005995
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,full,442,58,114299,5.515244500351392,7.048683793542368
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,DEP,6,0,1323,8.290990463501622,9.769968891075127
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,Bi-214,6,0,1361,9.818977222320777,11.678092499978066
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,continuum_1700_2000,60,0,8230,4.707201007289501,5.650987418466199
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,SE,6,0,2023,9.065075829277482,10.449810982247126
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,continuum_2200_2400,40,0,9093,2.9654406549236567,3.5342363846503715
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,FE,5,1,8709,4.2075016590108865,4.960418462651566
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,sparse_tail,13,47,68,2.637458262028682,6.816730637471631
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,full,442,58,114299,5.524882697435674,7.073941330689089
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,DEP,6,0,1323,8.21255782947663,9.714036121909523
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,Bi-214,6,0,1361,9.824135656509736,11.711663397938706
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,continuum_1700_2000,60,0,8230,4.60064119090878,5.573554298594316
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,SE,6,0,2023,8.841694768977119,10.368317591153803
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,continuum_2200_2400,40,0,9093,3.0035820398316946,3.621461026717428
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,FE,5,1,8709,4.127293070369055,4.893097299701261
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,sparse_tail,13,47,68,2.6374602796270867,6.816730635601524
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,full,442,58,114299,5.730196048782999,7.72039605721002
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,DEP,6,0,1323,9.508490816868502,11.17245214773309
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,Bi-214,6,0,1361,10.410286407918111,12.919636354949748
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,continuum_1700_2000,60,0,8230,5.459840866640251,7.113030549541831
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,SE,6,0,2023,6.854226057490077,7.788234872143744
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,continuum_2200_2400,40,0,9093,3.3945167380825327,4.3240129844600546
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,FE,5,1,8709,4.58736299572494,5.35495095769183
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,full,442,58,114299,5.4999911431656345,7.257878129710107
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,DEP,6,0,1323,10.80453302716994,11.503836412875563
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,Bi-214,6,0,1361,9.900648480761193,12.671866206239088
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,continuum_1700_2000,60,0,8230,4.583554728751096,5.779673484666098
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,SE,6,0,2023,8.78765564807284,9.733340536990216
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,continuum_2200_2400,40,0,9093,3.1611036028141517,3.67839691376768
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,FE,5,1,8709,4.412744724531657,5.140174439633052
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,full,442,58,114299,5.739011384035726,7.696447929200399
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,DEP,6,0,1323,9.263023146683029,11.102387664493287
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,Bi-214,6,0,1361,10.838809661237427,13.454051207015016
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,continuum_1700_2000,60,0,8230,5.114231694504232,6.76704026200996
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,SE,6,0,2023,6.518581841688989,7.407512050574142
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,continuum_2200_2400,40,0,9093,3.6777839312273053,4.474292540759659
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,FE,5,1,8709,4.149219705741039,5.0405040975803495
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,full,442,58,114299,5.630729573024488,7.160865032398229
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,DEP,6,0,1323,6.552299732147494,10.289912552082525
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,Bi-214,6,0,1361,8.918750553954839,13.079980453339738
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,continuum_1700_2000,60,0,8230,5.044120122804106,5.729806766991205
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,SE,6,0,2023,8.279564873510704,11.163634009038589
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,continuum_2200_2400,40,0,9093,3.244645822956739,3.974515510848764
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,FE,5,1,8709,4.029014463102983,4.805737498980672
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,sparse_tail,13,47,68,6.192035939199203,9.69153442532039
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,full,442,58,114299,5.510420859117854,7.05254739629859
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,DEP,6,0,1323,8.387342328347609,9.829746432490213
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,Bi-214,6,0,1361,9.961089844989557,11.674342804339641
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,continuum_1700_2000,60,0,8230,4.870627360467423,5.814650097137343
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,SE,6,0,2023,9.106099930964424,10.489974884416645
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,continuum_2200_2400,40,0,9093,3.023863026070553,3.6164171691762483
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,FE,5,1,8709,3.984158893879719,4.772812613698734
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,sparse_tail,13,47,68,2.6374602339474227,6.816730635569749
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,full,442,58,114299,5.478983719708419,7.032202719380565
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,DEP,6,0,1323,8.158420672407598,9.697732742488581
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,Bi-214,6,0,1361,9.787836285558518,11.68574380544265
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,continuum_1700_2000,60,0,8230,4.753017179345867,5.698456698460463
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,SE,6,0,2023,9.0040020579285,10.413136873862323
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,continuum_2200_2400,40,0,9093,2.9717626962316332,3.5413021268978127
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,FE,5,1,8709,4.032120836342094,4.8152835176397115
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,sparse_tail,13,47,68,2.6374622423387195,6.816730633622009
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,full,442,58,114299,5.577158561084198,7.120286240367914
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,DEP,6,0,1323,8.335351516985542,9.800971450515181
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,Bi-214,6,0,1361,9.82111325791471,11.664092277517398
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,continuum_1700_2000,60,0,8230,4.897933622152924,5.8074754774289055
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,SE,6,0,2023,9.140834042938634,10.52537865261752
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,continuum_2200_2400,40,0,9093,2.8992418768718853,3.493888072350267
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,FE,5,1,8709,4.034731911163776,4.8165048846465615
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,sparse_tail,13,47,68,2.6374610256776445,6.816730634898306
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,full,442,58,114299,5.798920330899278,7.769223075332074
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,DEP,6,0,1323,9.345967280554914,10.943799980060808
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,Bi-214,6,0,1361,10.40633541608244,12.7400613414759
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,continuum_1700_2000,60,0,8230,5.195390495723733,6.860923989792283
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,SE,6,0,2023,6.9448206091710745,7.769872605504445
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,continuum_2200_2400,40,0,9093,3.499501600698861,4.359995843935373
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,FE,5,1,8709,4.1586025949019385,4.906851236337874
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,full,442,58,114299,5.560195275367605,7.078573923887088
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,DEP,6,0,1323,8.342541098904812,9.80339409203994
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,Bi-214,6,0,1361,9.821771459921997,11.67044905992498
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,continuum_1700_2000,60,0,8230,4.7534560998289335,5.711549393786726
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,SE,6,0,2023,8.994261424317694,10.405289835795154
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,continuum_2200_2400,40,0,9093,2.974977245038777,3.533328753372913
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,FE,5,1,8709,4.118391828054261,4.886094721206315
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,sparse_tail,13,47,68,2.637460329374902,6.816730635506792
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,full,442,58,114299,5.494495168395278,7.053750584916446
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,DEP,6,0,1323,8.04664318983262,9.63404052575281
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,Bi-214,6,0,1361,9.759390013581552,11.679542189494676
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,continuum_1700_2000,60,0,8230,4.527072105946844,5.474790514054447
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,SE,6,0,2023,8.9870455777674,10.39865661061072
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,continuum_2200_2400,40,0,9093,2.966335954768091,3.6040195789600173
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,FE,5,1,8709,3.7665110703668057,4.583640911201757
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,sparse_tail,13,47,68,2.637464600740149,6.8167306316477285
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,full,442,58,114299,5.714999871391316,7.736482575597167
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,DEP,6,0,1323,9.601183962449982,11.2300856220382
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,Bi-214,6,0,1361,10.484001146797816,12.944223256398244
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,continuum_1700_2000,60,0,8230,5.354128119302372,7.042723977371739
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,SE,6,0,2023,7.308371886524514,8.272345820572802
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,continuum_2200_2400,40,0,9093,3.303779878934711,4.178351853630605
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,FE,5,1,8709,4.347323335557515,5.232444889245986
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,full,442,58,114299,5.670449691635007,7.61134143327402
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,DEP,6,0,1323,9.51625105147344,11.152758666547124
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,Bi-214,6,0,1361,10.339986032922148,12.570507277126422
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,continuum_1700_2000,60,0,8230,5.11313999798022,6.628907977429063
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,SE,6,0,2023,7.00653343053116,7.51020635499763
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,continuum_2200_2400,40,0,9093,3.54672935182595,4.370581374313491
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,FE,5,1,8709,4.798885885283228,5.549012609549201
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,full,442,58,114299,5.701230891858664,7.610964689015326
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,DEP,6,0,1323,8.512412041556493,10.57304386358479
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,Bi-214,6,0,1361,10.180364634116053,12.741001197619248
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,continuum_1700_2000,60,0,8230,5.0384726738612615,6.546307308603327
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,SE,6,0,2023,6.641116097624651,7.452115776956436
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,continuum_2200_2400,40,0,9093,3.5398890196174135,4.390208127268237
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,FE,5,1,8709,3.838022638490715,4.739537712222265
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,full,442,58,114299,5.545462969604429,7.082784429276791
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,DEP,6,0,1323,8.503432904150205,9.87679143679642
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,Bi-214,6,0,1361,9.84134820721786,11.755695053615565
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,continuum_1700_2000,60,0,8230,4.821334471056538,5.733506656023133
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,SE,6,0,2023,9.113071451022458,10.463372344996936
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,continuum_2200_2400,40,0,9093,2.9356671835092376,3.5416216220034435
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,FE,5,1,8709,4.000879971674523,4.79003288333572
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,sparse_tail,13,47,68,2.6374645012956437,6.816730648855204
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,full,442,58,114299,5.518280397755604,7.28665308570683
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,DEP,6,0,1323,10.547164790787049,11.273136850663851
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,Bi-214,6,0,1361,10.15273162484739,13.164365046131504
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,continuum_1700_2000,60,0,8230,4.540183891146294,5.709725625645786
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,SE,6,0,2023,9.251261042566748,10.076000882737828
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,continuum_2200_2400,40,0,9093,3.334651554913269,3.846035715681269
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,FE,5,1,8709,3.8300586371414425,4.655313511282075
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,full,442,58,114299,5.417835309540388,7.1812096077609855
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,DEP,6,0,1323,9.944726217730992,10.676573621689531
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,Bi-214,6,0,1361,9.834562409378812,12.629619802403482
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,continuum_1700_2000,60,0,8230,4.517977282340513,5.74793541622126
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,SE,6,0,2023,9.089159181239525,9.899212368061203
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,continuum_2200_2400,40,0,9093,3.1583960077567363,3.6319175500987684
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,FE,5,1,8709,3.9899150434634794,4.774137762826211
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,full,442,58,114299,5.578472245632897,7.119455629698207
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,DEP,6,0,1323,8.231117695857304,9.715553331356647
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,Bi-214,6,0,1361,9.828676927333886,11.69480548356467
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,continuum_1700_2000,60,0,8230,4.989584787433755,5.873822848255776
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,SE,6,0,2023,9.110520846422364,10.51014179619999
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,continuum_2200_2400,40,0,9093,2.8757081707907854,3.483222751847098
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,FE,5,1,8709,4.2163681788427745,4.968498917806901
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,sparse_tail,13,47,68,2.6374621937017357,6.816730633656998
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,full,442,58,114299,5.763040544035468,7.771501722590242
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,DEP,6,0,1323,9.070819494234849,10.70092035308459
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,Bi-214,6,0,1361,10.42961433909333,12.814366998403647
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,continuum_1700_2000,60,0,8230,5.162218382446899,6.721263667911111
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,SE,6,0,2023,6.679547079871092,7.377131505058249
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,continuum_2200_2400,40,0,9093,3.3336330288007185,4.176256523811288
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,FE,5,1,8709,4.12822001036137,4.881523898607988
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,full,442,58,114299,5.751782066625379,7.725901786538082
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,DEP,6,0,1323,9.231650319875428,11.126584240930836
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,Bi-214,6,0,1361,10.857056756305766,13.139664243195146
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,continuum_1700_2000,60,0,8230,4.911046539373466,6.733598851797111
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,SE,6,0,2023,6.772873231525881,7.656758439673316
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,continuum_2200_2400,40,0,9093,3.631612038071022,4.4207240567517605
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,FE,5,1,8709,4.14934807450051,4.9783713333297275
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,full,442,58,114299,5.462914656157563,7.201457810786888
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,DEP,6,0,1323,10.272405183495687,10.938978824731894
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,Bi-214,6,0,1361,9.657329832984333,12.189975788781073
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,continuum_1700_2000,60,0,8230,4.524417582942822,5.7983359225829805
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,SE,6,0,2023,8.969122387750383,9.856708090178984
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,continuum_2200_2400,40,0,9093,3.1633736888778983,3.7673225057163924
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,FE,5,1,8709,3.7128364365460245,4.5204005949541886
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,full,442,58,114299,5.642169898630752,7.654453979723377
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,DEP,6,0,1323,9.119362714045245,10.966904116684775
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,Bi-214,6,0,1361,10.298324674971056,12.89864512730817
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,continuum_1700_2000,60,0,8230,5.327921386078114,6.960942218084279
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,SE,6,0,2023,7.176995471728068,8.111032239877375
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,continuum_2200_2400,40,0,9093,3.3159645729592664,4.149335799978545
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,FE,5,1,8709,3.747773474175927,4.663286193153929
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,full,442,58,114299,5.7647874502902505,7.665507410770492
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,DEP,6,0,1323,9.645156245038388,11.350517873990551
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,Bi-214,6,0,1361,10.03036492502537,12.350770373599259
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,continuum_1700_2000,60,0,8230,5.219315123366592,6.5736745146491
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,SE,6,0,2023,7.454244352199497,8.178263773405744
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,continuum_2200_2400,40,0,9093,3.7044912545488766,4.531031354472541
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,FE,5,1,8709,4.550745333307458,5.342588004501062
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,full,442,58,114299,5.681719201134596,7.696229913938864
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,DEP,6,0,1323,7.933021648218036,9.890945835041547
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,Bi-214,6,0,1361,10.440340162756572,13.198347072623232
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,continuum_1700_2000,60,0,8230,5.055805218514512,6.349252358901541
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,SE,6,0,2023,6.92568719716282,7.784224175918958
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,continuum_2200_2400,40,0,9093,3.5636544435420414,4.403487173688841
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,FE,5,1,8709,3.5850175369528996,4.373602189432762
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,full,442,58,114299,5.466657558795375,7.2108290216565605
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,DEP,6,0,1323,10.428944508292927,11.122508005934922
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,Bi-214,6,0,1361,9.394951661454124,11.670931545120165
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,continuum_1700_2000,60,0,8230,4.6907803775526435,5.792918047275732
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,SE,6,0,2023,9.317963919363462,10.107762880536724
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,continuum_2200_2400,40,0,9093,3.0536179444156524,3.5668909723147055
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,FE,5,1,8709,3.75735459432947,4.578416140319848
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,full,442,58,114299,5.689120668612179,7.585730607701663
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,DEP,6,0,1323,9.754365426476035,11.544591750972371
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,Bi-214,6,0,1361,9.782705382777511,12.4065594804275
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,continuum_1700_2000,60,0,8230,5.053591125599419,6.668480481007941
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,SE,6,0,2023,6.802366206817085,7.721024108733911
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,continuum_2200_2400,40,0,9093,3.8439098929187523,4.642689793411501
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,FE,5,1,8709,4.092002924866751,5.0250678143013765
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,full,442,58,114299,5.694958811550512,7.6001734990092915
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,DEP,6,0,1323,8.919698037859975,10.883208548935382
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,Bi-214,6,0,1361,9.370294757365414,11.877421884476844
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,continuum_1700_2000,60,0,8230,5.245779441049878,6.687387446646699
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,SE,6,0,2023,7.315062129933751,7.849348449539548
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,continuum_2200_2400,40,0,9093,3.418474689777133,4.084736829085813
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,FE,5,1,8709,4.377708959518524,5.1712091747050115
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,full,442,58,114299,5.50462194412572,7.276482926185343
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,DEP,6,0,1323,10.53100586641774,11.240697488198636
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,Bi-214,6,0,1361,9.822340305564925,12.672465660820803
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,continuum_1700_2000,60,0,8230,4.76939547867788,5.852579999388593
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,SE,6,0,2023,8.984749345794315,9.85897572837145
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,continuum_2200_2400,40,0,9093,3.0436449007609023,3.616693883159092
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,FE,5,1,8709,4.144138364774513,4.919353156909682
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,full,442,58,114299,5.496805806777084,7.293423522378398
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,DEP,6,0,1323,9.672469106642092,10.384317888542812
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,Bi-214,6,0,1361,9.644180507087228,12.3308122613031
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,continuum_1700_2000,60,0,8230,4.501902744976584,5.809890113356472
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,SE,6,0,2023,9.196012776617216,10.035556593393983
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,continuum_2200_2400,40,0,9093,2.945564659816515,3.575334018425442
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,FE,5,1,8709,4.043662967369858,4.812435764532074
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,full,442,58,114299,5.7361182186710415,7.680799616065176
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,DEP,6,0,1323,8.060036773738217,10.33544840994506
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,Bi-214,6,0,1361,11.224003228034547,13.792340009698933
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,continuum_1700_2000,60,0,8230,5.210560817607001,6.737594934647934
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,SE,6,0,2023,6.763328885371152,7.691410817825993
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,continuum_2200_2400,40,0,9093,3.61006381343595,4.343637323007122
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,FE,5,1,8709,4.202771643614831,5.028785850266935
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,sparse_tail,13,47,68,2.6373626373626373,6.816730733745416

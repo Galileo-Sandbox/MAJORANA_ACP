@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "analysis": "Phase 1 Gaussian-kernel context-only and pooled-data controls",
+  "status": "completed",
+  "source_commit": "b2c6ca1ca80b32353ba9cce8e7310f9820239a47",
+  "script": "ml4phy-paper/scripts/run_extension_kernel.py",
+  "script_sha256": "18522605f4438c4fbcf4ad77e0070c9922869ac3c17d209e6c1d488f1921539f",
+  "protocol_sha256": "104d8975d49dc6896ee339de461b824791ac0d5c3cd03ec24210c521f9783e6f",
+  "base_protocol_sha256": "4c747fafbb043a62746616ba32160bb16a4bfad92ffea379dab6e234f714c4ce",
+  "training_predictions_sha256": "ea2eb5594acdd181ebc18926fd8deabc7b2f6910b117dec863d87c3b70057159",
+  "archived_n2000_bandwidths_reproduced": true,
+  "bandwidth_candidates_kev": [
+    2.0,
+    5.0,
+    10.0,
+    20.0,
+    50.0,
+    100.0
+  ],
+  "cv_folds": 5,
+  "cv_seed": 20260908,
+  "context_only_pretraining_events": 0,
+  "pooled_data_pretraining_events": 18866,
+  "final_cell_count": 80,
+  "runtime_seconds": 202.5489115510136,
+  "failed_runs": [
+    {
+      "attempt": 1,
+      "stage": "pooled-data context contribution",
+      "reason": "A context-only Gaussian denominator underflowed to zero for a sparse query at 2 keV bandwidth before combination with the nonzero pooled base.",
+      "scientific_outputs_produced": false,
+      "resolution": "Allow an exact zero additive context contribution while requiring nonzero pooled-base and combined denominators; rerun in a unique attempt-2 directory."
+    }
+  ],
+  "server_only_predictions": {
+    "path": "ml4phy-paper/runs/kernel/20260909-phase1-kernel-v1-attempt2/predictions.npz",
+    "bytes": 39375670,
+    "sha256": "9048e6e5cbcdf5216c459f685cac1e38d632c94fd9ae21c1128794113294e601"
+  },
+  "outputs": {
+    "ml4phy-paper/tables/phase1_kernel_bandwidth_selection.csv": {
+      "bytes": 80553,
+      "sha256": "41a150fbd848dc9ba8ce3f9f3542e4c452e9d30e6f544324ada210dfb81cb9bf"
+    },
+    "ml4phy-paper/tables/phase1_kernel_cell_metrics.csv": {
+      "bytes": 15102,
+      "sha256": "d985c501611d612203d5564933eabe2940ca6f945e7146e6d741130d9927055e"
+    },
+    "ml4phy-paper/tables/phase1_kernel_bin_error_cells.csv": {
+      "bytes": 79005,
+      "sha256": "bd40f10c99eed1b0823f6dde8d3585f46904df4709bf3656c42b1bd1723431ac"
+    },
+    "ml4phy-paper/tables/phase1_kernel_peak_contrast_cells.csv": {
+      "bytes": 44426,
+      "sha256": "d6bb394b2d0415bbcc63a616b66ff0aa3a05b42edd2ecb63378d224b5b3bbc97"
+    },
+    "ml4phy-paper/tables/phase1_kernel_context_size_summary.csv": {
+      "bytes": 2584,
+      "sha256": "948e934fd4473fe54f55aa67078495d03daa4d27dcdcab109848af9f8f04eab7"
+    },
+    "ml4phy-paper/tables/phase1_kernel_acceptance_curves.csv": {
+      "bytes": 1093563,
+      "sha256": "fcb6155e27ab00b31fec4d935bba50bcf50574aeb02a343b28326a7136817e92"
+    },
+    "ml4phy-paper/figures/phase1_kernel_context_efficiency.png": {
+      "bytes": 101267,
+      "sha256": "2511f0d36cf7d7911306bdfb8088ce7896a2c137b1e5caf5bd9efaa3fe3e705b"
+    },
+    "ml4phy-paper/reports/phase1_kernel_result.md": {
+      "bytes": 2082,
+      "sha256": "8214e4dc5d7548d6646ed0f8f9c2c31738162cf70a5f55aa6f9af45875268973"
+    }
+  },
+  "historical_data_exposure": "Prospectively specified follow-up analysis on historically exposed data; not an untouched test."
+}

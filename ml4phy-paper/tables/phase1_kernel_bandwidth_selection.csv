@@ -1,0 +1,481 @@
+variant,method,context_size,context_seed,bandwidth_kev,mean_cv_brier,sd_cv_brier_across_folds,selected,selection_data,cv_seed
+context_only,Gaussian kernel regression (context only),250,100,2.0,0.33964006116842216,0.08083413568601686,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,100,5.0,0.30661565210822544,0.07231608523059764,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,100,10.0,0.28097881642437655,0.056660772443880625,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,100,20.0,0.24754767712859377,0.049145259420930745,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,100,50.0,0.22423030209802852,0.04399480565128703,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,100,100.0,0.22886056836647892,0.041153742528413646,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,101,2.0,0.3652303473644429,0.034968702357391135,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,101,5.0,0.33759773640278323,0.03412918102464825,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,101,10.0,0.30024474299235815,0.02378965625218557,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,101,20.0,0.27486535809947876,0.024925164946158457,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,101,50.0,0.25758396175026377,0.017664373898242384,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,101,100.0,0.25097993497288174,0.01250753128587138,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,102,2.0,0.42237741683330804,0.07984749248515871,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,102,5.0,0.37298606614989815,0.07980195693635597,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,102,10.0,0.3135061175831913,0.06890420291366575,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,102,20.0,0.2831555725541287,0.051067616493717154,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,102,50.0,0.24771583256796964,0.03137947694001111,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,102,100.0,0.2340915977556806,0.025551741997957636,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,103,2.0,0.3447431079750757,0.059715446103144255,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,103,5.0,0.30455029710510323,0.0429678760201307,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,103,10.0,0.274189592645233,0.04075927336541926,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,103,20.0,0.24741230918833593,0.03707009912855298,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,103,50.0,0.23524192054102597,0.032376630150075185,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,103,100.0,0.22914442344058536,0.032520961054429635,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,104,2.0,0.3369664098686992,0.07733777359962611,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,104,5.0,0.3154190703803858,0.07377804809119382,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,104,10.0,0.29332408154573114,0.07655613679937504,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,104,20.0,0.2602168959999861,0.059065857132924664,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,104,50.0,0.22809967355725363,0.03326909450946536,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,104,100.0,0.22243050904758527,0.02269806213435613,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,105,2.0,0.27243901275449095,0.05276781370980765,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,105,5.0,0.2522480473378498,0.045084737136018384,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,105,10.0,0.2422151780302591,0.037262928283718896,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,105,20.0,0.23789174339240127,0.03567840065220632,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,105,50.0,0.23030711536373066,0.03504025358899394,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,105,100.0,0.2249180721344796,0.02854303875510375,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,106,2.0,0.40085977485332425,0.04559630261274746,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,106,5.0,0.3553348784743492,0.02635655857298815,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,106,10.0,0.310188994872951,0.02116102510195729,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,106,20.0,0.264611692315484,0.02702457483133851,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,106,50.0,0.23573623494608614,0.019316572642821387,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,106,100.0,0.22900500302347568,0.013895788413895254,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,107,2.0,0.3970522254106662,0.029686486289329364,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,107,5.0,0.36087632297202293,0.02452601921276621,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,107,10.0,0.3210460976831055,0.013416728169953011,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,107,20.0,0.2804462754034318,0.01602259814466443,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,107,50.0,0.2490659701964968,0.021872083929342243,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,107,100.0,0.23811781636955448,0.017800304623259464,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,108,2.0,0.32739706060386664,0.10436750315878966,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,108,5.0,0.2958069765825518,0.09575213513226156,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,108,10.0,0.2683169467610579,0.06536932478002967,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,108,20.0,0.25129463375352046,0.044721701440259165,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,108,50.0,0.241858184424105,0.02993832343343447,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,108,100.0,0.2319800085937299,0.021146655294748178,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,109,2.0,0.3596650709395301,0.044732197521958006,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,109,5.0,0.32714274065237614,0.022912345366836253,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,109,10.0,0.29240725786573013,0.015976247470755784,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,109,20.0,0.2601717151504913,0.026158845839023597,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,109,50.0,0.23679770598518285,0.02812422513783791,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),250,109,100.0,0.2289760708477051,0.02631025671086558,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,100,2.0,0.2891469066295757,0.047899089661759243,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,100,5.0,0.2744512230069608,0.04630903827855104,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,100,10.0,0.25567979691721654,0.03807639638042584,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,100,20.0,0.2392209770686368,0.03828239855132155,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,100,50.0,0.2278654314289744,0.0362545426594076,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,100,100.0,0.22515914754070604,0.03209762535259441,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,101,2.0,0.32961677568370745,0.013086423530655943,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,101,5.0,0.28989377002021355,0.01497258769306921,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,101,10.0,0.2626137048537629,0.017337435012015224,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,101,20.0,0.24825746275015437,0.013417647348586241,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,101,50.0,0.2432186817401154,0.006039497892385367,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,101,100.0,0.24042960238411654,0.006990775219208601,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,102,2.0,0.3352027647004103,0.024208966304906238,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,102,5.0,0.29570545856748315,0.02508613077251955,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,102,10.0,0.25927454607476375,0.015405928739185067,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,102,20.0,0.2377182232335356,0.00553181511618697,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,102,50.0,0.23245268259461213,0.011170252722139593,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,102,100.0,0.23081253183203745,0.011563721714937877,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,103,2.0,0.3285791359210311,0.029036249437063358,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,103,5.0,0.2887291484939555,0.02449051845225984,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,103,10.0,0.2599139241106856,0.01727028725882375,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,103,20.0,0.2413241917478986,0.012256561898066093,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,103,50.0,0.22919744116000257,0.012981106313751682,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,103,100.0,0.22359826239454766,0.014788099656617992,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,104,2.0,0.3367208507874994,0.022909450443685184,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,104,5.0,0.3004504830227094,0.024057662023647463,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,104,10.0,0.263325891163341,0.016030449238633396,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,104,20.0,0.23916000779667557,0.00830259666361052,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,104,50.0,0.23069003203232916,0.011237835066865006,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,104,100.0,0.22983863613725602,0.013281636963529912,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,105,2.0,0.3378064677545413,0.030855015002934253,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,105,5.0,0.30682669488503833,0.029531489155650834,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,105,10.0,0.27279349282790777,0.031180511702547636,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,105,20.0,0.2548816863044398,0.032169597262958684,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,105,50.0,0.23982651474656613,0.02834602943492013,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,105,100.0,0.2338645280886979,0.025421696668536827,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,106,2.0,0.36313523876651904,0.04409403079242563,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,106,5.0,0.3036120337581739,0.04123062171449968,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,106,10.0,0.26447133923880217,0.023972988591016625,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,106,20.0,0.24674169429405737,0.015560586522722679,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,106,50.0,0.23502942964283605,0.007812461014901186,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,106,100.0,0.2320887469675125,0.004278016040454128,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,107,2.0,0.35616234226015103,0.017110601192053508,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,107,5.0,0.3162847265377796,0.01108408818871263,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,107,10.0,0.2880500458676263,0.012936119486952667,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,107,20.0,0.26283540508895664,0.018480803175212474,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,107,50.0,0.24465192188906132,0.01615000808584372,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,107,100.0,0.23757763977145152,0.012104804943042322,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,108,2.0,0.2964302677458592,0.021212398439706393,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,108,5.0,0.26661963806501976,0.025167510960455844,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,108,10.0,0.24930731031472825,0.030796802867479475,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,108,20.0,0.2351906900137808,0.02636494524657593,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,108,50.0,0.22996307520404544,0.01595702115425991,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,108,100.0,0.22839959265659626,0.012337778632147068,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,109,2.0,0.33053691527057527,0.04227245449080207,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,109,5.0,0.28757096351585537,0.02891859973105986,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,109,10.0,0.26369282075712697,0.024306757205348604,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,109,20.0,0.2457626389546344,0.02075158013988476,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,109,50.0,0.2346809997088411,0.018828344615776475,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),500,109,100.0,0.23331976687698391,0.01846287443827242,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,100,2.0,0.31305592259278636,0.022122392086917124,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,100,5.0,0.2679423409244242,0.01772667642985581,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,100,10.0,0.24292514337323584,0.01084228823762935,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,100,20.0,0.2309842503337774,0.009547426008478889,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,100,50.0,0.22398698648200033,0.009147721786444178,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,100,100.0,0.2225345490476157,0.008794442561949618,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,101,2.0,0.3020904724503679,0.02598013582762874,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,101,5.0,0.2603672347041441,0.008358114255150036,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,101,10.0,0.24438174523122483,0.007733157147625311,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,101,20.0,0.23767998629362613,0.005475087357621637,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,101,50.0,0.23405519554315646,0.004001192188196249,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,101,100.0,0.23252448129778241,0.004563836590075419,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,102,2.0,0.29579211798908805,0.02881375642653988,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,102,5.0,0.25715525648185145,0.020963688722774623,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,102,10.0,0.2391995255594841,0.015374476948996749,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,102,20.0,0.23307101820172424,0.010272697027849104,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,102,50.0,0.23055927095650927,0.008930586103008096,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,102,100.0,0.22984707954696332,0.009693650775701081,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,103,2.0,0.3200311613377449,0.02738444042062883,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,103,5.0,0.26659040655639954,0.019489437946317353,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,103,10.0,0.2439188641258311,0.013807610140106947,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,103,20.0,0.23158258526168826,0.013725603974364503,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,103,50.0,0.22214405674938065,0.01313490884884515,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,103,100.0,0.22106228147567203,0.012661443308534798,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,104,2.0,0.3276538610939525,0.038425752778541544,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,104,5.0,0.27497742567000316,0.02314060998235861,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,104,10.0,0.24941065160572448,0.017458947207147357,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,104,20.0,0.23886860854143985,0.015626016907717206,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,104,50.0,0.23264398069885886,0.012678028764624864,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,104,100.0,0.23177634988995593,0.011155440815973182,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,105,2.0,0.31116516618235346,0.020514968348795945,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,105,5.0,0.26105165700789024,0.0186194141223501,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,105,10.0,0.23724570413335497,0.013350944617698195,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,105,20.0,0.22472318824130516,0.012042892251826474,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,105,50.0,0.21862905663619162,0.013308499280643347,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,105,100.0,0.21815005666480536,0.013329769623861704,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,106,2.0,0.29705264030655176,0.028331282815231746,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,106,5.0,0.25282792717769553,0.01603802946578249,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,106,10.0,0.2394134571634062,0.013221823461130516,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,106,20.0,0.23521580097622036,0.011402158797146601,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,106,50.0,0.2312720869434533,0.011273389874885308,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,106,100.0,0.2310647455240699,0.009577764898818434,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,107,2.0,0.3142632170184233,0.01357140015095849,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,107,5.0,0.26260594557552847,0.005016061410820116,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,107,10.0,0.24513305413901681,0.007557916109441203,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,107,20.0,0.2387059718682191,0.01041355936269539,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,107,50.0,0.23458673791322093,0.008756331856260548,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,107,100.0,0.23315385320689455,0.0068861021260455246,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,108,2.0,0.28189638632953984,0.030477433669911208,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,108,5.0,0.2485982947823125,0.020321067848965334,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,108,10.0,0.23990511466599657,0.017226377168274874,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,108,20.0,0.23614543724716866,0.013835921509856396,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,108,50.0,0.23398182468666393,0.011711035401290032,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,108,100.0,0.2339640604268786,0.01094456454824091,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,109,2.0,0.30297253443636335,0.011140762015009582,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,109,5.0,0.2610043091959732,0.010531829372828613,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,109,10.0,0.24454212160972166,0.01829956758122732,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,109,20.0,0.23632655754203213,0.014484303953163432,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,109,50.0,0.23184671245398603,0.00982952705928764,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),1000,109,100.0,0.23171343108529383,0.00949169990088316,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,100,2.0,0.26789056616652723,0.01544574179068353,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,100,5.0,0.23922578545123963,0.014030076598179736,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,100,10.0,0.23204815815102187,0.012746674244114995,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,100,20.0,0.22980421241539034,0.011564584724528855,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,100,50.0,0.2277101046159816,0.01041078600477337,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,100,100.0,0.22769623206159,0.008862421648004545,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,101,2.0,0.2688422043960421,0.015850732381916185,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,101,5.0,0.2400929312006454,0.010805186927128537,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,101,10.0,0.23241655069078465,0.01023643852579678,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,101,20.0,0.2304255788695367,0.009453951199360081,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,101,50.0,0.22910925882493638,0.00720231785916095,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,101,100.0,0.22937625860905747,0.006143061928509391,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,102,2.0,0.2661450782354982,0.010490364548851043,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,102,5.0,0.23536970839580182,0.005767086260518391,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,102,10.0,0.22938802698861488,0.0057816207119993305,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,102,20.0,0.22851166127558256,0.005923776605522212,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,102,50.0,0.2272788890142881,0.005155756346552054,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,102,100.0,0.22697573795857912,0.004896492060773091,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,103,2.0,0.26484458213989376,0.012244129806696924,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,103,5.0,0.23834360213093625,0.013302291886506825,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,103,10.0,0.23150664504234375,0.012627677789857683,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,103,20.0,0.22876781501189686,0.009483336649329589,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,103,50.0,0.2263740095409999,0.007153744613359765,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,103,100.0,0.2261130966317561,0.006882348600053239,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,104,2.0,0.2710914546189671,0.009510467357490827,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,104,5.0,0.24600074605881933,0.007847962844874235,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,104,10.0,0.23765161789315264,0.009804437173010497,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,104,20.0,0.23402353309286306,0.010038732858089303,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,104,50.0,0.23151797646350608,0.008421094142857622,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,104,100.0,0.23100352039240618,0.007821610500663968,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,105,2.0,0.27434388968895485,0.015079156382780132,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,105,5.0,0.24136801635765512,0.010216224371996901,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,105,10.0,0.23289324657768523,0.00997948374120812,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,105,20.0,0.22937925885327926,0.011151058885474689,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,105,50.0,0.22727653136177142,0.009961766413296082,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,105,100.0,0.22660368111972998,0.008456167140900812,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,106,2.0,0.2708674756106129,0.006034395546040334,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,106,5.0,0.2407027175419875,0.008275618042947113,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,106,10.0,0.23070001961463876,0.008909867066701365,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,106,20.0,0.2271175339880705,0.008503310435738948,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,106,50.0,0.22490455177132054,0.006643340163623942,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,106,100.0,0.22553678311870723,0.006342730356614742,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,107,2.0,0.2769934884730781,0.012461808903476219,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,107,5.0,0.2474793793953327,0.011812163039985796,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,107,10.0,0.23794328825270483,0.007209648199545655,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,107,20.0,0.23314587823718683,0.006999835769419746,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,107,50.0,0.2313263262572383,0.005982036424545135,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,107,100.0,0.2303992179735836,0.005769163740990816,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,108,2.0,0.2698881400933943,0.015417439071152315,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,108,5.0,0.23909649539731812,0.012017165934571845,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,108,10.0,0.23167267692384788,0.011680788444874354,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,108,20.0,0.22879772865737685,0.010436086902283453,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,108,50.0,0.22635464096247646,0.009423282242054251,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,108,100.0,0.2263983313851296,0.009465468918579712,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,109,2.0,0.2684718285161063,0.01267383469113383,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,109,5.0,0.24007837098049714,0.006653577476717298,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,109,10.0,0.2325016902185085,0.004550577105558277,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,109,20.0,0.22912220902768093,0.004070889234033242,False,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,109,50.0,0.2272856910884295,0.0035225582600783172,True,five-fold CV within development context,20260908
+context_only,Gaussian kernel regression (context only),2000,109,100.0,0.22762711731697713,0.004097522872421464,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,2.0,0.21470355078390777,0.03755811196726791,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,5.0,0.21648348548971227,0.038153561380228775,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,10.0,0.21757322493450237,0.03693472071239812,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,20.0,0.21786574824295965,0.03602593284875313,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,50.0,0.21988764800500227,0.034069264022615446,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,100,100.0,0.22160366843582718,0.032816387904090236,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,2.0,0.2399973409309514,0.010875763189617022,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,5.0,0.237821768966346,0.014674081497289508,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,10.0,0.2377746939996757,0.01527231265542997,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,20.0,0.23934960990844542,0.01603914277971756,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,50.0,0.24061996578681982,0.015202079432955103,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,101,100.0,0.24040627271517784,0.013682443996208262,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,2.0,0.23193639044288114,0.014564722128132796,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,5.0,0.22765156530551148,0.016967748996389226,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,10.0,0.22690756059025868,0.019982691543177014,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,20.0,0.22765000069663638,0.023079309818451788,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,50.0,0.22821140953435903,0.02242962767927812,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,102,100.0,0.22719189037553272,0.020090035982958675,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,2.0,0.2245713086481981,0.026429874650689376,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,5.0,0.2174127125652281,0.022723566058829185,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,10.0,0.21887112689346577,0.022738522123562862,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,20.0,0.222086518381573,0.026371577195894277,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,50.0,0.22290413190463937,0.027808361971055788,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,103,100.0,0.22346689307739226,0.027422392004182464,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,2.0,0.2202563242756464,0.01295462495893197,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,5.0,0.2197045948501651,0.008872316016806027,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,10.0,0.21930154355809597,0.009936140948705012,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,20.0,0.21752774032283292,0.010123879257741025,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,50.0,0.2189484263772151,0.011154182663561425,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,104,100.0,0.22005906783465465,0.009293575286076635,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,2.0,0.21827085630186405,0.01804251104681195,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,5.0,0.21712647473928848,0.021472574430070248,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,10.0,0.21756213847414366,0.0212765428392243,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,20.0,0.2183120484128714,0.020607500272672264,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,50.0,0.22041248161686383,0.02141035561693875,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,105,100.0,0.22067178071300822,0.021349802041159324,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,2.0,0.22359707194995443,0.01220143013356899,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,5.0,0.22270035452054265,0.01569781068031815,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,10.0,0.22177699501741133,0.015805813534710493,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,20.0,0.22147209894305328,0.014231357417031548,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,50.0,0.22227534892200845,0.012540823009173033,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,106,100.0,0.2227515781887331,0.011007353576603167,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,2.0,0.23012376998383693,0.01849174055652969,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,5.0,0.2283684483565695,0.01833395657630797,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,10.0,0.22678649779860643,0.018981732495057337,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,20.0,0.22577245667933576,0.019267194379131165,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,50.0,0.2280085846881595,0.017467789799806694,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,107,100.0,0.22866306632673333,0.016164848000120153,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,2.0,0.22000830804727842,0.026265303667639107,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,5.0,0.21893079795181936,0.02258513073896039,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,10.0,0.21802775429589366,0.02052919535500294,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,20.0,0.2197172785922305,0.01916119707385254,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,50.0,0.2210400225639725,0.01918663295704762,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,108,100.0,0.22121615082931614,0.02012557390520635,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,2.0,0.23828811059060917,0.021248882894395468,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,5.0,0.23408181788339583,0.01765255959695556,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,10.0,0.23177698302990998,0.01445754546400955,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,20.0,0.22981475518154038,0.0138161941369,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,50.0,0.23001653310144426,0.01553401749112615,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),250,109,100.0,0.23038122429809754,0.014958345705160928,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,2.0,0.21909897852337473,0.029659220449217375,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,5.0,0.21956258769205186,0.026671993487416928,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,10.0,0.21906649656465293,0.026024346532763618,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,20.0,0.21815894940838523,0.0254473888554608,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,50.0,0.2190762055605222,0.023488882311474116,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,100,100.0,0.22041053107334826,0.022189049059616647,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,2.0,0.23336475851656563,0.01318860997685656,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,5.0,0.23186076501535036,0.01325816904176645,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,10.0,0.23238391760895577,0.012591919450977068,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,20.0,0.2347236020305868,0.01214641587484599,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,50.0,0.23691267046411965,0.013328188638274074,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,101,100.0,0.237532424053312,0.01296436349706933,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,2.0,0.2263486519150427,0.017774349840030994,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,5.0,0.22183669068448988,0.017983831874838728,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,10.0,0.22137006942790755,0.01489004036974501,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,20.0,0.2224372392411702,0.01385495145228517,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,50.0,0.22508704711285693,0.014453157366616676,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,102,100.0,0.22602300837956263,0.014203600572540748,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,2.0,0.21761137193390762,0.016714058513851687,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,5.0,0.21239695610012416,0.011802563201240148,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,10.0,0.21266975921068135,0.010526569320395869,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,20.0,0.21477165255232275,0.011686998592803987,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,50.0,0.2167544255515697,0.01113047714533817,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,103,100.0,0.2180870930547422,0.010072007198871748,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,2.0,0.23089439767213865,0.005987008879972674,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,5.0,0.22875305199409687,0.01075696160690863,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,10.0,0.22850744211565016,0.014383120047075948,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,20.0,0.22723441643387718,0.015236248415080278,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,50.0,0.2270270189652786,0.014948030993194708,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,104,100.0,0.22744196623147447,0.014846746476622234,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,2.0,0.22519343188261418,0.018755899838764203,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,5.0,0.22248731587760417,0.021545913947333933,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,10.0,0.22222620999167955,0.023274106583652473,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,20.0,0.22211031972263306,0.025068477709469253,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,50.0,0.22271741168470113,0.025500781078207902,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,105,100.0,0.22272682174779343,0.02352984782664178,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,2.0,0.2331366980405257,0.013795440059697487,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,5.0,0.22829359719930647,0.01025387851826031,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,10.0,0.2260446873462673,0.009388968220028555,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,20.0,0.22553182234891095,0.006638977628642728,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,50.0,0.22719366413008069,0.0037592542593590634,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,106,100.0,0.22751420466721028,0.0029158565911024913,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,2.0,0.22959486222418302,0.010646603664937335,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,5.0,0.22885440841713917,0.013233374548048325,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,10.0,0.22741047523685465,0.014393648675304137,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,20.0,0.22613311590242174,0.015223898848067158,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,50.0,0.22894949687044033,0.014058650323238334,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,107,100.0,0.23040328048081413,0.013853639953647785,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,2.0,0.21641273118184173,0.00892173971275336,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,5.0,0.21444620369307202,0.007683467325811413,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,10.0,0.2155367854743107,0.008961219543053496,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,20.0,0.21788384910628067,0.01038741131911759,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,50.0,0.22075515270618484,0.011027988435446001,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,108,100.0,0.22210852229437433,0.010931877086585598,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,2.0,0.23207605666634507,0.015679187178100597,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,5.0,0.22968816823135296,0.013846897366963045,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,10.0,0.2282747163954244,0.013265775556925354,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,20.0,0.22736779280919647,0.014490513041167583,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,50.0,0.2278799130862871,0.015397257974690015,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),500,109,100.0,0.22833749850916174,0.01492667019822972,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,2.0,0.22300993028493651,0.010307679635634975,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,5.0,0.2210775689429861,0.009561678534837248,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,10.0,0.22014917546298984,0.008700488670127895,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,20.0,0.21990780307035354,0.008062850399359844,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,50.0,0.22065434867262068,0.0076794448217208594,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,100,100.0,0.22165256157361854,0.007457941597658118,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,2.0,0.2288316670286576,0.0039187540394698865,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,5.0,0.22686552132048496,0.004791193449874201,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,10.0,0.22754869335557898,0.003913060487406526,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,20.0,0.22929690863609692,0.0033642871593668263,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,50.0,0.23069842356876885,0.005467701181596941,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,101,100.0,0.2312571216249256,0.005606496483187891,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,2.0,0.22346769158576726,0.00990591589058222,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,5.0,0.22192871616100202,0.008559236566486422,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,10.0,0.22237604677855627,0.007601613098490081,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,20.0,0.2239499386917913,0.008220410179748623,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,50.0,0.2261525895802922,0.009245663483613501,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,102,100.0,0.22696566120638093,0.009379100647547508,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,2.0,0.22166924543883298,0.011056696648454083,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,5.0,0.21786954904868652,0.01099146056647518,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,10.0,0.21787059967284902,0.011429534045528676,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,20.0,0.21862192414540144,0.010776246524362272,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,50.0,0.21911875862638022,0.01065316437323992,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,103,100.0,0.22023115844761065,0.010503558575810115,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,2.0,0.22905725375716637,0.00853700113261377,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,5.0,0.227822137605115,0.00915867056675287,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,10.0,0.22804799292826008,0.010292258105122161,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,20.0,0.22782065596961262,0.010775761771000885,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,50.0,0.22823133046075922,0.010106900754513608,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,104,100.0,0.22874990981940818,0.010282201873330362,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,2.0,0.2206976058812367,0.013322800189562682,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,5.0,0.21912649611542007,0.012146957566508111,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,10.0,0.2186711530537427,0.013178753468409623,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,20.0,0.2188266243230486,0.012351899692783988,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,50.0,0.21954515786902604,0.010710972040973321,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,105,100.0,0.2195558548942927,0.010037544700368582,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,2.0,0.22914718290182184,0.010911097390951512,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,5.0,0.225204021489112,0.010079515687505928,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,10.0,0.22486722803040737,0.008835774805796746,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,20.0,0.22557248699890603,0.008707655652786167,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,50.0,0.226807166272028,0.008773728187728421,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,106,100.0,0.22767068126542495,0.007940390288113773,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,2.0,0.2311634918237387,0.007216590903483573,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,5.0,0.23027626879495103,0.006474211470465141,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,10.0,0.22967474256204046,0.006919379282555625,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,20.0,0.22942609652383203,0.007626348033595646,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,50.0,0.23105390046997498,0.007745321258975901,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,107,100.0,0.23175187626598243,0.00698354205129487,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,2.0,0.2286456305014785,0.015070798338341442,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,5.0,0.22609587276476178,0.01309609951862931,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,10.0,0.22688241079284835,0.012736841999984278,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,20.0,0.22781454345010327,0.010883258376568535,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,50.0,0.2299261740868027,0.011114447424235164,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,108,100.0,0.2307354655020916,0.011720756534005726,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,2.0,0.22939854906320156,0.014758039408769158,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,5.0,0.22790672981300744,0.014691816485645914,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,10.0,0.2281832108194637,0.01456503792802992,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,20.0,0.22875872756707655,0.013606000588132643,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,50.0,0.23003256870315023,0.01203227148676361,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),1000,109,100.0,0.23032182114897887,0.01133829965472311,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,2.0,0.2264700640276618,0.01097827419685191,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,5.0,0.22445561845197207,0.010587862749967827,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,10.0,0.22415569359508605,0.01021393703697442,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,20.0,0.22450980403680548,0.00938471239459444,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,50.0,0.22544283774780166,0.008783966221939492,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,100,100.0,0.22635819020270143,0.008151023196968896,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,2.0,0.2272674031329344,0.010966771131177938,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,5.0,0.22478479026851925,0.00915747107666486,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,10.0,0.22503475428432482,0.008121968804589035,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,20.0,0.22651409965079158,0.0076853061056868024,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,50.0,0.2279481005180075,0.006536591401189791,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,101,100.0,0.22860910838287102,0.0059516251965211825,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,2.0,0.2226714912560593,0.007113663369148257,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,5.0,0.22134712988399272,0.006584403814165667,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,10.0,0.221561652193838,0.005738305127641525,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,20.0,0.22281905060946278,0.005286183216673517,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,50.0,0.22448666728325878,0.004074646358757993,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,102,100.0,0.22522385034739206,0.003969250931377404,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,2.0,0.2243851005881256,0.006967908807017681,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,5.0,0.22296254916690042,0.008200289051851179,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,10.0,0.22304242676852634,0.007881104354504682,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,20.0,0.2237486207216365,0.006325163843707321,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,50.0,0.22469050210800773,0.004796050697194827,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,103,100.0,0.22514102404274938,0.005002281127068455,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,2.0,0.22865318073542068,0.008659039077630961,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,5.0,0.22626953669554345,0.008991461678429388,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,10.0,0.22622675638159082,0.008913799484330796,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,20.0,0.22731840142607088,0.008529236283978664,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,50.0,0.2288688130219847,0.007695016601433335,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,104,100.0,0.2295353523344721,0.007521576633896074,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,2.0,0.22420505367892613,0.008874799457917443,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,5.0,0.22258046729710768,0.00959852280033511,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,10.0,0.22289219529384247,0.009048864811201837,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,20.0,0.22397961972453864,0.008173447792788715,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,50.0,0.22505603163125495,0.007767507641569262,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,105,100.0,0.2254683884718581,0.007281535729623105,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,2.0,0.22441414421223627,0.007786605467128435,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,5.0,0.22223181652584842,0.006438749493320435,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,10.0,0.22232385228588464,0.006428684930277458,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,20.0,0.22278351933787205,0.0069184171149346396,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,50.0,0.22424004841022077,0.006384844207497324,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,106,100.0,0.2253550519056501,0.006040296549197409,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,2.0,0.22802410922099442,0.004191881017860821,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,5.0,0.22663362584714716,0.0038761477883582623,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,10.0,0.2265301169184569,0.0037946326079732013,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,20.0,0.22670862311794568,0.00496247620395454,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,50.0,0.22804634585262873,0.005197312892232264,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,107,100.0,0.2285582890365446,0.005230653835427694,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,2.0,0.2241987421466602,0.011158005870016486,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,5.0,0.22174350155849232,0.009952767621280107,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,10.0,0.22153937305246862,0.009215810814880274,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,20.0,0.22247694434451834,0.008264124654386355,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,50.0,0.22429231840853658,0.00812106830529525,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,108,100.0,0.22510481912905686,0.008362504899719847,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,2.0,0.2261127444877335,0.008413258709902317,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,5.0,0.22490241583087975,0.007353307859642173,True,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,10.0,0.22505025399238204,0.0064595185918432515,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,20.0,0.22544844000676495,0.005442311259965894,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,50.0,0.2267303764183179,0.004125858430841567,False,five-fold CV within development context,20260908
+pooled_data,Gaussian kernel regression (pooled data + context),2000,109,100.0,0.22726699403512365,0.00402355290465748,False,five-fold CV within development context,20260908
