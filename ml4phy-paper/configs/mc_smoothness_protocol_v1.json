@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "status": "frozen_before_mc_smoothness_execution",
+  "models": ["m2_seed0", "ours_seed0"],
+  "phase": "final",
+  "context_seed": 100,
+  "context_size": 2000,
+  "training_seed": 0,
+  "stream_seeds": [10100, 30100],
+  "nested_passes": [50, 200],
+  "conditional_extension_passes": 800,
+  "grid_spacing_kev": 0.5,
+  "derived_grid_spacing_kev": 1.0,
+  "energy_chunking": "none; all target and grid energies share one forward per pass",
+  "dropout_mask_coupling": "ordinary elementwise network dropout in one forward; no forced mask sharing across query energies",
+  "extension_trigger": "either model has independent-stream 200-pass RMSE above 0.25 percentage points in either continuum grid, or relative normalized-curvature difference above 10 percent",
+  "extension_cost_gate_seconds": 1800,
+  "dropout_disabled_interpretation": "separate deterministic network prediction, not the infinite-MC limit",
+  "coverage_interpretation": "68-percent central dropout-draw bin interval checked against finite empirical bin acceptance; a model-consistency diagnostic, not calibrated confidence coverage"
+}
