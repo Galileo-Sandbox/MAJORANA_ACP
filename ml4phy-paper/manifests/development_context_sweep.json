@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "analysis": "fixed-dropout development context sweep",
+  "script": "ml4phy-paper/scripts/aggregate_development_context.py",
+  "script_sha256": "faf1be800f966cfe2b37253910467ac2717d17cd25abc2dc5220f03f98ce2d01",
+  "source_commit": "4cb379af780d6dc6be8106598ef53fef1b48dc5f",
+  "source_worktree_status": [
+    "?? ml4phy-paper/figures/development_context_curves.png",
+    "?? ml4phy-paper/figures/development_context_scores.png",
+    "?? ml4phy-paper/reports/development_candidate.md",
+    "?? ml4phy-paper/tables/development_context_draws.csv",
+    "?? ml4phy-paper/tables/development_context_metrics.json",
+    "?? ml4phy-paper/tables/development_context_paired_differences.csv",
+    "?? ml4phy-paper/tables/development_context_summary.csv",
+    "?? ml4phy-paper/tables/development_continuum_roughness.csv",
+    "?? ml4phy-paper/tables/development_peak_contrasts.csv"
+  ],
+  "inputs": [
+    {
+      "run_id": "20260908-v9-dev-s100-mc50",
+      "summary_sha256": "a2d955c2da5880d3327c4c94ddd5e04b445535e278d212c561b342575d154005",
+      "curve_sha256": "17539f27acdaede471875044fb6b4b8982b4720ae1ca56780e72c87aae382b64"
+    },
+    {
+      "run_id": "20260908-v9-dev-ctx-s101-drop10100-mc50",
+      "summary_sha256": "47c4975eadba93facc379814d498f8ea775b02d600e6d8f08ec946be197497a2",
+      "curve_sha256": "883bf2f979d7064a2126c4d3e247df24150fc5c6ec13c3603cba7c2988808375"
+    },
+    {
+      "run_id": "20260908-v9-dev-ctx-s102-drop10100-mc50",
+      "summary_sha256": "5dc976d5b06656096db5a7d5189d17b6c03e1c181cb6ec5e60a6113b96887fde",
+      "curve_sha256": "7fd050cc9a4f287e7729c7262656d6229fa45bf9499a5a6a06f433791561707d"
+    },
+    {
+      "run_id": "20260908-v9-dev-ctx-s103-drop10100-mc50",
+      "summary_sha256": "2cccaa35bd12fc392ce856455470a919882da30bdd27cf20f2ac576830101fbf",
+      "curve_sha256": "cbc614dced9c45effbcd412f2301f54e198da78d8eda11096789800fef0b3a43"
+    },
+    {
+      "run_id": "20260908-v9-dev-ctx-s104-drop10100-mc50",
+      "summary_sha256": "c42bd2b76cbfde51a44c7290cafee2b9e877a2926fabcd9364657909b7699dc4",
+      "curve_sha256": "42a6d0a233129a6786bfee0e3c1e2fedebd6c6b29913e9a718e711375e24f151"
+    },
+    {
+      "run_id": "20260908-v9-dev-ctx-s105-drop10100-mc50",
+      "summary_sha256": "7ff841841dfeb17ac7ef2981cc4a58ab4cb5966f287edd7fb640ce508778d9ba",
+      "curve_sha256": "1c1f6676a9e544df7ebb93413a7f8f0bf4425a5ba93be6192e56fe896acc1d05"
+    },
+    {
+      "run_id": "20260908-v9-dev-ctx-s106-drop10100-mc50",
+      "summary_sha256": "c6b6eb6707674971e9f9723e51ba3f8d5832883fa01c9ff2d74854df0c744be4",
+      "curve_sha256": "04d702b3437589d9b2d170f55e1e587a0c60c39ca408ee4490688854f70b7b2e"
+    },
+    {
+      "run_id": "20260908-v9-dev-ctx-s107-drop10100-mc50",
+      "summary_sha256": "df4e79278983a94734c574bee6bc51d56daf229709d6261ea8cc71fd94e47a10",
+      "curve_sha256": "875412b9180949400a92835af0d68b999ae69eae61f539d09ff0e796f5dfb3d8"
+    },
+    {
+      "run_id": "20260908-v9-dev-ctx-s108-drop10100-mc50",
+      "summary_sha256": "22ec3974d521cb977c919e2c7b4fd3302e610d9e90b4c2ff01cad2e218f351ad",
+      "curve_sha256": "d3d34f70ca6b46b634275c23698062dd8a48ca4dbe1c83f957df039b242f75f5"
+    },
+    {
+      "run_id": "20260908-v9-dev-ctx-s109-drop10100-mc50",
+      "summary_sha256": "23825aba2150a21a6dd047c1f25ff74aa2c895dcf12625015d4204013219432f",
+      "curve_sha256": "eb6c3a5ed42ef26c2ec429bd577a883cc4214ffc92a20fb0521a9759f809f0b7"
+    },
+    {
+      "run_id": "20260908-v5-dev-s100-mc50",
+      "summary_sha256": "b88cc3b8acdc4eab95ec0127234ff8fbd787bff1a474df791238ccd6523a6d8d",
+      "curve_sha256": "ee6a75de4c62b84e850836de07c40fef4b35cbf760bf31ef9ae4b33efea0461a"
+    },
+    {
+      "run_id": "20260908-v5-dev-ctx-s101-drop10100-mc50",
+      "summary_sha256": "e8ac1164e069dffc69626272e238491df8788d3a1d967c1cb59a7b94b803b1d4",
+      "curve_sha256": "cd8c267d26ae25900336926958dcbb1f44432e513f8e6ee6dd5d8eb41f9e2cd8"
+    },
+    {
+      "run_id": "20260908-v5-dev-ctx-s102-drop10100-mc50",
+      "summary_sha256": "51d8149af5a2d782f41866129db29bf4844394c4edd7d770b4ab845dbb8912fd",
+      "curve_sha256": "011cfd030e3293d6afad3bdb7c2378efac7ffd52a3b85c01c83d8ee15feb629e"
+    },
+    {
+      "run_id": "20260908-v5-dev-ctx-s103-drop10100-mc50",
+      "summary_sha256": "f7f5f7f22ba28e80e902b5e84727258407c7e8d4b27abeb5360d41bc20186813",
+      "curve_sha256": "df49426d27488b9c5976330b379b3f3ebd5522d8eed6cdf46b6d2e1eaf6587df"
+    },
+    {
+      "run_id": "20260908-v5-dev-ctx-s104-drop10100-mc50",
+      "summary_sha256": "ed075cafdce0e5b3c3a56b9d452cf08d3384c21f300a2c036eb613eb111cb42e",
+      "curve_sha256": "1f31093be3b81faf6dfe21348cfa83fedb7fd2185bd03937733948c90bd04255"
+    },
+    {
+      "run_id": "20260908-v5-dev-ctx-s105-drop10100-mc50",
+      "summary_sha256": "ec1e9ed9444d542ceb85f0af9e31538325aecceca8e70e60bac1dcd2467f4bc2",
+      "curve_sha256": "196f5159281a74a35e8b0220e4c79ccb80f79bc2addcb3892a7987022d943b62"
+    },
+    {
+      "run_id": "20260908-v5-dev-ctx-s106-drop10100-mc50",
+      "summary_sha256": "5f740fbb5db12bfb75a2a3735c08ec549a949a7488c5c040eeffbddbc500b991",
+      "curve_sha256": "d05774588bc90e512774b5c9ec5ab0afdeef259a900bf4e92b41e5a1553cd8e8"
+    },
+    {
+      "run_id": "20260908-v5-dev-ctx-s107-drop10100-mc50",
+      "summary_sha256": "3645d6648dcfc1bb96c2863713633c9dc6ef261a1d2b1e75bacf329dd97075bd",
+      "curve_sha256": "602f9a23813273031c3ab941b8b3efaaa0192f746b1d51d1b0898924a8d98526"
+    },
+    {
+      "run_id": "20260908-v5-dev-ctx-s108-drop10100-mc50",
+      "summary_sha256": "e540e2099e51264c91fcd10497f63796c2b1f2fdc44e550ec63d32a278329054",
+      "curve_sha256": "04ee5e79ce126c11f923e3450a03361035a4038fffd6682b75456f1878502e48"
+    },
+    {
+      "run_id": "20260908-v5-dev-ctx-s109-drop10100-mc50",
+      "summary_sha256": "f670e2f2a74748fb3826a57ed9a89ea83e514bff7131f0653ac346073045c342",
+      "curve_sha256": "1d12c46a00d981bd832fc4e428930535303ef8b8abb5be78f269e87f4014f6a5"
+    },
+    {
+      "run_id": "20260908-cell17-dev-s100-mc50",
+      "summary_sha256": "b120b1fc988ba4d9c41375349f4627d74a0067d2877be4c234f213b3a9ca9c43",
+      "curve_sha256": "bf79a8a5117d7278968a0c57dcc58e950c36b2f49043c2d55b87bb4573382837"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s101-drop10100-mc50",
+      "summary_sha256": "6ce0027965eb107f042e194cd0f5a79d08a7cf6f040fee5c9005f64b532dafcf",
+      "curve_sha256": "ca8bc8df00268eed4d7d15e659c23dd31411da734299f73b55bac7406cfe4b1e"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s102-drop10100-mc50",
+      "summary_sha256": "9d7a91f6191721e3f12619b3bb405570d236f38f6a908b17584bc807922e7fff",
+      "curve_sha256": "fe8fcae0c1d63b8a31eb91c531bc78da2a8d5919a3fe2714613c94f9a32893b4"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s103-drop10100-mc50",
+      "summary_sha256": "d6d2162efcc0ef0ad6266e4c704cbe94dfb5e90558b669c63522afa24b884d6a",
+      "curve_sha256": "1409ffbbc7ede23144b12d06d74d327bc912887c0ba45bafa39f5a01f55f290a"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s104-drop10100-mc50",
+      "summary_sha256": "3a70f58be9bfc20dd8ef2b4e55eb499f012ef47be3175b8a2f6f4915f56fd67a",
+      "curve_sha256": "a2377e1112900ab81e6df38d32192535c2e0ac6cf5091194172b50df1fe36130"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s105-drop10100-mc50",
+      "summary_sha256": "4898c01067e7f4e06fd6182e9949b13ff8978937378fb569e5622437aafe3f51",
+      "curve_sha256": "f09725c0286a176737d8a405ec2cc41c4e5f04b4f887f7771ffc512fe3edbfc4"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s106-drop10100-mc50",
+      "summary_sha256": "f4f96df2b970c6921f2302f2cbd799741c6df60e26e903a55ec0cf44ff651fb4",
+      "curve_sha256": "5d0c6f573191e97e65ae0ae5536d9aedd2f6880bbc32ae6995aa15bbe629036f"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s107-drop10100-mc50",
+      "summary_sha256": "1a54ee194af746a806b20efbc01ff80077f003e6ba90a925e69716f3289f44a0",
+      "curve_sha256": "bbb546ca3155642fa35e9717e8c1d4940611efdfb7d34bed7a70f87abe874b91"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s108-drop10100-mc50",
+      "summary_sha256": "869aff729f8c14b44e0a725e1ee6592e730de2acca222ca380a760fb28da4033",
+      "curve_sha256": "e209fe18a7930dc52aa426a47a5a73ed97541e1fbf09690d43497ea1ec038295"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s109-drop10100-mc50",
+      "summary_sha256": "c25a27a16de8914f2f65a39dfdf84135b59d81084a19c4acef6bc57937b8a655",
+      "curve_sha256": "6430562e0b66c864cf71ea155553f7107ffd3ed904c654eb7196f7017605f387"
+    }
+  ],
+  "outputs": {
+    "ml4phy-paper/tables/development_context_draws.csv": {
+      "sha256": "785498cdddf6f840e722a56e4086ce666bbd566d053e704f48ecf4cf0dd04e0c",
+      "bytes": 16376
+    },
+    "ml4phy-paper/tables/development_context_summary.csv": {
+      "sha256": "bbbb08ab49fa5a705fe8f21d8cdc42d429c9a389af00e7064743fcbd2564a726",
+      "bytes": 3406
+    },
+    "ml4phy-paper/tables/development_context_paired_differences.csv": {
+      "sha256": "138e382bca1693a4928835aa6b83468d9c4ab647ea53f3b1a4415442b3a4f1a6",
+      "bytes": 1971
+    },
+    "ml4phy-paper/tables/development_peak_contrasts.csv": {
+      "sha256": "57f394caf5c563c3b067284ae4f78e461f03d1284e8332ffd798b086703a3fa7",
+      "bytes": 1066
+    },
+    "ml4phy-paper/tables/development_continuum_roughness.csv": {
+      "sha256": "6dca79b8f85f3b756873bd9d467fe2041ec04564e271e1bc00ab42202e921763",
+      "bytes": 570
+    },
+    "ml4phy-paper/tables/development_context_metrics.json": {
+      "sha256": "ccce27b6e5cc77bb12a7a18619cf7a6233859a5f334eaf5f031e396d7c6047f7",
+      "bytes": 2562
+    },
+    "ml4phy-paper/figures/development_context_scores.png": {
+      "sha256": "35fa9693c8fc5d8c988f9124b3136e3191f2f776b32a37866fc6324c8c2a1c38",
+      "bytes": 160794
+    },
+    "ml4phy-paper/figures/development_context_curves.png": {
+      "sha256": "0c8759083a647dad1301c9fd0e559f594b4b38d5cc9a651bcbbfbb983ca5eeea",
+      "bytes": 288216
+    },
+    "ml4phy-paper/reports/development_candidate.md": {
+      "sha256": "85abe5c94960b947effd94461c7e119b1db8a1256dc2376ed9508bd04f8a0761",
+      "bytes": 2323
+    }
+  },
+  "candidate": "cell17",
+  "variation_sources": {
+    "training_seed": "fixed at recovered seed 0",
+    "context_seed": [
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109
+    ],
+    "dropout_seed": "fixed at 10100"
+  }
+}
