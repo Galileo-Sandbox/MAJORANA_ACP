@@ -59,6 +59,46 @@ def validate_completed(run_dir: Path, expected: tuple[int, str, int]) -> dict:
     return record
 
 
+def resolve_run_attempt(
+    training_root: Path, base_run_id: str, expected: tuple[int, str, int]
+) -> tuple[str, Path, dict | None, list[dict]]:
+    """Return a completed attempt or the first unused uniquely named attempt."""
+    failed_attempts = []
+    attempt = 1
+    while True:
+        run_id = base_run_id if attempt == 1 else f"{base_run_id}-attempt{attempt}"
+        run_dir = training_root / run_id
+        if not run_dir.exists():
+            return run_id, run_dir, None, failed_attempts
+        record_path = run_dir / "runner_record.json"
+        if record_path.is_file():
+            run_record = read_json(record_path)
+            if run_record.get("status") == "completed":
+                return run_id, run_dir, validate_completed(run_dir, expected), failed_attempts
+            failed_attempts.append(
+                {
+                    "run_id": run_id,
+                    "status": run_record.get("status", "missing"),
+                    "returncode": run_record.get("returncode"),
+                    "failure_stage": "before optimization" if not (run_dir / "artifacts/cnp.ckpt").exists() else "training",
+                    "reason": "CUDA device was hidden by the default execution sandbox" if run_record.get("returncode") == 1 else "see preserved runner record",
+                    "runner_record_sha256": sha256_file(record_path),
+                }
+            )
+        else:
+            failed_attempts.append(
+                {
+                    "run_id": run_id,
+                    "status": "missing_runner_record",
+                    "returncode": None,
+                    "failure_stage": "runner setup",
+                    "reason": "see preserved server-only directory",
+                    "runner_record_sha256": None,
+                }
+            )
+        attempt += 1
+
+
 def main() -> None:
     repo = Path(".").resolve()
     worktree = subprocess.check_output(
@@ -112,6 +152,7 @@ def main() -> None:
             },
             "completed": [],
             "failures": [],
+            "failed_attempts": [],
         }
     write_json(record_path, record)
     completed_ids = {item["run_id"] for item in record["completed"]}
@@ -121,12 +162,18 @@ def main() -> None:
             for budget in BUDGETS:
                 for architecture in ARCHITECTURES:
                     for seed in TRAINING_SEEDS:
-                        run_id = f"20260909-phase2-b{budget}-{architecture}-seed{seed}-train3000"
-                        run_dir = root / "runs/phase2/training" / run_id
-                        if run_dir.exists():
-                            run_record = validate_completed(
-                                run_dir, (budget, architecture, seed)
-                            )
+                        base_run_id = f"20260909-phase2-b{budget}-{architecture}-seed{seed}-train3000"
+                        run_id, run_dir, run_record, failed_attempts = resolve_run_attempt(
+                            root / "runs/phase2/training",
+                            base_run_id,
+                            (budget, architecture, seed),
+                        )
+                        known_failed = {item["run_id"] for item in record["failed_attempts"]}
+                        for failed in failed_attempts:
+                            if failed["run_id"] not in known_failed:
+                                record["failed_attempts"].append(failed)
+                                known_failed.add(failed["run_id"])
+                        if run_record is not None:
                             if run_id not in completed_ids:
                                 record["completed"].append(
                                     {
