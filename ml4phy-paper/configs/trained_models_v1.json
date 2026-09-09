@@ -14,6 +14,51 @@
       "checkpoint_sha256": "2295bdc7e8015ec6387e13f8777c6c293ebe916a7cbb986ef9f21aaaf2d2dba8",
       "training_seed": 0,
       "comparison_role": "controlled_pilot"
+    },
+    "m2_seed1": {
+      "display_name": "M2 attentive PE10 (seed 1)",
+      "config": "ml4phy-paper/configs/m2_attentive_pe10_seed0.yaml",
+      "config_sha256": "cbe365288042b6dc74c2cf867c21db8afe1f84b51358384e0ca90e89eac7e1ea",
+      "checkpoint": "ml4phy-paper/runs/training/20260908-m2-seed1-train3000/artifacts/cnp.ckpt",
+      "checkpoint_sha256": "aca3210385185209a11b88b05290468a1c1667aa67306fadcbaf4bcaa67cb0a7",
+      "training_seed": 1,
+      "comparison_role": "controlled_core"
+    },
+    "m2_seed2": {
+      "display_name": "M2 attentive PE10 (seed 2)",
+      "config": "ml4phy-paper/configs/m2_attentive_pe10_seed0.yaml",
+      "config_sha256": "cbe365288042b6dc74c2cf867c21db8afe1f84b51358384e0ca90e89eac7e1ea",
+      "checkpoint": "ml4phy-paper/runs/training/20260908-m2-seed2-train3000/artifacts/cnp.ckpt",
+      "checkpoint_sha256": "d39ed762fbe0ca6c4837236482ae00c62fe8d0e185f1992a1748c19266af5c4d",
+      "training_seed": 2,
+      "comparison_role": "controlled_core"
+    },
+    "cell17_seed0_recovered": {
+      "display_name": "Cell 17 (recovered seed 0)",
+      "config": "configs/cut_acceptance/simple_cnn_small/sweeps/cell17/bin10/inclusive.yaml",
+      "config_sha256": "373ae88fb01c3a8fbbfd1158d4c3865938a28cc531d5fc64de498c09b7707dff",
+      "checkpoint": "results/cut_acceptance/simple_cnn_small/sweeps/cell17/bin10/inclusive/cnp.ckpt",
+      "checkpoint_sha256": "e21af9988a220aa4b203e54d63f59f37778a41570cd283591f27b7a29af38867",
+      "training_seed": 0,
+      "comparison_role": "controlled_core"
+    },
+    "cell17_seed1": {
+      "display_name": "Cell 17 (seed 1)",
+      "config": "ml4phy-paper/configs/cell17_controlled_seed0.yaml",
+      "config_sha256": "327308ed0b69a621c310d77710ac6fa26a8d17f9f1824b9e64eedd8a6568f2c3",
+      "checkpoint": "ml4phy-paper/runs/training/20260908-cell17-seed1-train3000/artifacts/cnp.ckpt",
+      "checkpoint_sha256": "82a254cb35ba13176f289987d958288a319d45cb458069ed53c194c9eee5bfb4",
+      "training_seed": 1,
+      "comparison_role": "controlled_core"
+    },
+    "cell17_seed2": {
+      "display_name": "Cell 17 (seed 2)",
+      "config": "ml4phy-paper/configs/cell17_controlled_seed0.yaml",
+      "config_sha256": "327308ed0b69a621c310d77710ac6fa26a8d17f9f1824b9e64eedd8a6568f2c3",
+      "checkpoint": "ml4phy-paper/runs/training/20260908-cell17-seed2-train3000/artifacts/cnp.ckpt",
+      "checkpoint_sha256": "f6ea2ad7f709510897d39fbaa0ae0ee5c90c36545af274df286131604447d38a",
+      "training_seed": 2,
+      "comparison_role": "controlled_core"
     }
   }
 }
