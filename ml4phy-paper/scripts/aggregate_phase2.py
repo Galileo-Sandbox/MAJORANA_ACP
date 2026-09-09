@@ -137,6 +137,7 @@ def main() -> None:
         "contrasts": root / "tables/phase2_peak_contrast_cells.csv",
         "summary": root / "tables/phase2_training_budget_summary.csv",
         "curves": root / "tables/phase2_acceptance_curves.csv",
+        "evaluation_runs": root / "tables/phase2_evaluation_runs.csv",
         "efficiency_figure": root / "figures/phase2_training_budget_efficiency.png",
         "tail_figure": root / "figures/phase2_sparse_tail_diagnostic.png",
         "local_figure": root / "figures/phase2_density_guided_local_curves.png",
@@ -347,6 +348,20 @@ def main() -> None:
     cells = pd.DataFrame(cell_rows)
     summary_rows = hierarchical_summary(cells)
     summary_frame = pd.DataFrame(summary_rows)
+    evaluation_run_rows = [
+        {
+            "run_id": item["run_id"],
+            "summary_sha256": item["summary_sha256"],
+            "model_registry_sha256": item["registry_sha256"],
+            "wall_seconds": item["wall_seconds"],
+            "inference_seconds": item["inference_seconds"],
+            "peak_memory_mib": item["peak_memory_mib"],
+            "recovered_after_interruption": item.get(
+                "recovered_after_interruption", False
+            ),
+        }
+        for item in campaign["completed"]
+    ]
 
     assert grid_energy is not None and reference is not None
     curve_rows: list[dict] = []
@@ -425,6 +440,7 @@ def main() -> None:
     write_csv(outputs["contrasts"], contrast_rows)
     write_csv(outputs["summary"], summary_rows)
     write_csv(outputs["curves"], curve_rows)
+    write_csv(outputs["evaluation_runs"], evaluation_run_rows)
 
     fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.2), constrained_layout=True)
     for axis, metric, title in (
@@ -578,7 +594,8 @@ evaluation cells completed without scientific failure. The analysis combines
 those cells with 120 compatible Phase 1 cells at the original 18,866-event
 budget. Every cell uses a 500-event context, the same ten overlapping context
 draws, 50 MC passes with fixed dropout seed 10100, and the fixed 114,400-event
-target.
+target. The 240-cell evaluation campaign took 856.10 seconds of wall time and
+used at most 6,726.31 MiB of GPU memory.
 
 ## Main result
 
@@ -654,6 +671,20 @@ of scope.
         "phase2_training_manifest_sha256": sha256_file(training_manifest_path),
         "phase1_neural_manifest_sha256": sha256_file(phase1_manifest_path),
         "evaluation_campaign_record_sha256": sha256_file(campaign_path),
+        "evaluation_campaign": {
+            "source_commit": campaign["source_commit"],
+            "script_sha256": campaign["script_sha256"],
+            "evaluator_sha256": campaign["evaluator_sha256"],
+            "start_time": campaign["start_time"],
+            "end_time": campaign["end_time"],
+            "wall_seconds": campaign["final_session_wall_seconds"],
+            "summed_cell_wall_seconds": campaign[
+                "measured_completed_cell_wall_seconds"
+            ],
+            "maximum_peak_memory_mib": max(
+                item["peak_memory_mib"] for item in campaign["completed"]
+            ),
+        },
         "matrix": {
             "nominal_training_budgets": list(BUDGETS),
             "sampling_eligible_counts": ELIGIBLE_COUNTS,
