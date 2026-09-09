@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "analysis": "dense Bernoulli-GP timing pilot and campaign gate",
+  "status": "campaign_stopped_for_approval",
+  "source_commit": "02613ab9a4b7eb044069e48afbc8c50e65d3c37e",
+  "config": "ml4phy-paper/configs/gp_protocol_v1.json",
+  "config_sha256": "6ea86966d28a42cdc79db5059faa65ca9d8937e19b07a0cdd9185ee9b926aa67",
+  "run_id": "20260909-rbf-dev-s100-n2000-pilot-attempt2",
+  "summary_sha256": "9ab02b2b47465c22447816d2697082d9ddaa2bc3cd64e67bafbbbfaf6c51f92b",
+  "server_only_predictions_sha256": "a7184e54219e7d3ead8b41e5b28fc3f894dfce685f0c24c801302e2ba5b63f11",
+  "failed_attempts": [
+    {
+      "attempt": 1,
+      "stage": "HDF5 row access before GP fitting",
+      "reason": "h5py requires increasing row indices; frozen SHA-priority rows were unsorted",
+      "scientific_computation_started": false,
+      "outputs": []
+    }
+  ],
+  "pilot": {
+    "context_events": 2000,
+    "development_target_events": 2074,
+    "final_target_events": 114400,
+    "fit_seconds": 228.64725071191788,
+    "development_prediction_seconds": 8.174048110842705,
+    "final_prediction_seconds": 27.669184355065227,
+    "total_seconds": 264.4929090603255,
+    "optimizer_calls": 3,
+    "optimizer_calls_converged": 3,
+    "warnings": [],
+    "optimized_amplitude": 0.3280205243649577,
+    "optimized_length_scale_kev": 117.3084359139525,
+    "development_global_brier": 0.23024776150840087,
+    "development_equal_supported_region_brier": 0.23395435612178672
+  },
+  "projection": {
+    "development_fit_count": 80,
+    "final_fit_count": 40,
+    "flat_pilot_rate_seconds": 29198.36130850017,
+    "scaling_model": "fit proportional to context_size cubed; prediction proportional to context_size",
+    "scaled_development_seconds": 5531.473744253162,
+    "scaled_final_seconds": 3131.2706767057534,
+    "scaled_total_seconds": 8662.744420958916,
+    "scaled_total_hours": 2.40631789471081,
+    "stop_threshold_seconds": 7200,
+    "threshold_exceeded": true
+  },
+  "decision": "Do not launch the dense GP campaign without approval of an amended protocol.",
+  "historical_data_exposure": "Prospectively specified follow-up analysis on historically exposed data; not an untouched test."
+}
