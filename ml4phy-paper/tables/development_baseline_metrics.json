@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "frozen_candidate": "cell17",
+  "primary_means": {
+    "v9": {
+      "full": 0.22595523780229673,
+      "equal_region_mean": 0.23485741555446063
+    },
+    "v5": {
+      "full": 0.22581047921017294,
+      "equal_region_mean": 0.23464958079406043
+    },
+    "cell17": {
+      "full": 0.22562063293627652,
+      "equal_region_mean": 0.2341854978884285
+    },
+    "true_cnp": {
+      "full": 0.23220689045647042,
+      "equal_region_mean": 0.23828383476230589
+    },
+    "base1": {
+      "full": 0.2321921457318492,
+      "equal_region_mean": 0.23913064452645552
+    },
+    "base2": {
+      "full": 0.23086696666275838,
+      "equal_region_mean": 0.23431388559362257
+    },
+    "base3": {
+      "full": 0.2292357121729514,
+      "equal_region_mean": 0.23281803366231352
+    },
+    "kernel": {
+      "full": 0.23018515479392251,
+      "equal_region_mean": 0.23324585514395396
+    }
+  },
+  "kernel": {
+    "kind": "Gaussian Nadaraya-Watson regression of binary passage flags",
+    "information_budget": "2,000 context events only",
+    "candidate_bandwidths_kev": [
+      2.0,
+      5.0,
+      10.0,
+      20.0,
+      50.0,
+      100.0
+    ],
+    "cv_folds": 5,
+    "cv_seed": 20260908,
+    "selected_bandwidth_kev_by_context_seed": {
+      "100": 100.0,
+      "101": 50.0,
+      "102": 100.0,
+      "103": 100.0,
+      "104": 100.0,
+      "105": 100.0,
+      "106": 50.0,
+      "107": 100.0,
+      "108": 50.0,
+      "109": 50.0
+    },
+    "effective_support_by_context_seed": {
+      "100": {
+        "minimum_effective_n": 153.47430149444062,
+        "median_effective_n": 303.27646454401827
+      },
+      "101": {
+        "minimum_effective_n": 70.09896411261057,
+        "median_effective_n": 157.240260753247
+      },
+      "102": {
+        "minimum_effective_n": 172.14083930102257,
+        "median_effective_n": 287.7443934066256
+      },
+      "103": {
+        "minimum_effective_n": 163.18137306744464,
+        "median_effective_n": 308.4265702854925
+      },
+      "104": {
+        "minimum_effective_n": 156.4605749709846,
+        "median_effective_n": 293.3007330427224
+      },
+      "105": {
+        "minimum_effective_n": 158.01612458607116,
+        "median_effective_n": 305.3355648267511
+      },
+      "106": {
+        "minimum_effective_n": 65.94049927955244,
+        "median_effective_n": 161.2900302871456
+      },
+      "107": {
+        "minimum_effective_n": 159.6119104130608,
+        "median_effective_n": 293.4569932203321
+      },
+      "108": {
+        "minimum_effective_n": 66.54432317219961,
+        "median_effective_n": 150.10676264196974
+      },
+      "109": {
+        "minimum_effective_n": 64.23645034018786,
+        "median_effective_n": 149.205187398466
+      }
+    }
+  },
+  "variation_sources": {
+    "training_seed": "one recovered seed for each neural model",
+    "context_seed": [
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109
+    ],
+    "dropout_seed": 10100
+  },
+  "evaluation_source_commits": [
+    "1760df366d2b95546c700a7b49f6a6698004ba76",
+    "7671cc75d4f37c307ba1fdfdba0f326bce205d4a"
+  ],
+  "interpretation": "Recovered neural baselines are secondary comparisons, not controlled ablations, because their historical training configurations differ."
+}
