@@ -81,34 +81,50 @@ def main() -> None:
     ).strip()
     run_root = repo / "ml4phy-paper/runs/extension_eval"
     campaign_dir = repo / "ml4phy-paper/runs/campaigns/20260909-phase1-neural-v1"
-    campaign_dir.mkdir(parents=True, exist_ok=False)
     record_path = campaign_dir / "campaign_record.json"
     log_path = campaign_dir / "campaign.log"
     evaluator = repo / "ml4phy-paper/scripts/evaluate_extension_neural.py"
-    record = {
-        "schema_version": 1,
-        "status": "running",
-        "start_time": utc_now(),
-        "source_commit": source_commit,
-        "script_sha256": sha256_file(Path(__file__)),
-        "evaluator_sha256": sha256_file(evaluator),
-        "matrix": {
-            "architectures": list(ARCHITECTURES),
-            "training_seeds": list(TRAINING_SEEDS),
-            "context_seeds": list(CONTEXT_SEEDS),
-            "context_sizes": list(CONTEXT_SIZES),
-            "total_cells": 480,
-            "archived_reuse_cells": 60,
-            "campaign_cells": 420,
-        },
-        "completed": [],
-        "reused_pilot": [],
-        "failures": [],
-    }
+    resuming = campaign_dir.exists()
+    if resuming:
+        record = read_json(record_path)
+        if record["status"] == "completed":
+            raise RuntimeError("Campaign is already complete")
+        record.setdefault("resumes", []).append(
+            {
+                "time": utc_now(),
+                "source_commit": source_commit,
+                "script_sha256": sha256_file(Path(__file__)),
+            }
+        )
+        record["status"] = "running"
+    else:
+        campaign_dir.mkdir(parents=True, exist_ok=False)
+        record = {
+            "schema_version": 1,
+            "status": "running",
+            "start_time": utc_now(),
+            "source_commit": source_commit,
+            "script_sha256": sha256_file(Path(__file__)),
+            "evaluator_sha256": sha256_file(evaluator),
+            "matrix": {
+                "architectures": list(ARCHITECTURES),
+                "training_seeds": list(TRAINING_SEEDS),
+                "context_seeds": list(CONTEXT_SEEDS),
+                "context_sizes": list(CONTEXT_SIZES),
+                "total_cells": 480,
+                "archived_reuse_cells": 60,
+                "campaign_cells": 420,
+            },
+            "completed": [],
+            "reused_pilot": [],
+            "failures": [],
+        }
     write_json(record_path, record)
     campaign_start = time.perf_counter()
+    completed_ids = {item["run_id"] for item in record["completed"]}
+    reused_pilot_ids = {item["run_id"] for item in record["reused_pilot"]}
 
-    with log_path.open("x") as log:
+    with log_path.open("a" if resuming else "x") as log:
         try:
             for architecture in ARCHITECTURES:
                 for training_seed in TRAINING_SEEDS:
@@ -121,20 +137,48 @@ def main() -> None:
                                 run_id = PILOT_RUN_ID
                                 output_dir = run_root / run_id
                                 summary = validate_existing_run(output_dir, cell)
-                                record["reused_pilot"].append(
-                                    {
-                                        "run_id": run_id,
-                                        "summary_sha256": sha256_file(output_dir / "summary.json"),
-                                        "inference_seconds": summary["runtime"]["inference_seconds"],
-                                    }
-                                )
-                                write_json(record_path, record)
+                                if run_id not in reused_pilot_ids:
+                                    record["reused_pilot"].append(
+                                        {
+                                            "run_id": run_id,
+                                            "summary_sha256": sha256_file(
+                                                output_dir / "summary.json"
+                                            ),
+                                            "inference_seconds": summary["runtime"][
+                                                "inference_seconds"
+                                            ],
+                                        }
+                                    )
+                                    reused_pilot_ids.add(run_id)
+                                    write_json(record_path, record)
                                 continue
                             run_id = (
                                 f"20260909-{architecture}-seed{training_seed}-final-"
                                 f"ctx-s{context_seed}-n{context_size}-drop10100-mc50"
                             )
                             output_dir = run_root / run_id
+                            if output_dir.exists():
+                                summary = validate_existing_run(output_dir, cell)
+                                if run_id not in completed_ids:
+                                    record["completed"].append(
+                                        {
+                                            "run_id": run_id,
+                                            "summary_sha256": sha256_file(
+                                                output_dir / "summary.json"
+                                            ),
+                                            "wall_seconds": None,
+                                            "inference_seconds": summary["runtime"][
+                                                "inference_seconds"
+                                            ],
+                                            "peak_memory_mib": summary["runtime"][
+                                                "peak_memory_mib"
+                                            ],
+                                            "recovered_after_interruption": True,
+                                        }
+                                    )
+                                    completed_ids.add(run_id)
+                                    write_json(record_path, record)
+                                continue
                             command = [
                                 str(repo / ".venv/bin/python"),
                                 str(evaluator),
@@ -188,6 +232,7 @@ def main() -> None:
                                     "peak_memory_mib": summary["runtime"]["peak_memory_mib"],
                                 }
                             )
+                            completed_ids.add(run_id)
                             write_json(record_path, record)
         except Exception:
             record["status"] = "failed"
@@ -198,7 +243,12 @@ def main() -> None:
 
     record["status"] = "completed"
     record["end_time"] = utc_now()
-    record["wall_seconds"] = time.perf_counter() - campaign_start
+    record["final_session_wall_seconds"] = time.perf_counter() - campaign_start
+    record["measured_completed_cell_wall_seconds"] = sum(
+        item["wall_seconds"]
+        for item in record["completed"]
+        if item["wall_seconds"] is not None
+    )
     record["log_sha256"] = sha256_file(log_path)
     write_json(record_path, record)
     print(
@@ -207,7 +257,7 @@ def main() -> None:
                 "status": record["status"],
                 "new_cells": len(record["completed"]),
                 "reused_pilot": len(record["reused_pilot"]),
-                "wall_seconds": record["wall_seconds"],
+                "final_session_wall_seconds": record["final_session_wall_seconds"],
             }
         )
     )
