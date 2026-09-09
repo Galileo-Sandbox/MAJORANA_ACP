@@ -51,6 +51,7 @@ def main() -> None:
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--n-steps-override", type=int)
+    parser.add_argument("--training-seed-override", type=int, choices=(0, 1, 2))
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     if not args.run_id.replace("-", "").replace("_", "").isalnum():
@@ -130,8 +131,14 @@ def main() -> None:
     resolved["out_dir"] = str(artifact_dir.relative_to(repo))
     if args.n_steps_override is not None:
         resolved["training"]["n_steps"] = args.n_steps_override
-    if resolved["training"]["seed"] != 0:
-        parser.error("This authorized pilot is restricted to training seed 0.")
+    if args.training_seed_override is not None:
+        resolved["training"]["seed"] = args.training_seed_override
+        base_name = str(resolved["name"])
+        resolved["name"] = (
+            base_name.removesuffix("_seed0") + f"_seed{args.training_seed_override}"
+        )
+    if resolved["training"]["seed"] not in {0, 1, 2}:
+        parser.error("The controlled training expansion is restricted to seeds 0, 1, and 2.")
     if resolved.get("device") != "cuda":
         parser.error("The paper training pilot must fail loudly when CUDA is unavailable.")
 
@@ -141,7 +148,7 @@ def main() -> None:
         "majorana_acp.cut_acceptance.cli",
         str(run_dir / "resolved_config.yaml"),
         "--seed",
-        "0",
+        str(resolved["training"]["seed"]),
     ]
     preview = {
         "run_id": args.run_id,
