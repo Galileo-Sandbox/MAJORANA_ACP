@@ -94,7 +94,11 @@ def cell_directory(
         f"20260909-{architecture}-seed{training_seed}-final-"
         f"ctx-s{context_seed}-n{context_size}-drop10100-mc50"
     )
-    return repo / "ml4phy-paper/runs/extension_eval" / run_id, "new_evaluation"
+    directory = repo / "ml4phy-paper/runs/extension_eval" / run_id
+    clean_rerun = directory.with_name(directory.name + "-cleanrerun")
+    if clean_rerun.exists():
+        return clean_rerun, "clean_provenance_rerun"
+    return directory, "new_evaluation"
 
 
 def hierarchical_summary(data: pd.DataFrame, metrics: list[str]) -> list[dict]:
