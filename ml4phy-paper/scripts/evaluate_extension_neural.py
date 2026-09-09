@@ -148,9 +148,12 @@ def main() -> None:
         raise ValueError("Context subset identity hash mismatch")
 
     run_id = output_dir.name
-    temp_dir = repo / "ml4phy-paper/local/extension_eval_tmp" / run_id
-    if temp_dir.exists():
-        parser.error(f"Refusing to reuse temporary directory: {temp_dir}")
+    temp_root = repo / "ml4phy-paper/local/extension_eval_tmp"
+    attempt = 1
+    temp_dir = temp_root / f"{run_id}-attempt{attempt}"
+    while temp_dir.exists():
+        attempt += 1
+        temp_dir = temp_root / f"{run_id}-attempt{attempt}"
     temp_dir.mkdir(parents=True)
     synthetic_archive_path = temp_dir / "roles.npz"
     np.savez(
@@ -232,6 +235,7 @@ def main() -> None:
         "construction": extension["context_protocol"]["construction"],
         "membership_at_2000": extension["context_protocol"]["membership_at_2000"],
         "analysis_status": extension["analysis_status"],
+        "evaluation_attempt": attempt,
     }
     summary["randomness"]["context_permutation"] = "frozen outcome-blind SHA-256 priority"
     summary["randomness"]["dropout_rule"] = "fixed 10100"
