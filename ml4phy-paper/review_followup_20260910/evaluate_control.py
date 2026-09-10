@@ -35,6 +35,7 @@ def main() -> None:
     parser.add_argument("--repo", type=Path, default=Path("."))
     parser.add_argument("--mode", required=True)
     parser.add_argument("--training-seed", type=int, required=True)
+    parser.add_argument("--training-run-id", required=True)
     parser.add_argument("--context-seed", type=int, choices=range(100, 110), required=True)
     parser.add_argument("--run-id", required=True)
     args = parser.parse_args()
@@ -44,8 +45,7 @@ def main() -> None:
     output = root / "runs/evaluation" / args.run_id
     if output.exists():
         parser.error(f"Refusing existing output {output}")
-    training_id = f"20260910-mechanism-{args.mode}-seed{args.training_seed}-train3000"
-    training = root / "runs/training" / training_id
+    training = root / "runs/training" / args.training_run_id
     record = json.loads((training / "runner_record.json").read_text())
     if record["status"] != "completed" or record["control_mode"] != args.mode:
         raise ValueError("Training record is incomplete or mode-mismatched")
@@ -53,6 +53,10 @@ def main() -> None:
     if sha256_file(checkpoint) != record["outputs"]["control.ckpt"]["sha256"]:
         raise ValueError("Control checkpoint hash mismatch")
     protocol = json.loads((root / "configs/protocol_v1.json").read_text())
+    for relative, expected in protocol["hashes"]["inputs"].items():
+        candidate = repo / relative
+        if candidate.exists() and sha256_file(candidate) != expected:
+            raise ValueError(f"Frozen input hash mismatch: {relative}")
     config_path = (
         repo
         / "ml4phy-paper/runs/phase2/training/20260909-phase2-b5000-ours-seed0-train3000/resolved_config.yaml"
@@ -79,6 +83,15 @@ def main() -> None:
     roles_path = repo / "ml4phy-paper/local/protocol/frozen_roles_v1.npz"
     frozen_path = repo / "ml4phy-paper/manifests/frozen_protocol_v1.json"
     frozen = json.loads(frozen_path.read_text())
+    extension_manifest = json.loads(
+        (repo / "ml4phy-paper/manifests/extension_protocol_v1.json").read_text()
+    )
+    if sha256_file(extension_path) != extension_manifest["context_protocol"]["local_archive"][
+        "sha256"
+    ]:
+        raise ValueError("Extension context-role archive hash mismatch")
+    if sha256_file(roles_path) != frozen["local_role_archive"]["sha256"]:
+        raise ValueError("Frozen role archive hash mismatch")
     with np.load(extension_path) as archive:
         context_rows = archive[f"final_context_s{args.context_seed}_n500_rows"].astype(np.int64)
     with np.load(roles_path) as archive:
@@ -157,6 +170,7 @@ def main() -> None:
         ).strip(),
         "control_mode": args.mode,
         "training_seed": args.training_seed,
+        "training_run_id": args.training_run_id,
         "context_seed": args.context_seed,
         "context_size": n_context,
         "dropout_seed": 10100,

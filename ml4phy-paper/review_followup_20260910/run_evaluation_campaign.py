@@ -47,12 +47,22 @@ def main() -> None:
     ).strip()
     campaign_path = root / "runs/campaigns" / CAMPAIGN_ID / "campaign_record.json"
     campaign = json.loads(campaign_path.read_text())
-    if campaign["source_commit"] != source_commit or len(campaign["completed_training"]) != 12:
-        raise ValueError("Training campaign/implementation is incomplete or changed")
+    if len(campaign["completed_training"]) != 12:
+        raise ValueError("Training campaign is incomplete")
+    protocol = json.loads((root / "configs/protocol_v1.json").read_text())
+    control_path = root / "control_models.py"
+    if sha256_file(control_path) != protocol["hashes"]["sources"][
+        "ml4phy-paper/review_followup_20260910/control_models.py"
+    ]:
+        raise ValueError("Frozen control implementation changed after training")
     if time.time() - campaign["scientific_start_unix"] >= HARD_SECONDS:
         raise TimeoutError("Scientific hard wall-clock limit reached before evaluation")
     runner = root / "evaluate_control.py"
     campaign["evaluation_runner_sha256"] = sha256_file(runner)
+    campaign["evaluation_source_commit"] = source_commit
+    training_runs = {
+        (item["mode"], item["training_seed"]): item for item in campaign["completed_training"]
+    }
     campaign.setdefault("completed_evaluations", [])
     campaign["status"] = "evaluation_running"
     campaign["evaluation_max_workers"] = args.max_workers
@@ -71,6 +81,7 @@ def main() -> None:
 
     def execute(item):
         mode, seed, context = item
+        training_run = training_runs[(mode, seed)]
         run_id = f"20260910-mechanism-{mode}-seed{seed}-ctx{context}-n500-mc50-drop10100"
         command = [
             str(repo / ".venv/bin/python"),
@@ -81,6 +92,8 @@ def main() -> None:
             mode,
             "--training-seed",
             str(seed),
+            "--training-run-id",
+            training_run["run_id"],
             "--context-seed",
             str(context),
             "--run-id",
