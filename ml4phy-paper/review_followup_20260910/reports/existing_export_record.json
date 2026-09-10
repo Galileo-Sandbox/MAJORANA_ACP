@@ -1,0 +1,20 @@
+{
+  "status": "complete",
+  "runtime_seconds": 21.53225453104824,
+  "source_manifest": {
+    "path": "ml4phy-paper/manifests/paper_presentation_export.json",
+    "sha256": "ed005d2b5285c925fe230916baf7d499e4bd26b2d8367e203fca89e49cb857a6"
+  },
+  "coverage_source": {
+    "path": "ml4phy-paper/tables/paper_coverage_cells.csv",
+    "sha256": "e8444cb39f191e08d9904334a6c228d7c5ea145d95fa5243639613bde1556e35"
+  },
+  "recovered_cells": 630,
+  "missing_cells": [],
+  "target_events": 114400,
+  "supported_bins": 442,
+  "excluded_bins": 58,
+  "excluded_target_events": 101,
+  "global_Ck_max_abs_difference_percentage_points": 0.0,
+  "no_new_model_calls": true
+}

@@ -1,0 +1,979 @@
+{
+  "schema_version": 1,
+  "status": "frozen_approved_pretraining_checks_passed",
+  "created_at": "2026-09-10T23:14:29.488184Z",
+  "base_commit": "ed631f9928f086fa0f9fd447571abed171fc7d6c",
+  "historical_exposure": "Post-review extension on historically exposed frozen data; not an untouched test.",
+  "scope": {
+    "modes": [
+      "full_density",
+      "global_gate",
+      "global_attention",
+      "global_both",
+      "density_free_global"
+    ],
+    "reused_full_density_training_jobs": 3,
+    "new_training_jobs": 12,
+    "new_evaluation_cells": 120,
+    "mechanism_cells_including_reuse": 150,
+    "excluded": [
+      "new data",
+      "classifier training",
+      "new threshold",
+      "new budget or subset ordering",
+      "baseline retraining",
+      "GP or KDE fitting",
+      "sparse GP",
+      "uncertainty calibration",
+      "high-MC study",
+      "hyperparameter sweep"
+    ]
+  },
+  "fixed_scientific_settings": {
+    "training_subset": {
+      "budget": 5000,
+      "logical_path": "ml4phy-paper/local/phase2/protocol-v1/training_budget_5000.h5",
+      "bytes": 229096,
+      "sha256": "97e406572d2c986a0ba1cbfbf88d9c9a2d57d86c60c71fb1b7ef181a6bc6becf",
+      "identity_sha256": "f95675afe3e3c81302ea25ced122533a470114f99b2b3948ac7e3fb7d197754a",
+      "effective_identity_sha256": "bd8bcdaf1106b23c048d4ee89cc97bc05771076041f205bdd639361e389a3f71",
+      "nominal_unique_events": 5000,
+      "sampling_eligible_unique_events": 4984,
+      "sampling_excluded_unique_events": 16,
+      "kept_bin_count": 205,
+      "nonempty_bin_count": 215,
+      "density_pool_unique_events": 5000,
+      "density_pool_identity_sha256": "f95675afe3e3c81302ea25ced122533a470114f99b2b3948ac7e3fb7d197754a"
+    },
+    "training_seeds": [
+      0,
+      1,
+      2
+    ],
+    "context_seeds": [
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109
+    ],
+    "context_size": 500,
+    "training_steps": 3000,
+    "batch_size": 16,
+    "threshold": 0.540643572807312,
+    "target_events": 114400,
+    "mc_passes": 50,
+    "dropout_seed": 10100,
+    "checkpoint_rule": "final 3000-step checkpoint",
+    "classifier_training_events": 18866
+  },
+  "control_parameterizations": {
+    "global_gate": "lambda=1+9*sigmoid(phi), phi_init=log(2/7), original kappa_raw repurposed, alpha=5, bands=0..9",
+    "global_attention": "existing pool_sfn_net and pool_tau_net evaluated at constant Z0=(0,0)",
+    "density_free_global": "global gate and attention plus direct decoder contrast_ratio replaced by zero"
+  },
+  "resource_gates": {
+    "existing_export_seconds": 2700,
+    "scientific_campaign_seconds": 7200,
+    "pilot_margin_factor": 1.25,
+    "maximum_concurrent_jobs": 4,
+    "maximum_retry_per_technical_failure": 1,
+    "portable_target_bytes": 5242880,
+    "portable_hard_limit_bytes": 20971520
+  },
+  "expected_inventory": {
+    "existing_cells": {
+      "neural": 600,
+      "kernel_context_only": 10,
+      "kernel_pooled": 10,
+      "bernoulli_gp": 10
+    },
+    "new_training": [
+      {
+        "mode": "global_gate",
+        "training_seed": 0
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 1
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 2
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 0
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 1
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 2
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 0
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 1
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 2
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 0
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 1
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 2
+      }
+    ],
+    "new_evaluation": [
+      {
+        "mode": "global_gate",
+        "training_seed": 0,
+        "context_seed": 100
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 0,
+        "context_seed": 101
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 0,
+        "context_seed": 102
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 0,
+        "context_seed": 103
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 0,
+        "context_seed": 104
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 0,
+        "context_seed": 105
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 0,
+        "context_seed": 106
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 0,
+        "context_seed": 107
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 0,
+        "context_seed": 108
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 0,
+        "context_seed": 109
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 1,
+        "context_seed": 100
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 1,
+        "context_seed": 101
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 1,
+        "context_seed": 102
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 1,
+        "context_seed": 103
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 1,
+        "context_seed": 104
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 1,
+        "context_seed": 105
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 1,
+        "context_seed": 106
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 1,
+        "context_seed": 107
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 1,
+        "context_seed": 108
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 1,
+        "context_seed": 109
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 2,
+        "context_seed": 100
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 2,
+        "context_seed": 101
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 2,
+        "context_seed": 102
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 2,
+        "context_seed": 103
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 2,
+        "context_seed": 104
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 2,
+        "context_seed": 105
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 2,
+        "context_seed": 106
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 2,
+        "context_seed": 107
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 2,
+        "context_seed": 108
+      },
+      {
+        "mode": "global_gate",
+        "training_seed": 2,
+        "context_seed": 109
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 0,
+        "context_seed": 100
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 0,
+        "context_seed": 101
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 0,
+        "context_seed": 102
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 0,
+        "context_seed": 103
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 0,
+        "context_seed": 104
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 0,
+        "context_seed": 105
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 0,
+        "context_seed": 106
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 0,
+        "context_seed": 107
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 0,
+        "context_seed": 108
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 0,
+        "context_seed": 109
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 1,
+        "context_seed": 100
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 1,
+        "context_seed": 101
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 1,
+        "context_seed": 102
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 1,
+        "context_seed": 103
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 1,
+        "context_seed": 104
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 1,
+        "context_seed": 105
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 1,
+        "context_seed": 106
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 1,
+        "context_seed": 107
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 1,
+        "context_seed": 108
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 1,
+        "context_seed": 109
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 2,
+        "context_seed": 100
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 2,
+        "context_seed": 101
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 2,
+        "context_seed": 102
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 2,
+        "context_seed": 103
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 2,
+        "context_seed": 104
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 2,
+        "context_seed": 105
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 2,
+        "context_seed": 106
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 2,
+        "context_seed": 107
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 2,
+        "context_seed": 108
+      },
+      {
+        "mode": "global_attention",
+        "training_seed": 2,
+        "context_seed": 109
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 0,
+        "context_seed": 100
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 0,
+        "context_seed": 101
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 0,
+        "context_seed": 102
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 0,
+        "context_seed": 103
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 0,
+        "context_seed": 104
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 0,
+        "context_seed": 105
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 0,
+        "context_seed": 106
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 0,
+        "context_seed": 107
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 0,
+        "context_seed": 108
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 0,
+        "context_seed": 109
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 1,
+        "context_seed": 100
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 1,
+        "context_seed": 101
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 1,
+        "context_seed": 102
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 1,
+        "context_seed": 103
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 1,
+        "context_seed": 104
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 1,
+        "context_seed": 105
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 1,
+        "context_seed": 106
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 1,
+        "context_seed": 107
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 1,
+        "context_seed": 108
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 1,
+        "context_seed": 109
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 2,
+        "context_seed": 100
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 2,
+        "context_seed": 101
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 2,
+        "context_seed": 102
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 2,
+        "context_seed": 103
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 2,
+        "context_seed": 104
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 2,
+        "context_seed": 105
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 2,
+        "context_seed": 106
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 2,
+        "context_seed": 107
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 2,
+        "context_seed": 108
+      },
+      {
+        "mode": "global_both",
+        "training_seed": 2,
+        "context_seed": 109
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 0,
+        "context_seed": 100
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 0,
+        "context_seed": 101
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 0,
+        "context_seed": 102
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 0,
+        "context_seed": 103
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 0,
+        "context_seed": 104
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 0,
+        "context_seed": 105
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 0,
+        "context_seed": 106
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 0,
+        "context_seed": 107
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 0,
+        "context_seed": 108
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 0,
+        "context_seed": 109
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 1,
+        "context_seed": 100
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 1,
+        "context_seed": 101
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 1,
+        "context_seed": 102
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 1,
+        "context_seed": 103
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 1,
+        "context_seed": 104
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 1,
+        "context_seed": 105
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 1,
+        "context_seed": 106
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 1,
+        "context_seed": 107
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 1,
+        "context_seed": 108
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 1,
+        "context_seed": 109
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 2,
+        "context_seed": 100
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 2,
+        "context_seed": 101
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 2,
+        "context_seed": 102
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 2,
+        "context_seed": 103
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 2,
+        "context_seed": 104
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 2,
+        "context_seed": 105
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 2,
+        "context_seed": 106
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 2,
+        "context_seed": 107
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 2,
+        "context_seed": 108
+      },
+      {
+        "mode": "density_free_global",
+        "training_seed": 2,
+        "context_seed": 109
+      }
+    ]
+  },
+  "pretraining_checks": {
+    "full_mode_parity": {
+      "deterministic": {
+        "mu_logit_max_abs_difference": 0.0,
+        "log_sigma_max_abs_difference": 0.0
+      },
+      "fixed_rng_stochastic": {
+        "mu_logit_max_abs_difference": 0.0,
+        "log_sigma_max_abs_difference": 0.0
+      }
+    },
+    "checkpoint_roundtrip_max_abs_difference": {
+      "global_gate": 0.0,
+      "global_attention": 0.0,
+      "global_both": 0.0,
+      "density_free_global": 0.0
+    },
+    "finite_nonzero_gradients": {
+      "global_gate": {
+        "global_gate_phi_gradient": 7.04018930264283e-06
+      },
+      "global_attention": {
+        "global_bandwidth_output_bias_gradient": 1.5247118767547363e-07,
+        "global_temperature_output_bias_gradient": 8.62315427396787e-12
+      },
+      "global_both": {
+        "global_gate_phi_gradient": 7.056770300550852e-06,
+        "global_bandwidth_output_bias_gradient": 1.6555840431919933e-07,
+        "global_temperature_output_bias_gradient": 9.04534953882763e-12
+      },
+      "density_free_global": {
+        "global_gate_phi_gradient": 2.3471429813071154e-05,
+        "global_bandwidth_output_bias_gradient": 1.2613625699486875e-08,
+        "global_temperature_output_bias_gradient": 4.732215053843136e-12
+      }
+    },
+    "shared_initialization": {
+      "full_density": {
+        "changed_tensors": [],
+        "expected": []
+      },
+      "global_gate": {
+        "changed_tensors": [
+          "attention.kappa_raw"
+        ],
+        "expected": [
+          "attention.kappa_raw"
+        ]
+      },
+      "global_attention": {
+        "changed_tensors": [],
+        "expected": []
+      },
+      "global_both": {
+        "changed_tensors": [
+          "attention.kappa_raw"
+        ],
+        "expected": [
+          "attention.kappa_raw"
+        ]
+      },
+      "density_free_global": {
+        "changed_tensors": [
+          "attention.kappa_raw"
+        ],
+        "expected": [
+          "attention.kappa_raw"
+        ]
+      }
+    },
+    "training_task_schedule_sha256": {
+      "0": "e09dfc1b4b43e9bb92ece7aa20c9f197583eef289093eef460f0f354f25c0a74",
+      "1": "ed6583e1e0c00a28764f810ccf4718360fea591c1cd6026db5fbf2a5b07845b0",
+      "2": "334bda67e3feede1a4b57ce7ccb0c84013a26388ac9e5ec054c60a2498259c9d"
+    },
+    "parameter_counts": {
+      "full_density": {
+        "total_parameters": 130693,
+        "trainable_parameters": 130693,
+        "effectively_participating_parameters": 130693,
+        "structurally_inactive_parameters": 0
+      },
+      "global_gate": {
+        "total_parameters": 130693,
+        "trainable_parameters": 130693,
+        "effectively_participating_parameters": 130693,
+        "structurally_inactive_parameters": 0
+      },
+      "global_attention": {
+        "total_parameters": 130693,
+        "trainable_parameters": 130693,
+        "effectively_participating_parameters": 130629,
+        "structurally_inactive_parameters": 64
+      },
+      "global_both": {
+        "total_parameters": 130693,
+        "trainable_parameters": 130693,
+        "effectively_participating_parameters": 130629,
+        "structurally_inactive_parameters": 64
+      },
+      "density_free_global": {
+        "total_parameters": 130693,
+        "trainable_parameters": 130693,
+        "effectively_participating_parameters": 130501,
+        "structurally_inactive_parameters": 192
+      }
+    },
+    "target_overlap": 0,
+    "context_reservoir_overlap": 0,
+    "density_buffer_fields_used": "energy only; outcomes/scores are not passed to the model builder"
+  },
+  "hashes": {
+    "inputs": {
+      "ml4phy-paper/runs/phase2/training/20260909-phase2-b5000-ours-seed0-train3000/resolved_config.yaml": "737cb45d632a9b492078a038bd65ef2be3abbb27cd8ca946e16f29bec3d70742",
+      "ml4phy-paper/runs/phase2/training/20260909-phase2-b5000-ours-seed0-train3000/artifacts/cnp.ckpt": "7dddb8ef16eea4c1b34d514effa1ea74bb14f2b82437d62a1dae5a4f17e44005",
+      "ml4phy-paper/configs/phase2_training_v1.json": "025cb1b15004f7ddb7c180a067f07c12bfe71196186321a896f3b900add8f50f",
+      "ml4phy-paper/manifests/phase2_protocol_v1.json": "b85b890905ab5efa22feef1b9bcddf3f9cf5e1ca40da01e2cd52c4804132e474",
+      "ml4phy-paper/manifests/frozen_protocol_v1.json": "4c747fafbb043a62746616ba32160bb16a4bfad92ffea379dab6e234f714c4ce",
+      "ml4phy-paper/manifests/extension_protocol_v1.json": "104d8975d49dc6896ee339de461b824791ac0d5c3cd03ec24210c521f9783e6f",
+      "ml4phy-paper/manifests/resum_flex_compatibility.json": "08ac89f0076f3c3cffbd56eba94a86b7ebf9306d46d13513661a7ac0810b7503",
+      "ml4phy-paper/manifests/paper_presentation_export.json": "ed005d2b5285c925fe230916baf7d499e4bd26b2d8367e203fca89e49cb857a6",
+      "ml4phy-paper/manifests/paper_coverage_export.json": "4343e5fd8c65352f895e2000c46a92ce03cbae1b2b3335285e1a0df1ca14952f",
+      "ml4phy-paper/local/phase2/protocol-v1/training_budget_5000.h5": "97e406572d2c986a0ba1cbfbf88d9c9a2d57d86c60c71fb1b7ef181a6bc6becf"
+    },
+    "sources": {
+      "majorana_acp/models/attentive_cnp.py": "a6df1cc111d22bd2aa088244a8a5743af00e0b1beb28837a1382919d10b2759b",
+      "majorana_acp/cut_acceptance/pipeline.py": "59274d72986da700c85ddf371ce4364e90031e91969502e1489fccb6df0101be",
+      "majorana_acp/cut_acceptance/binned_sampler.py": "f3b2a56c37aeef8aab95adeaa20da30a3a1ee2831dcd178f35d205f8c8d8a51a",
+      "ml4phy-paper/local/resum-flex-edba6a/core/training.py": "6819d96e30f6806f309a43f91d0e53cf982c54daaeb59d9c5c8cc6fc7af9c35f",
+      "ml4phy-paper/local/resum-flex-edba6a/core/surrogate_cnp.py": "fec0942550ca9093295fcde1486b9695d9f9b0b8ce6ce5a52202cac8e97a6d63",
+      "ml4phy-paper/scripts/run_phase2_training.py": "6cf88d0ad4c5454f6082d492a085694a1f1a7780311ef1ccce1e419f5ba8c507",
+      "ml4phy-paper/scripts/evaluate_fixed_protocol.py": "7b86a1a22c0d8dd96a427eb7993d615ed0263c9cbc45e4ed74737d9c708c3e57",
+      "ml4phy-paper/scripts/export_paper_presentation.py": "1ee901cdd8222672a3f081942173f0a2bc21a2fadb59f252c8ac73b2e04340ed",
+      "ml4phy-paper/scripts/export_paper_coverage.py": "36a780a6f44ad7bcf1f29f17a750176ebe903ba28a771c53f7aeec889ad98654",
+      "ml4phy-paper/review_followup_20260910/control_models.py": "4a6496aef96622c5159cd56c61a0ff059ae08be655704f22bc3dac7061f8f765",
+      "ml4phy-paper/review_followup_20260910/audit_and_freeze.py": "985af28425b0011274ee77a95b7ebff3355452d44b9c794f23d203222894d614",
+      "ml4phy-paper/review_followup_20260910/export_existing.py": "25820d05fa32bad74dbbc10350bd1a2679fb56a8b137ab6d219548f57f2b8270",
+      "ml4phy-paper/review_followup_20260910/train_control.py": "ef8eccd8830bdf9d09de97cdf804c3e15e5cb7b086a26a56a6d21b66a26a850f",
+      "ml4phy-paper/review_followup_20260910/evaluate_control.py": "34ac4a75ce5ade84d62a9904efd9631e7af76f08f1c362f0ada5a65513f7e18e",
+      "ml4phy-paper/review_followup_20260910/run_training_campaign.py": "5c4d7b51684e1c2b5d9c4cd924adfeb1ab281d5aa8170a66a1434c5bae7168d2",
+      "ml4phy-paper/review_followup_20260910/run_evaluation_campaign.py": "7060408056d2e461ead4aaad980a3b22e714462fdba2b015e8f1fa3c51b94669"
+    }
+  },
+  "dependency": {
+    "schema_version": 1,
+    "commit": "edba6a294581fde6f905b330d477f2c1b42d6adb",
+    "selection_basis": "The lab checkout reflog shows this revision remained active from 2026-05-18 through all priority CNP training timestamps on 2026-05-20.",
+    "local_archive_sha256": "23dc43d5cf1272f32f20746749947bf857a07920c63f96b0b5fb578447626b83",
+    "source_hashes": {
+      "core/training.py": "6819d96e30f6806f309a43f91d0e53cf982c54daaeb59d9c5c8cc6fc7af9c35f",
+      "core/surrogate_cnp.py": "fec0942550ca9093295fcde1486b9695d9f9b0b8ce6ce5a52202cac8e97a6d63",
+      "schemas/config.py": "90daae749b4cf54e6d4e157fe38e9a978d04a44349d7af370e3a414982ef6446",
+      "schemas/data_models.py": "11f005c9cf6467cf1e204bf724119594d26873a5b94943ca2853000395b3bdda"
+    },
+    "validation": {
+      "historical_yaml_schema_compatible": true,
+      "loaded_models": [
+        "v9",
+        "v5",
+        "cell17",
+        "true_cnp",
+        "base1",
+        "base2",
+        "base3"
+      ],
+      "checkpoint_state_dict_parameter_counts_matched": true,
+      "model_inference_run": false
+    },
+    "usage": "Prepend the ignored extracted source directory to PYTHONPATH. Do not modify the current sibling RESUM_FLEX checkout."
+  },
+  "existing_export_checks": {
+    "source_record_count": 630,
+    "unique_run_id_count": 630,
+    "recovered_counts": {
+      "neural": 600,
+      "kernel": 20,
+      "gp": 10
+    },
+    "missing_run_ids": [],
+    "frozen_target_count": 114400,
+    "frozen_target_identity_sha256": "03853bd1c4a3f596b4e0614152b3a1f5306f4ea1a0485a4cb384c70b17faec73",
+    "overall_supported_bins": 442,
+    "overall_excluded_bins": 58,
+    "overall_excluded_target_events": 101,
+    "global_rows_reproduced": 630,
+    "global_reproduction_max_abs_difference": 1.1102230246251565e-16,
+    "maximum_bin_reconciliation_difference": 0.0,
+    "setting_cell_counts": {
+      "original_n2000::CNP": 30,
+      "original_n2000::Attentive CNP": 30,
+      "original_n2000::Attentive CNP + PE": 30,
+      "original_n2000::Density-guided CNP": 30,
+      "original_n5000::CNP": 30,
+      "original_n5000::Attentive CNP": 30,
+      "original_n5000::Attentive CNP + PE": 30,
+      "original_n5000::Density-guided CNP": 30,
+      "original_n10000::CNP": 30,
+      "original_n10000::Attentive CNP": 30,
+      "original_n10000::Attentive CNP + PE": 30,
+      "original_n10000::Density-guided CNP": 30,
+      "seed20260910_n5000::CNP": 30,
+      "seed20260910_n5000::Attentive CNP": 30,
+      "seed20260910_n5000::Attentive CNP + PE": 30,
+      "seed20260910_n5000::Density-guided CNP": 30,
+      "seed20260911_n5000::CNP": 30,
+      "seed20260911_n5000::Attentive CNP": 30,
+      "seed20260911_n5000::Attentive CNP + PE": 30,
+      "seed20260911_n5000::Density-guided CNP": 30,
+      "context_only::Kernel": 10,
+      "full_n18866_plus_context::Pooled-data kernel": 10,
+      "context_only::Bernoulli GP": 10
+    },
+    "paired_context_seed_identity_hashes": {
+      "100": "75a518a9ab834d388c58fc03e4452777bd0c9e56f8736768ad3a45d2b06eb462",
+      "101": "5ba09d3a9fb2d0bc8d05555b4a5ec666522f67330bcff216d32f7d7a2b9abcec",
+      "102": "ee9ce2f20b97fb516269272c0af067e668fbefbbdb40674acd15948be45e28b9",
+      "103": "294cbc4f0aa175c223003e1652c8451bf2a3855e243d1fc0020f114335093c6a",
+      "104": "46c52a2cd5cbfdc2280712b68d669504079dc99858bd704901e46274466b9c64",
+      "105": "b9345bc98ed99de565c256aa2e431a7ec8621f29140a4b98aa1aea37eb8188d8",
+      "106": "0d66fab4236afec00f2ad6ee9966a7cc4269a2cc5d9564976cc568e9e70c3305",
+      "107": "d9299507aebc82d08e5998661c35d9553be832ace8b57fad69017956d210ce5b",
+      "108": "65fd5e2b6c4711e2fb8115cfc294e7d0fb1f70e8d9a02165b8a36cb8b9df58d7",
+      "109": "9028e0510fe290b19e8715b5c687c0153550efae9836bfb4723991ab830cb9c8"
+    },
+    "paired_context_membership_across_neural_and_gp_cells": "passed",
+    "coverage_monotonicity_bounds_and_integer_hits": "passed",
+    "equal_feature_and_equal_window_composites": "passed",
+    "identical_target_identity_and_support": "passed"
+  },
+  "runtime_seconds": 2.082059578038752
+}
