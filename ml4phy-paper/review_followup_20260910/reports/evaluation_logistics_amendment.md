@@ -22,3 +22,12 @@ failures. The parent was stopped to prevent queued work from continuing. Fully
 written cells are recovered only after validating their summaries and output
 hashes. The sole bounded retry uses three workers, which preserves every
 scientific and numerical setting while remaining below measured device memory.
+
+Post-evaluation mechanism-map validation found that the checkpoint loader first
+loaded the learned global-gate scalar and then reset it while applying the mode
+wrapper. Training checkpoints retained the learned values (cutoffs about
+3.88--4.10), but 90 evaluations for modes with global gates used the initial
+cutoff 3. The 30 `global_attention` evaluations and 30 reused full-model cells
+are unaffected. The invalid evaluations are retained server-side and excluded;
+a restoration regression test was added before a uniquely named rerun of only
+the 90 affected cells. No score from the invalid evaluations is reported.

@@ -150,7 +150,13 @@ def load_control_checkpoint(
             f"Checkpoint mode {observed_mode!r} does not match requested {expected_mode!r}"
         )
     base_model.load_state_dict(payload["model_state"], strict=True)
+    trained_kappa_raw = None
+    if expected_mode in GLOBAL_GATE_MODES:
+        trained_kappa_raw = base_model.attention.kappa_raw.detach().clone()
     apply_control_mode(base_model, expected_mode)
+    if trained_kappa_raw is not None:
+        with torch.no_grad():
+            base_attention(base_model).kappa_raw.copy_(trained_kappa_raw)
     return base_model, payload
 
 

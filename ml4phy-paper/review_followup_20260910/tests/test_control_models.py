@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
+import pytest
 import torch
 from torch import nn
 
@@ -35,6 +36,14 @@ class FakeAttention(nn.Module):
             "tau": self.pool_tau_net(z),
         }
         return target, side
+
+
+class FakeModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.attention = FakeAttention()
+        self.decoder = nn.Module()
+        self.decoder.net = nn.Sequential(nn.Linear(5, 3))
 
 
 def test_global_gate_initializes_to_three_and_is_query_invariant():
@@ -77,3 +86,24 @@ def test_global_gate_phi_has_finite_nonzero_gradient():
 def test_task_schedule_is_deterministic_and_seed_specific():
     assert CONTROLS.task_schedule(0, 20) == CONTROLS.task_schedule(0, 20)
     assert CONTROLS.task_schedule(0, 20) != CONTROLS.task_schedule(1, 20)
+
+
+def test_global_gate_checkpoint_restores_trained_phi(tmp_path):
+    model = FakeModel()
+    CONTROLS.apply_control_mode(model, "global_gate")
+    with torch.no_grad():
+        CONTROLS.base_attention(model).kappa_raw.fill_(0.75)
+    checkpoint = tmp_path / "trained-global-gate.ckpt"
+    CONTROLS.save_control_checkpoint(
+        checkpoint,
+        model,
+        mode="global_gate",
+        history={},
+        metadata={},
+    )
+    restored, _ = CONTROLS.load_control_checkpoint(
+        checkpoint,
+        FakeModel(),
+        expected_mode="global_gate",
+    )
+    assert float(CONTROLS.base_attention(restored).kappa_raw.detach()) == pytest.approx(0.75)
