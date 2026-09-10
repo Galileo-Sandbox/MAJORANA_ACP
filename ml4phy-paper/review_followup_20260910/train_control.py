@@ -82,14 +82,18 @@ def main() -> None:
     from majorana_acp.cut_acceptance.positional_encoding import phi_dim
 
     cfg = load_config(config_path)
-    cfg.training.seed = args.training_seed
     if cfg.training.n_steps != 3000 or cfg.training.batch_size != 16:
         raise ValueError("Frozen 3000-step/batch-16 schedule changed")
     expected_subset = protocol["fixed_scientific_settings"]["training_subset"]
     subset_path = repo / expected_subset["logical_path"]
     if sha256_file(subset_path) != expected_subset["sha256"]:
         raise ValueError("Frozen 5k subset hash mismatch")
-    cfg.train_predictions_path = subset_path
+    cfg = cfg.model_copy(
+        update={
+            "training": cfg.training.model_copy(update={"seed": args.training_seed}),
+            "train_predictions_path": subset_path,
+        }
+    )
     energy, score = load_events(
         cfg.train_predictions_path,
         target_class=cfg.target_class,

@@ -55,7 +55,18 @@ def main() -> None:
     if campaign_path.exists():
         campaign = json.loads(campaign_path.read_text())
         if campaign["source_commit"] != source_commit:
-            raise ValueError("Campaign implementation commit changed")
+            if campaign["completed_training"]:
+                raise ValueError("Campaign implementation changed after completed training")
+            campaign.setdefault("implementation_fixes", []).append(
+                {
+                    "time": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+                    "previous_commit": campaign["source_commit"],
+                    "new_commit": source_commit,
+                    "reason": "Frozen Pydantic configuration required model_copy before the first training step.",
+                }
+            )
+            campaign["source_commit"] = source_commit
+            campaign["runner_sha256"] = sha256_file(runner)
     else:
         if args.stage != "pilot":
             raise ValueError("Pilot must run before the remaining matrix")
@@ -115,7 +126,19 @@ def main() -> None:
 
     def execute(item):
         mode, seed = item
-        run_id = f"20260910-mechanism-{mode}-seed{seed}-train3000"
+        base_run_id = f"20260910-mechanism-{mode}-seed{seed}-train3000"
+        run_id = base_run_id
+        attempt = 1
+        while (root / "runs/training" / run_id).exists():
+            attempt += 1
+            run_id = f"{base_run_id}-attempt{attempt}"
+        prior_failures = [
+            failure
+            for failure in campaign["failures"]
+            if failure.get("mode") == mode and failure.get("training_seed") == seed
+        ]
+        if prior_failures and attempt > 2:
+            raise RuntimeError(f"Retry limit already used for {mode}/seed{seed}")
         command = [
             str(repo / ".venv/bin/python"),
             str(runner),
@@ -137,17 +160,25 @@ def main() -> None:
             capture_output=True,
             timeout=max(1.0, remaining),
         )
-        return item, run_id, process
+        return item, run_id, process, len(prior_failures)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.max_workers) as executor:
         futures = [executor.submit(execute, item) for item in pending]
         for future in concurrent.futures.as_completed(futures):
-            item, run_id, process = future.result()
+            item, run_id, process, prior_failure_count = future.result()
             print(process.stdout, end="")
             if process.stderr:
                 print(process.stderr, end="")
             if process.returncode:
-                campaign["failures"].append({"run_id": run_id, "returncode": process.returncode})
+                campaign["failures"].append(
+                    {
+                        "run_id": run_id,
+                        "mode": item[0],
+                        "training_seed": item[1],
+                        "returncode": process.returncode,
+                        "retry_eligible": prior_failure_count == 0,
+                    }
+                )
                 campaign["status"] = "stopped_technical_failure"
                 write_json(campaign_path, campaign)
                 raise RuntimeError(f"Training failed: {run_id}")

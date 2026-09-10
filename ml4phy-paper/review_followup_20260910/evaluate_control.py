@@ -63,8 +63,12 @@ def main() -> None:
     from scripts.diagnostics.cnp_test_inference import _cnp_infer_global
 
     cfg = load_config(config_path)
-    cfg.train_predictions_path = (
-        repo / protocol["fixed_scientific_settings"]["training_subset"]["logical_path"]
+    cfg = cfg.model_copy(
+        update={
+            "training": cfg.training.model_copy(update={"seed": args.training_seed}),
+            "train_predictions_path": repo
+            / protocol["fixed_scientific_settings"]["training_subset"]["logical_path"],
+        }
     )
     torch.manual_seed(args.training_seed)
     base = build_local_cnp(cfg, dim_phi=phi_dim(cfg.positional_encoding))

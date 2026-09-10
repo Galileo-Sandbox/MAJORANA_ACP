@@ -2,7 +2,7 @@
 
 Status: passed. No scientific training or evaluation was run during this audit.
 
-- Base commit: `ed631f9928f086fa0f9fd447571abed171fc7d6c`.
+- Base commit: `ceff71ea623cac12e3ba025b633b3782d380f88a`.
 - Full-mode deterministic and fixed-RNG stochastic maximum differences: exactly 0.
 - Original 5k subset: 5,000 nominal, 4,984 sampling-eligible, 5,000 density-buffer events; identity and file hashes passed.
 - Existing inventory: 600 neural plus 30 classical/control cells; frozen target support remains 442/500 bins with 101 events in 58 excluded bins.

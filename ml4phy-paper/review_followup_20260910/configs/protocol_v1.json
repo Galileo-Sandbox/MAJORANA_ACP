@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "status": "frozen_approved_pretraining_checks_passed",
-  "created_at": "2026-09-10T23:14:29.488184Z",
-  "base_commit": "ed631f9928f086fa0f9fd447571abed171fc7d6c",
+  "created_at": "2026-09-10T23:17:09.491672Z",
+  "base_commit": "ceff71ea623cac12e3ba025b633b3782d380f88a",
   "historical_exposure": "Post-review extension on historically exposed frozen data; not an untouched test.",
   "scope": {
     "modes": [
@@ -883,9 +883,9 @@
       "ml4phy-paper/review_followup_20260910/control_models.py": "4a6496aef96622c5159cd56c61a0ff059ae08be655704f22bc3dac7061f8f765",
       "ml4phy-paper/review_followup_20260910/audit_and_freeze.py": "985af28425b0011274ee77a95b7ebff3355452d44b9c794f23d203222894d614",
       "ml4phy-paper/review_followup_20260910/export_existing.py": "25820d05fa32bad74dbbc10350bd1a2679fb56a8b137ab6d219548f57f2b8270",
-      "ml4phy-paper/review_followup_20260910/train_control.py": "ef8eccd8830bdf9d09de97cdf804c3e15e5cb7b086a26a56a6d21b66a26a850f",
-      "ml4phy-paper/review_followup_20260910/evaluate_control.py": "34ac4a75ce5ade84d62a9904efd9631e7af76f08f1c362f0ada5a65513f7e18e",
-      "ml4phy-paper/review_followup_20260910/run_training_campaign.py": "5c4d7b51684e1c2b5d9c4cd924adfeb1ab281d5aa8170a66a1434c5bae7168d2",
+      "ml4phy-paper/review_followup_20260910/train_control.py": "d2c76c5f2e77cea8296c13089f71a330b816df16319ef5d36e3971500295536a",
+      "ml4phy-paper/review_followup_20260910/evaluate_control.py": "0d5fe0151f2a10600f71dcd7a859547800e9dd01bdf5fdd23df19af2954da54f",
+      "ml4phy-paper/review_followup_20260910/run_training_campaign.py": "be0b37da3c7b38426fa73d2b78cd018a022cf5a55e37ffa85289355cf4477c78",
       "ml4phy-paper/review_followup_20260910/run_evaluation_campaign.py": "7060408056d2e461ead4aaad980a3b22e714462fdba2b015e8f1fa3c51b94669"
     }
   },
@@ -975,5 +975,5 @@
     "equal_feature_and_equal_window_composites": "passed",
     "identical_target_identity_and_support": "passed"
   },
-  "runtime_seconds": 2.082059578038752
+  "runtime_seconds": 2.3101884769275784
 }
