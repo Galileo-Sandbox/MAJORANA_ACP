@@ -32,6 +32,32 @@ def write_json(path: Path, payload) -> None:
     temporary.replace(path)
 
 
+def completed_evaluation(root: Path, run_id: str, item) -> dict | None:
+    """Recover a fully written cell left by an interrupted campaign parent."""
+    directory = root / "runs/evaluation" / run_id
+    summary_path = directory / "summary.json"
+    if not summary_path.exists():
+        return None
+    summary = json.loads(summary_path.read_text())
+    if summary.get("status") != "completed":
+        return None
+    for name in ("event_predictions.npz", "curve.npz"):
+        path = directory / name
+        if not path.exists() or sha256_file(path) != summary["outputs"][name]["sha256"]:
+            raise ValueError(f"Incomplete or hash-mismatched recovered evaluation: {run_id}")
+    return {
+        "run_id": run_id,
+        "mode": item[0],
+        "training_seed": item[1],
+        "context_seed": item[2],
+        "inference_seconds": summary["inference_seconds"],
+        "peak_gpu_memory_mib": summary["peak_gpu_memory_mib"],
+        "event_predictions_sha256": sha256_file(directory / "event_predictions.npz"),
+        "curve_sha256": sha256_file(directory / "curve.npz"),
+        "recovered_after_parent_interruption": True,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--max-workers", type=int, default=4)
@@ -64,6 +90,16 @@ def main() -> None:
         (item["mode"], item["training_seed"]): item for item in campaign["completed_training"]
     }
     campaign.setdefault("completed_evaluations", [])
+    campaign.setdefault("evaluation_attempts", []).append(
+        {
+            "source_commit": source_commit,
+            "max_workers": args.max_workers,
+            "started_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "purpose": "single bounded retry after four-worker GPU OOM"
+            if campaign.get("status") == "stopped_technical_failure"
+            else "initial evaluation attempt",
+        }
+    )
     campaign["status"] = "evaluation_running"
     campaign["evaluation_max_workers"] = args.max_workers
     write_json(campaign_path, campaign)
@@ -78,6 +114,18 @@ def main() -> None:
         for context in range(100, 110)
         if (mode, seed, context) not in completed
     ]
+    recovered = []
+    for item in pending:
+        mode, seed, context = item
+        run_id = f"20260910-mechanism-{mode}-seed{seed}-ctx{context}-n500-mc50-drop10100"
+        entry = completed_evaluation(root, run_id, item)
+        if entry is not None:
+            campaign["completed_evaluations"].append(entry)
+            completed.add(item)
+            recovered.append(run_id)
+    campaign["recovered_evaluations_after_parent_interruption"] = recovered
+    write_json(campaign_path, campaign)
+    pending = [item for item in pending if item not in completed]
 
     def execute(item):
         mode, seed, context = item
@@ -122,20 +170,11 @@ def main() -> None:
                 campaign["status"] = "stopped_technical_failure"
                 write_json(campaign_path, campaign)
                 raise RuntimeError(f"Evaluation failed: {run_id}")
-            directory = root / "runs/evaluation" / run_id
-            summary = json.loads((directory / "summary.json").read_text())
-            campaign["completed_evaluations"].append(
-                {
-                    "run_id": run_id,
-                    "mode": item[0],
-                    "training_seed": item[1],
-                    "context_seed": item[2],
-                    "inference_seconds": summary["inference_seconds"],
-                    "peak_gpu_memory_mib": summary["peak_gpu_memory_mib"],
-                    "event_predictions_sha256": sha256_file(directory / "event_predictions.npz"),
-                    "curve_sha256": sha256_file(directory / "curve.npz"),
-                }
-            )
+            entry = completed_evaluation(root, run_id, item)
+            if entry is None:
+                raise ValueError(f"Completed process did not write a valid result: {run_id}")
+            entry["recovered_after_parent_interruption"] = False
+            campaign["completed_evaluations"].append(entry)
             write_json(campaign_path, campaign)
     campaign["status"] = "scientific_matrix_complete"
     campaign["scientific_end_time"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
