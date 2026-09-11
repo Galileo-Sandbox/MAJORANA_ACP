@@ -1,0 +1,12 @@
+{
+  "status": "complete",
+  "runtime_seconds": 8.333979411050677,
+  "mechanism_cells": 150,
+  "reused_cells": 30,
+  "new_cells": 120,
+  "target_events": 114400,
+  "target_identity_sha256": "1cbb4d87c9f36db7ea11ea64bf56d19646fc7be2e304bcb7f01a356d31b21c30",
+  "supported_bins": 442,
+  "excluded_bins": 58,
+  "source_commit": "7f106520862b013be17657f3011a07a7e6847a76"
+}

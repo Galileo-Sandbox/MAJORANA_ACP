@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "independent_input": "compressed portable per-cell bin predictions",
+  "mechanism_cells": 150,
+  "regions_per_cell_including_composites": 15,
+  "validated_noncomposite_Ck_rows": 1800,
+  "maximum_Ck_absolute_difference_percentage_points": 2.842170943040401e-14,
+  "C1_le_C2_le_C3": true,
+  "paired_seed_context_inventory": true,
+  "reference_bins": 500,
+  "supported_bins": 442,
+  "excluded_bins": 58,
+  "excluded_target_events": 101,
+  "prior_global_Ck_cells_reproduced": 630,
+  "prior_global_Ck_max_absolute_difference_percentage_points": 0.0
+}
