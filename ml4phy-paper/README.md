@@ -20,7 +20,7 @@ and event-level predictions remain external.
 
 | Paper item | Claim or definition | Primary artifact |
 | --- | --- | --- |
-| Figure 1 | Efficiency curves for four neural architectures at 5k training and 500 context events | [`figures/paper_figure1_efficiency_curves.png`](figures/paper_figure1_efficiency_curves.png), [`tables/paper_mean_grid_curves.csv`](tables/paper_mean_grid_curves.csv) |
+| Figure 1 | Efficiency curves for four neural architectures at 5k training and 500 context events | [`figures/paper_figure1_manuscript.png`](figures/paper_figure1_manuscript.png), [`tables/paper_mean_grid_curves.csv`](tables/paper_mean_grid_curves.csv) |
 | Table 1 | Overall, four peak cores, and continuum C2 agreement for neural and classical methods | [`tables/paper_coverage_summary.csv`](tables/paper_coverage_summary.csv), [`reports/paper_coverage_export.md`](reports/paper_coverage_export.md) |
 | Table 2 | C1/C2/C3 across 2k, 5k, and 10k efficiency-training budgets | [`tables/paper_coverage_budget_comparison.csv`](tables/paper_coverage_budget_comparison.csv), [`tables/paper_coverage_cross_budget_pairs.csv`](tables/paper_coverage_cross_budget_pairs.csv) |
 | Table 3 | Density-mechanism controls on the original 5k subset | [`review_followup_20260910/tables/mechanism_summary.csv`](review_followup_20260910/tables/mechanism_summary.csv), [`review_followup_20260910/reports/mechanism_result.md`](review_followup_20260910/reports/mechanism_result.md) |
