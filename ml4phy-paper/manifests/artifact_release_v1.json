@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "release_date": "2026-10-07",
+  "branch": "ml4phy-paper",
+  "evidence_base_commit": "40d3ba4d1a14e6f13e2e226de46b3af800a3bbbe",
+  "status": {
+    "portable_result_verification": "complete",
+    "saved_prediction_regeneration": "requires external server bundle",
+    "full_training_rerun": "requires public raw data, external server bundle, and licensed RESUM_FLEX snapshot"
+  },
+  "public_data": {
+    "name": "Majorana Demonstrator AI/ML data release",
+    "doi": "10.5281/zenodo.8257027",
+    "training_files": 16,
+    "evaluation_files": 6
+  },
+  "external_server_bundle": {
+    "public_url": null,
+    "publication_status": "not deposited at release time",
+    "server_runs_bytes_at_release": 4551220305,
+    "git_policy": "checkpoints, role identities, raw waveforms, and event-level predictions are not committed",
+    "verification": "run ml4phy-paper/artifact/verify_artifact.py --server after restoring logical paths"
+  },
+  "external_dependency": {
+    "name": "RESUM_FLEX",
+    "historical_commit": "edba6a294581fde6f905b330d477f2c1b42d6adb",
+    "archive_sha256": "23dc43d5cf1272f32f20746749947bf857a07920c63f96b0b5fb578447626b83",
+    "redistributed": false,
+    "reason": "the recovered source snapshot contains no license",
+    "restore_tool": "ml4phy-paper/artifact/restore_resum_flex.py"
+  },
+  "external_server_inputs": {
+    "runs/small_data_configs/simple_cnn_small/eval/predictions.h5": {
+      "sha256": "d318b49a99dd3d1ead3b1aa9c8d3e97d78aaf3cc0ab97c040bbc2235436ba5cd"
+    },
+    "runs/small_data_configs/simple_cnn_small/eval_full_test/predictions.h5": {
+      "sha256": "47f55e0ba08102462b5348bc3ba7e575dd2c653cc15adadc54ef6393d2e505fb"
+    },
+    "runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5": {
+      "sha256": "ea2eb5594acdd181ebc18926fd8deabc7b2f6910b117dec863d87c3b70057159"
+    },
+    "ml4phy-paper/local/protocol/frozen_roles_v1.npz": {
+      "sha256": "6206d88d9e5c7223ea3607ee4d5cf6e619a015ba205f9f968f433c2c203e9fa6"
+    },
+    "ml4phy-paper/local/protocol/extension_context_roles_v1.npz": {
+      "sha256": "c97ce8b5b192256369d7ca013698776d437a5e154d89bdb0a1cedec4a80437a4"
+    },
+    "ml4phy-paper/local/phase2/protocol-v1/training_budget_2000.h5": {
+      "sha256": "b602b8aadccac3af699c9aa346281def2e7f399d26cf30c2cf9f32237c3d12c1"
+    },
+    "ml4phy-paper/local/phase2/protocol-v1/training_budget_5000.h5": {
+      "sha256": "97e406572d2c986a0ba1cbfbf88d9c9a2d57d86c60c71fb1b7ef181a6bc6becf"
+    },
+    "ml4phy-paper/local/phase3/protocol-v1/training_original_n10000.h5": {
+      "sha256": "8bab6e3588a9b77b262ee06b5add1e41a15786c6befffd3674e8358d36c30763"
+    },
+    "ml4phy-paper/local/phase3/protocol-v1/training_seed20260910_n5000.h5": {
+      "sha256": "8aee20a670da1d0685cd3a172093bd6dfc985379cc413bfa0e8117afafdda7fe"
+    },
+    "ml4phy-paper/local/phase3/protocol-v1/training_seed20260911_n5000.h5": {
+      "sha256": "e0305c3d8c8677c53c3f1e1967767ad6d19f118d1f2b10c36d37533f2fe06013"
+    }
+  },
+  "expected_inventory": {
+    "presentation_cells": 630,
+    "neural_presentation_cells": 600,
+    "context_only_kernel_cells": 10,
+    "pooled_kernel_cells": 10,
+    "bernoulli_gp_cells": 10,
+    "mechanism_training_jobs": 12,
+    "mechanism_evaluations": 120,
+    "mechanism_cells": 150,
+    "mechanism_bins_per_cell": 500
+  },
+  "portable_anchors": {
+    "pyproject.toml": {
+      "sha256": "6602b11025d47f71a96f591b7c3a894ac156d274b3a41bc534dfb207908bfdc7",
+      "bytes": 1741
+    },
+    "uv.lock": {
+      "sha256": "3821124ecacb152187280d77992aef15dfecc2ed2c34f063453091715bab6443",
+      "bytes": 316116
+    },
+    "ml4phy-paper/README.md": {
+      "sha256": "e3c6e95c3526783617e19c3a6c4f28edff34177639f65eb18af76b17593fd9db",
+      "bytes": 4355
+    },
+    "ml4phy-paper/ARTIFACT_REPRODUCIBILITY.md": {
+      "sha256": "a2871417df7a41f73837fef7ecbfc4088ac5bf0c7df611f243ea39bd688e279f",
+      "bytes": 8113
+    },
+    "ml4phy-paper/CITATION.cff": {
+      "sha256": "fa7b21eb631ed3ad659e8ad6cd920278e52ccc4715ba196ead43e89c727e39bf",
+      "bytes": 537
+    },
+    "ml4phy-paper/manifests/data_budget_ledger.json": {
+      "sha256": "6a0e84cd826c45478fe36ec3589f1679709625f1eeada6d44cd764cacb48e103",
+      "bytes": 5910
+    },
+    "ml4phy-paper/manifests/server_environment.json": {
+      "sha256": "0e5bcc0bd61970324ca1da74dfd03aa7ce1262b42257470add72d7a791ce1fb0",
+      "bytes": 1469
+    },
+    "ml4phy-paper/manifests/resum_flex_compatibility.json": {
+      "sha256": "08ac89f0076f3c3cffbd56eba94a86b7ebf9306d46d13513661a7ac0810b7503",
+      "bytes": 1119
+    },
+    "ml4phy-paper/review_followup_20260910/configs/protocol_v1.json": {
+      "sha256": "7ff15d3e741fcfb8ec180e4d353f14bde3499ac1cf9eb3efd20e2053fa6c6d45",
+      "bytes": 28011
+    },
+    "ml4phy-paper/reports/artifact_release_v1.md": {
+      "sha256": "850a4d5abf3d1d69843f335f7e4e37da5aaf41edaf034087532576d916a6920c",
+      "bytes": 3340
+    },
+    "ml4phy-paper/artifact/verify_artifact.py": {
+      "sha256": "22c4a9c6a37b1d241e3afb462a768e7d9fa23816c525a98b9de8feab876b80aa",
+      "bytes": 6985
+    },
+    "ml4phy-paper/artifact/restore_resum_flex.py": {
+      "sha256": "0ba830463e071adae2c6651c9d578af22f10f12b01bab714674cc0c8f9190f55",
+      "bytes": 3451
+    }
+  },
+  "portable_output_collections": [
+    {
+      "manifest": "ml4phy-paper/manifests/paper_presentation_export.json",
+      "sha256": "ed005d2b5285c925fe230916baf7d499e4bd26b2d8367e203fca89e49cb857a6",
+      "output_key": "outputs"
+    },
+    {
+      "manifest": "ml4phy-paper/manifests/paper_coverage_export.json",
+      "sha256": "4343e5fd8c65352f895e2000c46a92ce03cbae1b2b3335285e1a0df1ca14952f",
+      "output_key": "outputs"
+    },
+    {
+      "manifest": "ml4phy-paper/review_followup_20260910/manifests/provenance_v1.json",
+      "sha256": "54cda0702d11758b505c779f182d249e58c2251b97008bb8a1bed7725085418e",
+      "output_key": "portable_outputs"
+    }
+  ],
+  "claim_boundaries": [
+    "efficiency-model data efficiency is conditional on a classifier trained with 18866 events",
+    "the 2k failure, 10k nonmonotonicity, and sparse-tail limitation remain part of the result",
+    "historically exposed final targets are not an untouched test",
+    "reference-band agreement is not calibrated confidence coverage",
+    "the mechanism controls use one original 5k training ordering",
+    "no 20k efficiency-model result exists"
+  ]
+}

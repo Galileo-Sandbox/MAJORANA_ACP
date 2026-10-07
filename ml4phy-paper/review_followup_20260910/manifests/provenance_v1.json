@@ -1,0 +1,322 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "generated_at": "2026-09-11T00:08:13.497754Z",
+  "branch": "ml4phy-paper",
+  "historical_exposure": "post-review follow-up on historically exposed frozen data",
+  "protocol": {
+    "path": "ml4phy-paper/review_followup_20260910/configs/protocol_v1.json",
+    "sha256": "7ff15d3e741fcfb8ec180e4d353f14bde3499ac1cf9eb3efd20e2053fa6c6d45",
+    "base_commit": "ceff71ea623cac12e3ba025b633b3782d380f88a",
+    "completed_evidence_base_commit": "ed631f9928f086fa0f9fd447571abed171fc7d6c"
+  },
+  "implementation_commits": {
+    "training": "e7d7e6aeb17c95acf11b3e011f85c3a22e882488",
+    "evaluation_logistics": "db47cdfcbd616e2bf8ec60354910b3b80479c65d",
+    "checkpoint_restore_fix": "7f106520862b013be17657f3011a07a7e6847a76",
+    "aggregation": "7f106520862b013be17657f3011a07a7e6847a76"
+  },
+  "inventory": {
+    "existing_cells_recovered": 630,
+    "existing_cells_expected": 630,
+    "new_training_jobs_completed": 12,
+    "new_training_jobs_expected": 12,
+    "new_valid_evaluations_completed": 120,
+    "new_valid_evaluations_expected": 120,
+    "mechanism_cells_including_reuse": 150,
+    "mechanism_cells_expected": 150,
+    "reused_full_density_cells": 30,
+    "invalid_evaluations_retained_server_only": 90
+  },
+  "fixed_estimator": {
+    "efficiency_training_nominal_events": 5000,
+    "efficiency_training_sampling_eligible_events": 4984,
+    "density_buffer_events": 5000,
+    "classifier_training_events": 18866,
+    "context_events": 500,
+    "target_events": 114400,
+    "threshold": 0.540643572807312,
+    "mc_passes": 50,
+    "dropout_seed": 10100,
+    "training_seeds": [
+      0,
+      1,
+      2
+    ],
+    "context_seeds": [
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109
+    ]
+  },
+  "reference": {
+    "target_identity_sha256": "1cbb4d87c9f36db7ea11ea64bf56d19646fc7be2e304bcb7f01a356d31b21c30",
+    "bins": 500,
+    "supported_bins": 442,
+    "excluded_bins": 58,
+    "excluded_target_events": 101
+  },
+  "resource_record": {
+    "existing_export_seconds": 21.53225453104824,
+    "scientific_hard_cap_seconds": 7200,
+    "scientific_elapsed_seconds": 2835.8501069545746,
+    "training_max_workers": 4,
+    "evaluation_safe_max_workers": 3,
+    "training_peak_gpu_memory_mib_per_job": 814.60888671875,
+    "evaluation_peak_gpu_memory_mib_per_job": 6726.3056640625,
+    "portable_bytes": 9468141,
+    "portable_target_bytes": 5242880,
+    "portable_hard_limit_bytes": 20971520
+  },
+  "failures_and_corrections": {
+    "campaign_failures": [
+      {
+        "run_id": "20260910-mechanism-global_gate-seed0-train3000",
+        "returncode": 1
+      },
+      {
+        "run_id": "20260910-mechanism-global_gate-seed0-ctx101-n500-mc50-drop10100",
+        "returncode": 1
+      }
+    ],
+    "training_pilot_pre_step_config_failure": true,
+    "four_worker_evaluation_oom": true,
+    "checkpoint_restore_reset_detected_post_evaluation": true,
+    "checkpoint_restore_affected_cells": 90,
+    "checkpoint_restore_corrected_cells": 90,
+    "invalid_outputs_excluded": true
+  },
+  "validation": {
+    "status": "passed",
+    "independent_input": "compressed portable per-cell bin predictions",
+    "mechanism_cells": 150,
+    "regions_per_cell_including_composites": 15,
+    "validated_noncomposite_Ck_rows": 1800,
+    "maximum_Ck_absolute_difference_percentage_points": 2.842170943040401e-14,
+    "C1_le_C2_le_C3": true,
+    "paired_seed_context_inventory": true,
+    "reference_bins": 500,
+    "supported_bins": 442,
+    "excluded_bins": 58,
+    "excluded_target_events": 101,
+    "prior_global_Ck_cells_reproduced": 630,
+    "prior_global_Ck_max_absolute_difference_percentage_points": 0.0,
+    "tests_passed": 24,
+    "test_failures": 0,
+    "ruff_status": "passed"
+  },
+  "versions": {
+    "python": "3.12.13",
+    "numpy": "1.26.4",
+    "torch": "2.11.0+cu129",
+    "cuda": "12.9",
+    "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31"
+  },
+  "source_artifact_registry": {
+    "path": "ml4phy-paper/review_followup_20260910/tables/mechanism_run_inventory.csv",
+    "sha256": "3531ff934a25f0eef39dad2b5319facbc8291273a615cefd81ea810b467ab3e4",
+    "contains_checkpoint_and_prediction_hashes": true
+  },
+  "portable_outputs": {
+    "ml4phy-paper/review_followup_20260910/.gitignore": {
+      "sha256": "23365084adb029d994e0e8d145d666d917da4efb13ae46647d1601ece607a5e6",
+      "bytes": 47
+    },
+    "ml4phy-paper/review_followup_20260910/PLAN.md": {
+      "sha256": "8b3db13e650e3ece80985a4f687a4208b665f966164209c272b385d966b845e4",
+      "bytes": 6278
+    },
+    "ml4phy-paper/review_followup_20260910/aggregate_mechanism.py": {
+      "sha256": "f08d18516fd24c67cf283c0f2bffc5b29f6c16f02cb671f43b5b17c3c1860474",
+      "bytes": 34589
+    },
+    "ml4phy-paper/review_followup_20260910/audit_and_freeze.py": {
+      "sha256": "985af28425b0011274ee77a95b7ebff3355452d44b9c794f23d203222894d614",
+      "bytes": 20059
+    },
+    "ml4phy-paper/review_followup_20260910/configs/protocol_v1.json": {
+      "sha256": "7ff15d3e741fcfb8ec180e4d353f14bde3499ac1cf9eb3efd20e2053fa6c6d45",
+      "bytes": 28011
+    },
+    "ml4phy-paper/review_followup_20260910/control_models.py": {
+      "sha256": "6d45b30cdb0359c1cfc4d3b247c51e6a11208f3093e49103d50da953a0020646",
+      "bytes": 7147
+    },
+    "ml4phy-paper/review_followup_20260910/evaluate_control.py": {
+      "sha256": "e3a652224a1a9dad1ad3ebb2e0323ad2663d4828f1a54efabd251e8a2a9ad2db",
+      "bytes": 8377
+    },
+    "ml4phy-paper/review_followup_20260910/export_existing.py": {
+      "sha256": "25820d05fa32bad74dbbc10350bd1a2679fb56a8b137ab6d219548f57f2b8270",
+      "bytes": 26134
+    },
+    "ml4phy-paper/review_followup_20260910/figures/learned_mechanism_maps_seed0.pdf": {
+      "sha256": "1d99af333bc3d54f3b5a5ae973c2a796c9153a224a2c49571799e1291723bb22",
+      "bytes": 26902
+    },
+    "ml4phy-paper/review_followup_20260910/figures/learned_mechanism_maps_seed0.png": {
+      "sha256": "bfa576c46e50306c0d7302584f5a56d161617ae9c9da06e2eba3fc7f152a1348",
+      "bytes": 107998
+    },
+    "ml4phy-paper/review_followup_20260910/figures/mechanism_primary_endpoints.pdf": {
+      "sha256": "0f84494c0d7c9b734f05c32f8e83f2076bd12105807881c927612d05a0e60c72",
+      "bytes": 15693
+    },
+    "ml4phy-paper/review_followup_20260910/figures/mechanism_primary_endpoints.png": {
+      "sha256": "5767f5f734e9e6ae5ea16d1936e708790703ad06f3d42fa0c81e09ffe4f22e80",
+      "bytes": 76994
+    },
+    "ml4phy-paper/review_followup_20260910/figures/regional_passing_count_differences.pdf": {
+      "sha256": "6a0abfb90885b71e7ea45f9b757fb4f618363d1de0e3dac649f90b9565613e81",
+      "bytes": 15715
+    },
+    "ml4phy-paper/review_followup_20260910/figures/regional_passing_count_differences.png": {
+      "sha256": "0b11571c5e564e44cc7f73bb9020b54c1ba78d76310c299c86c583cc9ec0325c",
+      "bytes": 62193
+    },
+    "ml4phy-paper/review_followup_20260910/finalize_handoff.py": {
+      "sha256": "d361bfd9abb7c333b6d3b9ce0dcda57ad74ae2060c4f98ef154a588755be1e3d",
+      "bytes": 11977
+    },
+    "ml4phy-paper/review_followup_20260910/reports/evaluation_logistics_amendment.md": {
+      "sha256": "834caae10e94d0fe4a00afa0ab427af72c7d656687af31bfa70a7f8efaa8eb6a",
+      "bytes": 2065
+    },
+    "ml4phy-paper/review_followup_20260910/reports/existing_export_record.json": {
+      "sha256": "49f9cbcb21d1c1043e187a3361320f6f28baae6ea6c7545fba25e0286ed91b89",
+      "bytes": 658
+    },
+    "ml4phy-paper/review_followup_20260910/reports/existing_measurement_interpretation.md": {
+      "sha256": "4e21075607cba7eed11c1fe83673be650d5208d2347f29202b5c1ac0c5e3dd09",
+      "bytes": 2535
+    },
+    "ml4phy-paper/review_followup_20260910/reports/final_handoff.md": {
+      "sha256": "dd147dbda669a5ce129b5bfb0cc1e60547d3e69c8d5a6e8998fa8c602bcb8933",
+      "bytes": 2850
+    },
+    "ml4phy-paper/review_followup_20260910/reports/mechanism_aggregation_record.json": {
+      "sha256": "36b487cf47bc575d8b272b90f79fcf536647d0f916263563614a00e657edcf22",
+      "bytes": 369
+    },
+    "ml4phy-paper/review_followup_20260910/reports/mechanism_result.md": {
+      "sha256": "39372c587f515a8058dd66c477752b31a6ebf2e5c3cd647e9f2af152c70b8966",
+      "bytes": 4157
+    },
+    "ml4phy-paper/review_followup_20260910/reports/pretraining_audit.md": {
+      "sha256": "7504dca50033403e10a2b4d5aa31a62a64d40fa086cc1455fc65599cfa674073",
+      "bytes": 1428
+    },
+    "ml4phy-paper/review_followup_20260910/reports/validation_record.json": {
+      "sha256": "d8d089569c18c1b2186d2e73251d9d93e7338187be9844806f480cdaaa4549cd",
+      "bytes": 572
+    },
+    "ml4phy-paper/review_followup_20260910/rerun_affected_evaluations.py": {
+      "sha256": "50b986ab229e20f4b92146f2d5f59495f6278723695f685782b1a5fec278c71c",
+      "bytes": 6476
+    },
+    "ml4phy-paper/review_followup_20260910/run_evaluation_campaign.py": {
+      "sha256": "26bb1efdf710f790d091862c7fe51598b613007ad2b58882b2406cbe0151c884",
+      "bytes": 7921
+    },
+    "ml4phy-paper/review_followup_20260910/run_training_campaign.py": {
+      "sha256": "be0b37da3c7b38426fa73d2b78cd018a022cf5a55e37ffa85289355cf4477c78",
+      "bytes": 8916
+    },
+    "ml4phy-paper/review_followup_20260910/tables/existing_cell_bins.csv.xz": {
+      "sha256": "9852faa964ee42a0a3a20510cbbca696674db1768752d5559694f9ceeeafe5f1",
+      "bytes": 5314472
+    },
+    "ml4phy-paper/review_followup_20260910/tables/existing_regional_measurement_cells.csv.gz": {
+      "sha256": "021ca5ef8aa489121cb467a683f286f12acf1ada1186f8f2d871831b7f84ca54",
+      "bytes": 552621
+    },
+    "ml4phy-paper/review_followup_20260910/tables/existing_regional_seed_summary.csv.gz": {
+      "sha256": "6685f6c19815e24baa1f6fc69004712a21169c5602cfffa56daad83b73bb8aff",
+      "bytes": 55043
+    },
+    "ml4phy-paper/review_followup_20260910/tables/existing_run_registry.csv": {
+      "sha256": "5d981f95832b8430b1e6c25091eb718ce69e12bce41bc20f633a9161ef56c054",
+      "bytes": 375581
+    },
+    "ml4phy-paper/review_followup_20260910/tables/learned_mechanism_maps.csv.gz": {
+      "sha256": "96bf2371fb1289d917e7da0c12f83c1d16012c65dcfacf5546910241caa12d20",
+      "bytes": 906059
+    },
+    "ml4phy-paper/review_followup_20260910/tables/mechanism_cell_bins.csv.xz": {
+      "sha256": "7c022326dd2cc700b0cef8d097e9e046061f1f63e9d21ef9b2a492c45ec59c16",
+      "bytes": 1270360
+    },
+    "ml4phy-paper/review_followup_20260910/tables/mechanism_checkpoint_inventory.csv": {
+      "sha256": "31af613bbcb5b5153b263e05179acdd02838e0a460a9d57ca23f8582d8c90fc2",
+      "bytes": 3545
+    },
+    "ml4phy-paper/review_followup_20260910/tables/mechanism_full_region_sensitivity.csv": {
+      "sha256": "b52f000e9a8a17c005f6f5eeaac5d605e454c302db7a8c22cd0a12f07d4dfebd",
+      "bytes": 26594
+    },
+    "ml4phy-paper/review_followup_20260910/tables/mechanism_paired_contrast_summary.csv": {
+      "sha256": "dd95046b9755c40c1f14c874107d6b0ac288cceda33bd9a3675200384dacc197",
+      "bytes": 46806
+    },
+    "ml4phy-paper/review_followup_20260910/tables/mechanism_paired_contrasts.csv.gz": {
+      "sha256": "cb0854ea10fa1ee472b88298910d350d850d8aaaf0fa7e35b38d9fe9b34b6501",
+      "bytes": 36497
+    },
+    "ml4phy-paper/review_followup_20260910/tables/mechanism_regional_cells.csv.gz": {
+      "sha256": "4de7426224aae17e3d0cb745a1dec6dae075bbcb5ee3297aba399d3309e033be",
+      "bytes": 133750
+    },
+    "ml4phy-paper/review_followup_20260910/tables/mechanism_run_inventory.csv": {
+      "sha256": "3531ff934a25f0eef39dad2b5319facbc8291273a615cefd81ea810b467ab3e4",
+      "bytes": 102681
+    },
+    "ml4phy-paper/review_followup_20260910/tables/mechanism_seed_summary.csv.gz": {
+      "sha256": "74f07313e9b7c1ed070c1bb87427d50aa68cde106dcb088c0b98f2122d2c126f",
+      "bytes": 17897
+    },
+    "ml4phy-paper/review_followup_20260910/tables/mechanism_summary.csv": {
+      "sha256": "b52f000e9a8a17c005f6f5eeaac5d605e454c302db7a8c22cd0a12f07d4dfebd",
+      "bytes": 26594
+    },
+    "ml4phy-paper/review_followup_20260910/tables/shared_reference_bins.csv": {
+      "sha256": "07a52b7e0113ff8be14879169c482a8698ae88bcca21083ce9066fcf6a457f47",
+      "bytes": 88697
+    },
+    "ml4phy-paper/review_followup_20260910/tables/training_budget_region_support.csv": {
+      "sha256": "1d82451c3912683f94c71b38d33d674f09bfa1b52063367d77b5e864733a8d96",
+      "bytes": 8898
+    },
+    "ml4phy-paper/review_followup_20260910/tests/test_control_models.py": {
+      "sha256": "34a00b801effc724408e19800de89be391bd879957e47e75de104d4b3d745492",
+      "bytes": 3951
+    },
+    "ml4phy-paper/review_followup_20260910/tests/test_existing_export.py": {
+      "sha256": "d4d66c609ffbc69cfb54b555026e943fb500dc7fc4e04a80f485729680a5c213",
+      "bytes": 1810
+    },
+    "ml4phy-paper/review_followup_20260910/tests/test_mechanism_aggregation.py": {
+      "sha256": "69ac0d8cdf61168c5109610dbcb8960d102cb779c66a698367f0f6a33dd8cea4",
+      "bytes": 1092
+    },
+    "ml4phy-paper/review_followup_20260910/train_control.py": {
+      "sha256": "d2c76c5f2e77cea8296c13089f71a330b816df16319ef5d36e3971500295536a",
+      "bytes": 9132
+    }
+  },
+  "limitations": [
+    "The 2k efficiency-training failure remains.",
+    "The existing 10k result is nonmonotonic.",
+    "Sparse-tail performance remains limited and no eligible tail events enter the sampler.",
+    "The final reference is finite and historically exposed.",
+    "Mechanism controls use one original 5k ordering only.",
+    "The fixed classifier used 18,866 training events.",
+    "Reference-band agreement is descriptive, not calibrated coverage."
+  ]
+}

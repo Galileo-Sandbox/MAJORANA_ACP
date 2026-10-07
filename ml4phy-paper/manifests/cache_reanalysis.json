@@ -1,0 +1,104 @@
+{
+  "status": "completed",
+  "evidence_status": [
+    "historical",
+    "fixed_context",
+    "interpolated_where_applicable"
+  ],
+  "source_commit": "b26457214ca486a4b356723b456510baf6c4cf8e",
+  "command": "MPLCONFIGDIR=ml4phy-paper/local/matplotlib PYTHONDONTWRITEBYTECODE=1 .venv/bin/python ml4phy-paper/scripts/cache_reanalysis.py --repo . --output-root ml4phy-paper",
+  "script_sha256": "909ba6e33c7fe411b89d285f8e44ea1b8ad0a55a7998826d5764c20aa4976f84",
+  "inputs": {
+    "True CNP": {
+      "path": "cache/inference/simple_cnn_small/true_cnp/inclusive_bin10.npz",
+      "bytes": 240758,
+      "sha256": "cf12a20c95b68be20593cba2a6b2dba9b5fb8042abb981c3e5d36b66b91de3b6"
+    },
+    "Base 1": {
+      "path": "cache/inference/simple_cnn_small/sweeps/base1_matched/inclusive_bin10.npz",
+      "bytes": 240760,
+      "sha256": "6e900fb617a647b336e601a70ca2e2b85bd92e487be41ad22513c8aeeb090c95"
+    },
+    "Base 3": {
+      "path": "cache/inference/simple_cnn_small/sweeps/base3_matched/inclusive_bin10.npz",
+      "bytes": 240912,
+      "sha256": "4f930edb638ab5172bc8ac55557368560e61c8c8bddf862ad6e5e1b10b3cf31e"
+    },
+    "Cell 15 v5": {
+      "path": "cache/inference/simple_cnn_small/sweeps/cell15_v5/inclusive_bin10.npz",
+      "bytes": 240864,
+      "sha256": "7b08b4bd1d12ba6e651de49dcf30d9ef2fca15efcf7d5193f23fca4659c1592e"
+    },
+    "Cell 17": {
+      "path": "cache/inference/simple_cnn_small/sweeps/cell17/inclusive_bin10.npz",
+      "bytes": 240832,
+      "sha256": "298e3faa3886ff18ebddfffa8115a77e861559f85ff9fdcdb2cdea655bc7d052"
+    }
+  },
+  "shared_array_fingerprints": {
+    "e_C": "a618bf642a0ed23fff2b1a02e661b28b967a249268f33ad5cc85da8f190361fb",
+    "s_C": "0f10980c4f8fdeb2984c1fb2db5aac02d6c279b89d81ec771450fd7233912fca",
+    "e_T": "2f56207b8f05f433b48a7c09edf24ba5376503c32472657baeb1fb6e4590d070",
+    "s_T": "536e7573c4dc3ee82504624f0acd270bac574a65f9831b8b0d87b835f0d1f6b0",
+    "e_train": "da87d35cee56d5d9c54834abcf8fa5affb97ad09b6199bf724c91d00819941fe",
+    "s_train": "040ad56df08cafa9d2e6f46021b992619a825545da3699a14896837d0e139dcd",
+    "bin_centers": "7db4a1e397137474908c239b507b3fd738fe0bc955bad9d2d3d160aabf305788",
+    "dense_energies": "3f6b873617b90383adc724f377d86afbd6b78029fcee79917dfa7f8c63d47928"
+  },
+  "threshold": 0.540643572807312,
+  "threshold_provenance": "Legacy Youden-J selection on the same evaluation file.",
+  "counts": {
+    "training": 18866,
+    "context": 2000,
+    "target": 5074,
+    "retained_bins": 212,
+    "dense_grid": 800
+  },
+  "kernel_selection": {
+    "selection": "five-fold context-only cross-validation by Brier score",
+    "cv_seed": 20260908,
+    "candidate_bandwidths_kev": [
+      2.0,
+      5.0,
+      10.0,
+      20.0,
+      50.0,
+      100.0
+    ],
+    "selected_bandwidth_kev": 100.0
+  },
+  "outputs": {
+    "ml4phy-paper/tables/cache_reanalysis_event_metrics.csv": {
+      "bytes": 6033,
+      "sha256": "a1c56dbce1d54d81049492f8a2c3ddb51c368ddc481857d6fab5da3c59851e20"
+    },
+    "ml4phy-paper/tables/cache_reanalysis_bin_metrics.csv": {
+      "bytes": 2914,
+      "sha256": "7648eec5e3859e53567d2e6b824a32f85584b203567dd30c7c880f76c32dd4cb"
+    },
+    "ml4phy-paper/tables/cache_reanalysis_support.csv": {
+      "bytes": 551,
+      "sha256": "fc3112971272dd1c7f670223156260a198e809d05ce8e48e54a9b8eb8d8a1c01"
+    },
+    "ml4phy-paper/tables/cache_reanalysis_kernel_bandwidth_cv.csv": {
+      "bytes": 978,
+      "sha256": "49022e6fbdf66c16993e2cc091eb9cb974e53e977249c0ae52c739bc3ba41028"
+    },
+    "ml4phy-paper/tables/cache_reanalysis_metrics.json": {
+      "bytes": 28937,
+      "sha256": "32d208eb385b5a7e0d3210b43d2ec5ddcc59f76507d2ee563223bf98cae513fa"
+    },
+    "ml4phy-paper/figures/cache_full_range_historical.png": {
+      "bytes": 433002,
+      "sha256": "fe27d79e7f211c638699dc909b2ac8c378389fa8f81bf575cbb51db51b420946"
+    },
+    "ml4phy-paper/figures/cache_regions_historical.png": {
+      "bytes": 525623,
+      "sha256": "eb0f6cd97c2c36f2d54bec0696f5cce487bd452428944e91b50719e4c3750a16"
+    },
+    "ml4phy-paper/reports/cache_reanalysis.md": {
+      "bytes": 3067,
+      "sha256": "fb4397f9a0399f805182a5c1fce1d754f7919255b454ecbc231dae8794e516e1"
+    }
+  }
+}

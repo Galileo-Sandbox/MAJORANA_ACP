@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "analysis": "Phase 1 full-target neural inference timing pilot",
+  "status": "passed",
+  "source_commit": "7b7cc38b0f68eedf8370275da8fd93db5dee8114",
+  "run_id": "20260909-ours-seed0-final-ctx-s100-n500-drop10100-mc50-pilot",
+  "model_id": "ours_seed0",
+  "phase": "final",
+  "context_seed": 100,
+  "context_size": 500,
+  "dropout_seed": 10100,
+  "mc_passes": 50,
+  "target_events": 114400,
+  "grid_spacing_kev": 1.0,
+  "inference_seconds": 10.322583083063364,
+  "total_evaluator_seconds": 12.368548315018415,
+  "peak_memory_mib": 6726.35791015625,
+  "brier": 0.22384908128599837,
+  "context_identity_sha256": "62ee47d9f2640d82138ec9048b7a5137f4a1b10fd2fe9cff74b03f0e64087476",
+  "summary_sha256": "670187b89c85bb11bcab7bd073cd5ae75ebeee295645457acadd28c32f3fa19d",
+  "server_only_outputs": {
+    "event_predictions": {
+      "file": "event_predictions.npz",
+      "bytes": 3780756,
+      "sha256": "9d9063702562b0c98592548b86780a0ac7f6ac759a711bfeec943db9c0c2dec7"
+    },
+    "curve": {
+      "file": "curve.npz",
+      "bytes": 77854,
+      "sha256": "089c81e1be61b2c61cd83658c42158f05069033e9ef80c5b4c7ed840037bdc3a"
+    }
+  },
+  "matrix": {
+    "total_cells": 480,
+    "reused_existing_cells": 60,
+    "new_cells_including_pilot": 420,
+    "remaining_cells_after_pilot": 419,
+    "projected_total_seconds_for_420_at_pilot_rate": 5194.790292307734,
+    "projected_remaining_seconds_for_419_at_pilot_rate": 5182.421743992716,
+    "projection_basis": "representative density-guided full-target total evaluator time; conservative for faster architectures"
+  },
+  "historical_data_exposure": "Prospectively specified follow-up analysis on historically exposed data; not an untouched test."
+}

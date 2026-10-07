@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "analysis": "paper_regional_reference_band_coverage",
+  "status": "complete",
+  "created_at": "2026-09-10T17:44:08.992798Z",
+  "source_head": "6c0aa8810fa593a46de1632fbd91733067b2ceb4",
+  "script": "ml4phy-paper/scripts/export_paper_coverage.py",
+  "script_sha256": "36a780a6f44ad7bcf1f29f17a750176ebe903ba28a771c53f7aeec889ad98654",
+  "no_new_training_fitting_prediction_or_selection": true,
+  "wall_clock_limit_seconds": 1800.0,
+  "definition": {
+    "name": "reference-band coverage",
+    "bin_width_kev": 5.0,
+    "energy_range_kev": [
+      500.0,
+      3000.0
+    ],
+    "minimum_target_events_per_bin": 4,
+    "reference_interval": "Wilson z=1; one fixed half-width multiplied by k",
+    "pull": "(saved actual-event bin mean - empirical fraction) / Wilson z=1 half-width",
+    "coverage_percent": "100 * supported-bin fraction with absolute pull <= k",
+    "thresholds_k": [
+      1,
+      2,
+      3
+    ],
+    "not_model_interval_coverage": true,
+    "not_unknown_truth_coverage": true,
+    "not_slide_pooled_G": true,
+    "model_sd_used": false
+  },
+  "regions": {
+    "overall_500_3000": {
+      "lower_kev": 500.0,
+      "upper_kev": 3000.0,
+      "selection": "half_open"
+    },
+    "figure1_1500_3000": {
+      "lower_kev": 1500.0,
+      "upper_kev": 3000.0,
+      "selection": "half_open"
+    },
+    "FE_2614_pm5": {
+      "lower_kev": 2609.0,
+      "upper_kev": 2619.0,
+      "selection": "center_inclusive"
+    },
+    "SE_2103_pm5": {
+      "lower_kev": 2098.0,
+      "upper_kev": 2108.0,
+      "selection": "center_inclusive"
+    },
+    "DEP_1592_pm5": {
+      "lower_kev": 1587.0,
+      "upper_kev": 1597.0,
+      "selection": "center_inclusive"
+    },
+    "feature_1620_pm5": {
+      "lower_kev": 1615.0,
+      "upper_kev": 1625.0,
+      "selection": "center_inclusive"
+    },
+    "continuum_1700_2000": {
+      "lower_kev": 1700.0,
+      "upper_kev": 2000.0,
+      "selection": "half_open"
+    },
+    "continuum_2200_2400": {
+      "lower_kev": 2200.0,
+      "upper_kev": 2400.0,
+      "selection": "half_open"
+    }
+  },
+  "composites": {
+    "peak_equal_feature": {
+      "components": [
+        "FE_2614_pm5",
+        "SE_2103_pm5",
+        "DEP_1592_pm5",
+        "feature_1620_pm5"
+      ],
+      "weighting": "equal component mean per cell"
+    },
+    "continuum_equal_window": {
+      "components": [
+        "continuum_1700_2000",
+        "continuum_2200_2400"
+      ],
+      "weighting": "equal component mean per cell"
+    }
+  },
+  "aggregation": {
+    "neural": "contexts within initialization seed, then equal initialization seeds",
+    "classical": "equal contexts",
+    "all_three_5k": "equal subset means; subset range and descriptive sample SD",
+    "independence_claim": "none; overlapping contexts are descriptive repeated conditions"
+  },
+  "source_presentation_manifest": {
+    "path": "ml4phy-paper/manifests/paper_presentation_export.json",
+    "sha256": "ed005d2b5285c925fe230916baf7d499e4bd26b2d8367e203fca89e49cb857a6",
+    "source_artifact_count": 630,
+    "source_artifact_record_set_sha256": "ed2d909658a7f5ff6abd19672953b6a32a9e5bd4cac14db071290d3129230994"
+  },
+  "source_global_pull_table": {
+    "path": "ml4phy-paper/tables/paper_reference_pull_cells.csv",
+    "sha256": "431cd31a7fed9dbf1e8c50b99c94a6941f023ace20597fa98215c95e18fd6829"
+  },
+  "checks": {
+    "source_record_count": 630,
+    "unique_run_id_count": 630,
+    "recovered_counts": {
+      "neural": 600,
+      "kernel": 20,
+      "gp": 10
+    },
+    "missing_run_ids": [],
+    "frozen_target_count": 114400,
+    "frozen_target_identity_sha256": "03853bd1c4a3f596b4e0614152b3a1f5306f4ea1a0485a4cb384c70b17faec73",
+    "overall_supported_bins": 442,
+    "overall_excluded_bins": 58,
+    "overall_excluded_target_events": 101,
+    "global_rows_reproduced": 630,
+    "global_reproduction_max_abs_difference": 1.1102230246251565e-16,
+    "maximum_bin_reconciliation_difference": 0.0,
+    "setting_cell_counts": {
+      "original_n2000::CNP": 30,
+      "original_n2000::Attentive CNP": 30,
+      "original_n2000::Attentive CNP + PE": 30,
+      "original_n2000::Density-guided CNP": 30,
+      "original_n5000::CNP": 30,
+      "original_n5000::Attentive CNP": 30,
+      "original_n5000::Attentive CNP + PE": 30,
+      "original_n5000::Density-guided CNP": 30,
+      "original_n10000::CNP": 30,
+      "original_n10000::Attentive CNP": 30,
+      "original_n10000::Attentive CNP + PE": 30,
+      "original_n10000::Density-guided CNP": 30,
+      "seed20260910_n5000::CNP": 30,
+      "seed20260910_n5000::Attentive CNP": 30,
+      "seed20260910_n5000::Attentive CNP + PE": 30,
+      "seed20260910_n5000::Density-guided CNP": 30,
+      "seed20260911_n5000::CNP": 30,
+      "seed20260911_n5000::Attentive CNP": 30,
+      "seed20260911_n5000::Attentive CNP + PE": 30,
+      "seed20260911_n5000::Density-guided CNP": 30,
+      "context_only::Kernel": 10,
+      "full_n18866_plus_context::Pooled-data kernel": 10,
+      "context_only::Bernoulli GP": 10
+    },
+    "paired_context_seed_identity_hashes": {
+      "100": "75a518a9ab834d388c58fc03e4452777bd0c9e56f8736768ad3a45d2b06eb462",
+      "101": "5ba09d3a9fb2d0bc8d05555b4a5ec666522f67330bcff216d32f7d7a2b9abcec",
+      "102": "ee9ce2f20b97fb516269272c0af067e668fbefbbdb40674acd15948be45e28b9",
+      "103": "294cbc4f0aa175c223003e1652c8451bf2a3855e243d1fc0020f114335093c6a",
+      "104": "46c52a2cd5cbfdc2280712b68d669504079dc99858bd704901e46274466b9c64",
+      "105": "b9345bc98ed99de565c256aa2e431a7ec8621f29140a4b98aa1aea37eb8188d8",
+      "106": "0d66fab4236afec00f2ad6ee9966a7cc4269a2cc5d9564976cc568e9e70c3305",
+      "107": "d9299507aebc82d08e5998661c35d9553be832ace8b57fad69017956d210ce5b",
+      "108": "65fd5e2b6c4711e2fb8115cfc294e7d0fb1f70e8d9a02165b8a36cb8b9df58d7",
+      "109": "9028e0510fe290b19e8715b5c687c0153550efae9836bfb4723991ab830cb9c8"
+    },
+    "paired_context_membership_across_neural_and_gp_cells": "passed",
+    "coverage_monotonicity_bounds_and_integer_hits": "passed",
+    "equal_feature_and_equal_window_composites": "passed",
+    "identical_target_identity_and_support": "passed"
+  },
+  "outputs": {
+    "ml4phy-paper/tables/paper_coverage_cells.csv": {
+      "sha256": "e8444cb39f191e08d9904334a6c228d7c5ea145d95fa5243639613bde1556e35",
+      "bytes": 2466489
+    },
+    "ml4phy-paper/tables/paper_coverage_summary.csv": {
+      "sha256": "cf9d266d91af6bffb1964b121d3e75fc3c889e13f4db3cfffc4e37eb9309599f",
+      "bytes": 135861
+    },
+    "ml4phy-paper/tables/paper_coverage_region_bins.csv": {
+      "sha256": "20125f34c8dde3f2ed8e06b5481bbf252b452f26ba0e41c9588a96b3e58ed07f",
+      "bytes": 142694
+    },
+    "ml4phy-paper/tables/paper_coverage_budget_comparison.csv": {
+      "sha256": "f4747f4373c60dd08cf58d3bbe5047937cd69af4c0339f2ca4ca23c97303253e",
+      "bytes": 50348
+    },
+    "ml4phy-paper/tables/paper_coverage_cross_budget_pairs.csv": {
+      "sha256": "078f32bb2d1ae04d2288935ce6b644b96b22b3f2e0feeb4bc77a71aa258e5c69",
+      "bytes": 904146
+    },
+    "ml4phy-paper/reports/paper_coverage_export.md": {
+      "sha256": "253bef350d6a23914abd08a6b4b79e52d4cf621add50732f1862a97c315e0f1e",
+      "bytes": 8488
+    }
+  },
+  "runtime_seconds": 9.753082971088588,
+  "historical_data_exposure": "Prospectively specified follow-up analysis on historically exposed frozen final targets.",
+  "limitations": [
+    "Reference-band coverage is a descriptive finite-reference agreement statistic.",
+    "Narrow feature regions contain only two 5-keV bins each.",
+    "Training-subset, initialization, and context dispersions are descriptive, not independent-dataset uncertainty.",
+    "The classifier training budget remains 18,866 events; this is not end-to-end 5k training.",
+    "The full efficiency-training pool is exactly 18,866 events, not 20k.",
+    "Sparse-tail limitations remain and are not represented by the peak composite.",
+    "The consolidated kernel output does not embed context-row identities; only its frozen protocol association and context seeds are recoverable."
+  ]
+}

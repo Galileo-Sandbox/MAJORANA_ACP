@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "evaluation_label": "prospectively frozen repeated-split evaluation",
+  "historical_exposure": "The final target was historically inspected, including for the talk. This is a prospectively frozen repeated-split evaluation, not an untouched test.",
+  "primary": {
+    "full": {
+      "mean_of_paired_training_seed_differences": -0.005567787011606128,
+      "std_across_paired_training_seed_differences": 0.0007348618587890268,
+      "cell17_better_training_seeds": 3,
+      "training_seed_differences": {
+        "0": -0.006390058665059326,
+        "1": -0.0053381007576218525,
+        "2": -0.004975201612137206
+      },
+      "kernel_mean_across_context": 0.22946894750605312,
+      "kernel_std_across_context": 0.0003422373462110231
+    },
+    "equal_region_mean": {
+      "mean_of_paired_training_seed_differences": -0.011736380407833064,
+      "std_across_paired_training_seed_differences": 0.0017683405542704346,
+      "cell17_better_training_seeds": 3,
+      "training_seed_differences": {
+        "0": -0.013552665983833498,
+        "1": -0.011636234120869232,
+        "2": -0.010020241118796458
+      },
+      "kernel_mean_across_context": 0.20623369184765256,
+      "kernel_std_across_context": 0.0028848903281097943
+    }
+  },
+  "training_seed_count": 3,
+  "context_draws_per_training_seed": 10,
+  "fixed_dropout_seed": 10100,
+  "mc_passes": 50,
+  "kernel_bandwidth_selection": "Frozen per context seed from five-fold development-context cross-validation",
+  "decision": "The controlled global and equal-region result survives final-protocol evaluation, with regional results reported without post-selection."
+}

@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "analysis": "Phase 2 outcome-blind nested training-pool freeze",
+  "status": "frozen_approved_not_started",
+  "source_commit": "9210ede4e9978706019c2fbb64e8cd05dc05afd2",
+  "script": "ml4phy-paper/scripts/freeze_phase2_protocol.py",
+  "script_sha256": "223c3094d7a5b07a822575b2c7e57969a64d144abb9af0f0ba2fc50370eee3eb",
+  "approval_basis": "User explicitly approved Phase 2 after reviewing commit 2800bb9.",
+  "ordering": {
+    "identity_fields": [
+      "run_number",
+      "detector",
+      "id",
+      "tp0"
+    ],
+    "namespace": "ml4ps-phase2-training-order-v1",
+    "rule": "ascending SHA-256(namespace || little-endian int64 identity), identity tuple tie-break",
+    "ordered_identity_sha256": "9ffddd1b36de6e0524ce43ab41922d8440d21c042232013d53f4f4559558748e",
+    "server_only_rows_path": "ml4phy-paper/local/phase2/protocol-v1/training_order_rows.npy",
+    "server_only_rows_sha256": "fbe036e7644526f7005e2e7758cf9a7cb5484be427cb1f5eb8d13bb116931199"
+  },
+  "full_input": {
+    "logical_path": "runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5",
+    "bytes": 853066,
+    "sha256": "ea2eb5594acdd181ebc18926fd8deabc7b2f6910b117dec863d87c3b70057159",
+    "unique_events": 18866,
+    "identity_sha256": "ad2e418ef8d5751b44f6f2731ac29562b10d05fcc5ad75ac9b51cb2b003879cd"
+  },
+  "subsets": [
+    {
+      "budget": 2000,
+      "logical_path": "ml4phy-paper/local/phase2/protocol-v1/training_budget_2000.h5",
+      "bytes": 94096,
+      "sha256": "b602b8aadccac3af699c9aa346281def2e7f399d26cf30c2cf9f32237c3d12c1",
+      "identity_sha256": "f70153a5ed4b2c1311ae132479ca6d10f2833061e97e3d938face4156e54de38",
+      "effective_identity_sha256": "bdcad80d0f7ff34cff0b310c70f261110f05a8add4ecd7f6c037dd32537ed6f5",
+      "nominal_unique_events": 2000,
+      "sampling_eligible_unique_events": 1895,
+      "sampling_excluded_unique_events": 105,
+      "kept_bin_count": 159,
+      "nonempty_bin_count": 209,
+      "density_pool_unique_events": 2000,
+      "density_pool_identity_sha256": "f70153a5ed4b2c1311ae132479ca6d10f2833061e97e3d938face4156e54de38"
+    },
+    {
+      "budget": 5000,
+      "logical_path": "ml4phy-paper/local/phase2/protocol-v1/training_budget_5000.h5",
+      "bytes": 229096,
+      "sha256": "97e406572d2c986a0ba1cbfbf88d9c9a2d57d86c60c71fb1b7ef181a6bc6becf",
+      "identity_sha256": "f95675afe3e3c81302ea25ced122533a470114f99b2b3948ac7e3fb7d197754a",
+      "effective_identity_sha256": "bd8bcdaf1106b23c048d4ee89cc97bc05771076041f205bdd639361e389a3f71",
+      "nominal_unique_events": 5000,
+      "sampling_eligible_unique_events": 4984,
+      "sampling_excluded_unique_events": 16,
+      "kept_bin_count": 205,
+      "nonempty_bin_count": 215,
+      "density_pool_unique_events": 5000,
+      "density_pool_identity_sha256": "f95675afe3e3c81302ea25ced122533a470114f99b2b3948ac7e3fb7d197754a"
+    }
+  ],
+  "overlaps": {
+    "intersection_2000_5000": 2000,
+    "union_2000_5000": 5000,
+    "nested_prefix_verified": true
+  },
+  "density_pool_rule": "exact nominal subset; never reconstruct the full 18,866-event pool for smaller budgets",
+  "final_target_regions_changed": false,
+  "outputs": {
+    "ml4phy-paper/configs/phase2_training_v1.json": {
+      "bytes": 3028,
+      "sha256": "025cb1b15004f7ddb7c180a067f07c12bfe71196186321a896f3b900add8f50f"
+    },
+    "ml4phy-paper/tables/phase2_training_subset_ledger.csv": {
+      "bytes": 854,
+      "sha256": "6f91d4117d8a733070716ec4739a2899aa94f7f8933a100e0ca468dde72e834e"
+    },
+    "ml4phy-paper/tables/phase2_training_subset_region_support.csv": {
+      "bytes": 796,
+      "sha256": "8cff92d469a44cf86ad1d5b129e8192ac02d85b4ab9d47f8e091c77ab03ad9f7"
+    },
+    "ml4phy-paper/reports/phase2_protocol_freeze.md": {
+      "bytes": 1905,
+      "sha256": "089eb772901928cc068bbea3dc2ef968119bb490b51b3109dd9235aa34c5ee0e"
+    }
+  },
+  "historical_data_exposure": "Prospectively specified follow-up analysis on historically exposed data; not an untouched test."
+}

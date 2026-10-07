@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "analysis": "completed-method full-range and local acceptance curves",
+  "status": "completed",
+  "source_commit": "14d52c5b872c554d158ba8eaa415d7d1ca86c85b",
+  "script": "ml4phy-paper/scripts/plot_extension_acceptance_curves.py",
+  "script_sha256": "1b3892c2a2d9e6c4470871a7003b8417050d4876ecdc8683582c2fbce0678ef4",
+  "inputs": {
+    "ml4phy-paper/tables/phase1_neural_acceptance_curves.csv": "2d7cd440eb57da86f967467792fa3414280c25180da2d6cf9e0ef70115287514",
+    "ml4phy-paper/tables/phase1_kernel_acceptance_curves.csv": "fcb6155e27ab00b31fec4d935bba50bcf50574aeb02a343b28326a7136817e92",
+    "ml4phy-paper/tables/final_reference_bins_5kev.csv": "a214058fb4c671acfd2163181e2706bbc6adda5b1bccaa4c2e18188a660cd6b0"
+  },
+  "context_sizes": [
+    500,
+    2000
+  ],
+  "methods": [
+    "CNP",
+    "Attentive CNP",
+    "Attentive CNP + PE",
+    "Density-guided CNP (ours)",
+    "Gaussian kernel regression (context only)",
+    "Gaussian kernel regression (pooled data + context)"
+  ],
+  "curve_summary": "Neural lines average three training-seed means, each over ten contexts; kernel lines average ten contexts.",
+  "uncertainty_note": "No uncertainty bands are drawn because neural training/context variation and kernel context variation are not the same quantity.",
+  "reference_note": "Reference points are finite 5-keV-bin estimates with at least four events, not exact truth.",
+  "outputs": {
+    "ml4phy-paper/figures/phase1_extension_acceptance_full.png": {
+      "bytes": 945563,
+      "sha256": "9614a1009e5e9461b2c9c9a917297c0d8de757a8d15253b2642073111a7edc2e"
+    },
+    "ml4phy-paper/figures/phase1_extension_acceptance_local.png": {
+      "bytes": 628618,
+      "sha256": "6ef6d0b342208ead1db59bde608e3656009014447a1e959604e778032e236d4f"
+    }
+  },
+  "historical_data_exposure": "Prospectively specified follow-up analysis on historically exposed data; not an untouched test."
+}

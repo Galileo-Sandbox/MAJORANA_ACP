@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "analysis": "approved Phase 2 acceptance-training-size slice",
+  "status": "frozen",
+  "budgets": [
+    2000,
+    5000
+  ],
+  "reused_full_budget": 18866,
+  "architectures": [
+    "m0",
+    "m1",
+    "m2",
+    "ours"
+  ],
+  "method_names": {
+    "m0": "CNP",
+    "m1": "Attentive CNP",
+    "m2": "Attentive CNP + PE",
+    "ours": "Density-guided CNP (ours)"
+  },
+  "training_seeds": [
+    0,
+    1,
+    2
+  ],
+  "context_size": 500,
+  "context_seeds": [
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109
+  ],
+  "training_steps": 3000,
+  "base_configs": {
+    "m0": "ml4phy-paper/configs/m0_cnp_seed0.yaml",
+    "m1": "ml4phy-paper/configs/m1_attentive_cnp_seed0.yaml",
+    "m2": "ml4phy-paper/configs/m2_attentive_pe10_seed0.yaml",
+    "ours": "ml4phy-paper/configs/cell17_controlled_seed0.yaml"
+  },
+  "base_config_sha256": {
+    "m0": "c5c6b269a559d39e7c25c3b8cd14012d308936fdb853ba063380e7c29f9a7a01",
+    "m1": "1a0054c81237c571e3a841c4b550a1fe569615ff20ff905f187be3ab5efed2f5",
+    "m2": "cbe365288042b6dc74c2cf867c21db8afe1f84b51358384e0ca90e89eac7e1ea",
+    "ours": "327308ed0b69a621c310d77710ac6fa26a8d17f9f1824b9e64eedd8a6568f2c3"
+  },
+  "subset_inputs": [
+    {
+      "budget": 2000,
+      "logical_path": "ml4phy-paper/local/phase2/protocol-v1/training_budget_2000.h5",
+      "bytes": 94096,
+      "sha256": "b602b8aadccac3af699c9aa346281def2e7f399d26cf30c2cf9f32237c3d12c1",
+      "identity_sha256": "f70153a5ed4b2c1311ae132479ca6d10f2833061e97e3d938face4156e54de38",
+      "effective_identity_sha256": "bdcad80d0f7ff34cff0b310c70f261110f05a8add4ecd7f6c037dd32537ed6f5",
+      "nominal_unique_events": 2000,
+      "sampling_eligible_unique_events": 1895,
+      "sampling_excluded_unique_events": 105,
+      "kept_bin_count": 159,
+      "nonempty_bin_count": 209,
+      "density_pool_unique_events": 2000,
+      "density_pool_identity_sha256": "f70153a5ed4b2c1311ae132479ca6d10f2833061e97e3d938face4156e54de38"
+    },
+    {
+      "budget": 5000,
+      "logical_path": "ml4phy-paper/local/phase2/protocol-v1/training_budget_5000.h5",
+      "bytes": 229096,
+      "sha256": "97e406572d2c986a0ba1cbfbf88d9c9a2d57d86c60c71fb1b7ef181a6bc6becf",
+      "identity_sha256": "f95675afe3e3c81302ea25ced122533a470114f99b2b3948ac7e3fb7d197754a",
+      "effective_identity_sha256": "bd8bcdaf1106b23c048d4ee89cc97bc05771076041f205bdd639361e389a3f71",
+      "nominal_unique_events": 5000,
+      "sampling_eligible_unique_events": 4984,
+      "sampling_excluded_unique_events": 16,
+      "kept_bin_count": 205,
+      "nonempty_bin_count": 215,
+      "density_pool_unique_events": 5000,
+      "density_pool_identity_sha256": "f95675afe3e3c81302ea25ced122533a470114f99b2b3948ac7e3fb7d197754a"
+    }
+  ],
+  "fixed_classifier": "configs/small_data_configs/simple_cnn_small.yaml",
+  "fixed_threshold": 0.540643572807312,
+  "fixed_final_target_events": 114400,
+  "dropout_seed": 10100,
+  "mc_passes": 50,
+  "new_training_job_count": 24,
+  "new_evaluation_cell_count": 240
+}

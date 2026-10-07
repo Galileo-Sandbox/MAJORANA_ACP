@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "analysis": "controlled M2 seed-0 training pilot and paired development evaluation",
+  "script": "ml4phy-paper/scripts/summarize_training_pilot.py",
+  "script_sha256": "72e1479a4ad25c83b86cf86f2cf0636c78248bf482e54c23b7cfb85888585cd2",
+  "source_commit": "514384a0e901cc1bc920d45b9a17c5fed51f0e04",
+  "training_inputs": {
+    "runner_record_sha256": "ceab65b846bb52a7cb6e94ddc3ee5255c824170e56a5d553599a582a01289cb8",
+    "run_summary_sha256": "b335256863a25efe5ac3abf61778c61575e0f1533d561558aad12260a52b3d8e",
+    "checkpoint_sha256": "2295bdc7e8015ec6387e13f8777c6c293ebe916a7cbb986ef9f21aaaf2d2dba8",
+    "m2_config_sha256": "cbe365288042b6dc74c2cf867c21db8afe1f84b51358384e0ca90e89eac7e1ea",
+    "cell17_config_sha256": "373ae88fb01c3a8fbbfd1158d4c3865938a28cc531d5fc64de498c09b7707dff"
+  },
+  "inference_inputs": [
+    {
+      "run_id": "20260908-cell17-dev-s100-mc50",
+      "summary_sha256": "b120b1fc988ba4d9c41375349f4627d74a0067d2877be4c234f213b3a9ca9c43"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s100-drop10100-mc50",
+      "summary_sha256": "3a3c006bbe3367508810f2b5c7cbafc28ca8651c10831b03f522eba2fe495a81"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s101-drop10100-mc50",
+      "summary_sha256": "6ce0027965eb107f042e194cd0f5a79d08a7cf6f040fee5c9005f64b532dafcf"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s101-drop10100-mc50",
+      "summary_sha256": "259487865504dfcb98bdf902129e936070b6e8f130a63f50d2e93d8e56de866c"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s102-drop10100-mc50",
+      "summary_sha256": "9d7a91f6191721e3f12619b3bb405570d236f38f6a908b17584bc807922e7fff"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s102-drop10100-mc50",
+      "summary_sha256": "506500515918cf1e71edd6819c1f6fc5caf2e246486dfc894d5030a825934b27"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s103-drop10100-mc50",
+      "summary_sha256": "d6d2162efcc0ef0ad6266e4c704cbe94dfb5e90558b669c63522afa24b884d6a"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s103-drop10100-mc50",
+      "summary_sha256": "f550fd7052c4037864e79cf774ca0c3ea3361671752d2133577b726f295eccbd"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s104-drop10100-mc50",
+      "summary_sha256": "3a70f58be9bfc20dd8ef2b4e55eb499f012ef47be3175b8a2f6f4915f56fd67a"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s104-drop10100-mc50",
+      "summary_sha256": "cc9d0f45a40c1add3434cbc76a33be2a570dfd09be7cb139d7b3fe4d14ce8681"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s105-drop10100-mc50",
+      "summary_sha256": "4898c01067e7f4e06fd6182e9949b13ff8978937378fb569e5622437aafe3f51"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s105-drop10100-mc50",
+      "summary_sha256": "55e077ec7ec5d41b28de59bb4f30a1469d8b72cf9030e8ca057ef1ab19c5a44c"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s106-drop10100-mc50",
+      "summary_sha256": "f4f96df2b970c6921f2302f2cbd799741c6df60e26e903a55ec0cf44ff651fb4"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s106-drop10100-mc50",
+      "summary_sha256": "888273001870303dba660d2f9a3af098572f640a94bafdac11e35d65caadd446"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s107-drop10100-mc50",
+      "summary_sha256": "1a54ee194af746a806b20efbc01ff80077f003e6ba90a925e69716f3289f44a0"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s107-drop10100-mc50",
+      "summary_sha256": "956172af748ac91959bb08b5dc039b4b370a25f23a3cef241d6bb0aef2a4b0dd"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s108-drop10100-mc50",
+      "summary_sha256": "869aff729f8c14b44e0a725e1ee6592e730de2acca222ca380a760fb28da4033"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s108-drop10100-mc50",
+      "summary_sha256": "e8b07119b38557043420cf6b9fe7a3e2d5b4a46e217393ed2714640adf2676be"
+    },
+    {
+      "run_id": "20260908-cell17-dev-ctx-s109-drop10100-mc50",
+      "summary_sha256": "c25a27a16de8914f2f65a39dfdf84135b59d81084a19c4acef6bc57937b8a655"
+    },
+    {
+      "run_id": "20260908-m2-seed0-dev-ctx-s109-drop10100-mc50",
+      "summary_sha256": "e292b65575fdd0c580b8d3729155923f3cfbd73535ad4bc2aa1b340e77187b14"
+    }
+  ],
+  "outputs": {
+    "ml4phy-paper/tables/m2_seed0_pilot_paired_differences.csv": {
+      "sha256": "4a3e69000e2d2cf6fcc666f3005f402956291ba6bc3a6dd21f47ffc756655396",
+      "bytes": 996
+    },
+    "ml4phy-paper/tables/m2_seed0_pilot_metrics.json": {
+      "sha256": "8cd71f9812da5e732e2c1bdcfdece13e4f024e5c1484a0b689d681493c229864",
+      "bytes": 2058
+    },
+    "ml4phy-paper/reports/m2_seed0_pilot.md": {
+      "sha256": "82f05f71fd6f0854c60a8b2e8d954da898b1ae3cae55b41d53496dcee2bef5a1",
+      "bytes": 1587
+    }
+  }
+}

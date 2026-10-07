@@ -1,0 +1,8 @@
+method,estimator_family,context_size,acceptance_pretraining_nominal_events,peak_mae_percentage_points,peak_variation,continuum_mae_percentage_points,continuum_variation,sparse_tail_mae_percentage_points,global_brier,variation_definition
+CNP,pretrained neural,500,18866,7.993373282596418,0.34858852760049286,4.585335300822202,0.022054854431297836,8.438205797362627,0.23312316145635728,SD across three initialization-seed means
+Attentive CNP,pretrained neural,500,18866,8.245080586830714,0.32120731487428617,5.533277345664222,0.6987334735613197,7.814261165136831,0.2323377589596889,SD across three initialization-seed means
+Attentive CNP + PE,pretrained neural,500,18866,5.996050425376527,1.0779570013491184,7.379996005228072,0.8645093062068547,23.24683771189753,0.2292065755313943,SD across three initialization-seed means
+Density-guided CNP (ours),pretrained neural,500,18866,3.5565860653454764,0.33220474658131,4.072397312596024,0.10909678675255599,14.701375968868163,0.22367321218326178,SD across three initialization-seed means
+Gaussian kernel regression (context only),kernel regression / KDE ratio,500,0,9.61218155879795,1.2886809960846743,6.466679664570973,2.0183415873091444,17.97985182883368,0.2319503480285876,SD across ten overlapping contexts
+Gaussian kernel regression (pooled data + context),kernel regression / KDE ratio,500,18866,7.767667168831652,0.3665411245256438,4.056189597047574,0.2483718579244151,2.992879059961553,0.2264527320205237,SD across ten overlapping contexts
+Gaussian-process probability estimator,context-only dense Bernoulli GP,500,0,9.96575153849432,1.3139584364096641,6.737554725382071,2.2656098948591326,38.16606681591527,0.23254377471672982,SD across ten overlapping contexts

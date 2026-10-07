@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this artifact, please cite the associated ML4PS 2026 paper and the Majorana Demonstrator AI/ML data release."
+title: "ML4PS 2026 artifact for density-guided efficiency estimation"
+type: software
+authors:
+  - family-names: "Ma"
+    given-names: "Yue"
+repository-code: "https://github.com/Galileo-Sandbox/MAJORANA_ACP"
+date-released: 2026-10-07
+version: "ml4phy-paper-artifact-v1"
+references:
+  - type: dataset
+    title: "Majorana Demonstrator AI/ML data release"
+    doi: "10.5281/zenodo.8257027"

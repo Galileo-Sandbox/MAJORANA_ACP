@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "analysis": "Phase 3 subset and resource freeze",
+  "status": "frozen_approved_not_started",
+  "source_commit": "f41fe02b55414458a9d3f98f6a7856669501324a",
+  "script": "ml4phy-paper/scripts/freeze_phase3_protocol.py",
+  "script_sha256": "ed485e72d5b889d3a56d0311f524be980f76ef3a683c9d0861f7863ce350e8fa",
+  "approval_commit": "2e4abd3953151acb554db51cfefef824ea2cfd9e",
+  "parent_pool": {
+    "logical_path": "runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5",
+    "bytes": 853066,
+    "sha256": "ea2eb5594acdd181ebc18926fd8deabc7b2f6910b117dec863d87c3b70057159",
+    "unique_events": 18866,
+    "identity_sha256": "ad2e418ef8d5751b44f6f2731ac29562b10d05fcc5ad75ac9b51cb2b003879cd"
+  },
+  "orderings": {
+    "original": {
+      "ordering_seed": null,
+      "namespace": "ml4ps-phase2-training-order-v1",
+      "rule": "ascending SHA-256(namespace || little-endian int64 identity), identity tuple tie-break",
+      "rows_path": "ml4phy-paper/local/phase2/protocol-v1/training_order_rows.npy",
+      "rows_sha256": "fbe036e7644526f7005e2e7758cf9a7cb5484be427cb1f5eb8d13bb116931199",
+      "ordered_identity_sha256": "9ffddd1b36de6e0524ce43ab41922d8440d21c042232013d53f4f4559558748e",
+      "reused_without_regeneration": true
+    },
+    "seed20260910": {
+      "ordering_seed": 20260910,
+      "namespace": "ml4ps-phase3-training-order-v1:seed=20260910",
+      "rule": "ascending SHA-256(namespace || NUL || little-endian int64 identity), identity tuple tie-break",
+      "rows_path": "ml4phy-paper/local/phase3/protocol-v1/training_order_seed20260910_rows.npy",
+      "rows_sha256": "7788b49bda836b1cd72c78ff684f90cbc876225b584e73b9fababc80d7450a9e",
+      "ordered_identity_sha256": "c5b5bd20f480964fd64255451532aefc21344c2ee2c23c9a25c794db6e8b37fe",
+      "reused_without_regeneration": false
+    },
+    "seed20260911": {
+      "ordering_seed": 20260911,
+      "namespace": "ml4ps-phase3-training-order-v1:seed=20260911",
+      "rule": "ascending SHA-256(namespace || NUL || little-endian int64 identity), identity tuple tie-break",
+      "rows_path": "ml4phy-paper/local/phase3/protocol-v1/training_order_seed20260911_rows.npy",
+      "rows_sha256": "e9bc455cd1d5b7c3fbc5b258ca101b03448f44f744e69862a1364df87a1ea1d7",
+      "ordered_identity_sha256": "8cfbb1d2594ef27692424365fbe7c2de4593092d6c5e33a630b1d3bc32dcf8b1",
+      "reused_without_regeneration": false
+    }
+  },
+  "subsets": [
+    {
+      "subset_id": "original_n10000",
+      "ordering_id": "original",
+      "ordering_seed": null,
+      "budget": 10000,
+      "logical_path": "ml4phy-paper/local/phase3/protocol-v1/training_original_n10000.h5",
+      "bytes": 454096,
+      "sha256": "8bab6e3588a9b77b262ee06b5add1e41a15786c6befffd3674e8358d36c30763",
+      "identity_sha256": "477db50b0fb3a5da1a6154c694e589dbd699e30c59c14d1f1dc4c45327b11f2d",
+      "effective_identity_sha256": "d21a28144fa976b2f56bfeb7104bf59e1ff49f845b5ae8bff497a8819ef33b26",
+      "nominal_unique_events": 10000,
+      "sampling_eligible_unique_events": 9980,
+      "sampling_excluded_unique_events": 20,
+      "kept_bin_count": 209,
+      "nonempty_bin_count": 222,
+      "density_pool_unique_events": 10000,
+      "density_pool_identity_sha256": "477db50b0fb3a5da1a6154c694e589dbd699e30c59c14d1f1dc4c45327b11f2d",
+      "overlap_with_final_target": 0,
+      "overlap_with_final_context_reservoir": 0
+    },
+    {
+      "subset_id": "seed20260910_n5000",
+      "ordering_id": "seed20260910",
+      "ordering_seed": 20260910,
+      "budget": 5000,
+      "logical_path": "ml4phy-paper/local/phase3/protocol-v1/training_seed20260910_n5000.h5",
+      "bytes": 229096,
+      "sha256": "8aee20a670da1d0685cd3a172093bd6dfc985379cc413bfa0e8117afafdda7fe",
+      "identity_sha256": "c00f157b60bb0f21917c5fcab74c388132f3a3bfe93e9b50a5fa730f04d13f77",
+      "effective_identity_sha256": "6ee87a453b7577c8cc701b09f89e1968cbe3a40f8c7dd6868d43b12b919c2138",
+      "nominal_unique_events": 5000,
+      "sampling_eligible_unique_events": 4981,
+      "sampling_excluded_unique_events": 19,
+      "kept_bin_count": 206,
+      "nonempty_bin_count": 220,
+      "density_pool_unique_events": 5000,
+      "density_pool_identity_sha256": "c00f157b60bb0f21917c5fcab74c388132f3a3bfe93e9b50a5fa730f04d13f77",
+      "overlap_with_final_target": 0,
+      "overlap_with_final_context_reservoir": 0
+    },
+    {
+      "subset_id": "seed20260911_n5000",
+      "ordering_id": "seed20260911",
+      "ordering_seed": 20260911,
+      "budget": 5000,
+      "logical_path": "ml4phy-paper/local/phase3/protocol-v1/training_seed20260911_n5000.h5",
+      "bytes": 229096,
+      "sha256": "e0305c3d8c8677c53c3f1e1967767ad6d19f118d1f2b10c36d37533f2fe06013",
+      "identity_sha256": "30614956762dae498628532cf1b4ae7b759aa76fc2318c19a4c075f55aafa65e",
+      "effective_identity_sha256": "eac6e51b650fcd76f76a04ab156a3f760d6be7c4370b5958d96af868b9b86714",
+      "nominal_unique_events": 5000,
+      "sampling_eligible_unique_events": 4980,
+      "sampling_excluded_unique_events": 20,
+      "kept_bin_count": 203,
+      "nonempty_bin_count": 216,
+      "density_pool_unique_events": 5000,
+      "density_pool_identity_sha256": "30614956762dae498628532cf1b4ae7b759aa76fc2318c19a4c075f55aafa65e",
+      "overlap_with_final_target": 0,
+      "overlap_with_final_context_reservoir": 0
+    }
+  ],
+  "overlaps": {
+    "pairwise_table": "ml4phy-paper/tables/phase3_training_subset_overlaps.csv",
+    "five_k_union_unique_events": 11358,
+    "five_k_triple_intersection_unique_events": 344,
+    "original_5k_nested_in_original_10k": true,
+    "all_training_subsets_disjoint_from_final_target": true,
+    "all_training_subsets_disjoint_from_final_context_reservoir": true
+  },
+  "resource_gates": {
+    "dense_gp_hard_limit_seconds": 14400,
+    "dense_gp_projected_seconds": 8662.744420958916,
+    "dense_gp_pilot_campaign_cells_reusable": 0,
+    "dense_gp_pilot_reuse_limitation": "Timing evidence only: pilot optimizer seed 31000 differs from campaign seed 31400 for the corresponding cell.",
+    "neural_hard_limit_seconds": 7200,
+    "neural_projected_seconds_with_25_percent_allowance": 6214.622397098283,
+    "phase2_measured_5k_training_seconds": 968.7088156412356,
+    "phase2_measured_5k_evaluation_seconds": 451.7763036955148,
+    "ten_k_scaling_factor_from_5k": 1.5,
+    "timing_inputs": {
+      "ml4phy-paper/tables/phase2_training_runs.csv": "d536c02fe3b89f5a3069cdb0440beb124bf76cf690592ef8515d5127c565c766",
+      "ml4phy-paper/tables/phase2_evaluation_runs.csv": "5d99066f303c22c09c0415e70461433e57688e4d5b294836714b15e5553e02c6"
+    }
+  },
+  "fixed_protocol": {
+    "classifier_training_events": 18866,
+    "classifier_candidate_events": 377330,
+    "threshold": 0.540643572807312,
+    "context_size": 500,
+    "context_seeds": [
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109
+    ],
+    "final_target_events": 114400,
+    "mc_passes": 50,
+    "dropout_seed": 10100,
+    "training_steps": 3000
+  },
+  "outputs": {
+    "ml4phy-paper/configs/phase3_training_v1.json": {
+      "bytes": 4533,
+      "sha256": "258b28457950ad6c317eb17b0589d6d1e8c1a8668adad7b96074c4bae8b9d07c"
+    },
+    "ml4phy-paper/tables/phase3_training_subset_summary.csv": {
+      "bytes": 1068,
+      "sha256": "e696ffc3deab6d3bf1406ccb8aa51d4784bebbda78c28ffbc90d0239145fa10f"
+    },
+    "ml4phy-paper/tables/phase3_training_subset_region_support.csv": {
+      "bytes": 1689,
+      "sha256": "56cd53544fa970fa00ba4ee52b6d751f6bfbde2c496e075ad1e6a36ee7f08609"
+    },
+    "ml4phy-paper/tables/phase3_training_subset_overlaps.csv": {
+      "bytes": 691,
+      "sha256": "f4eb14c477fe271fa91dc5e94028a930c8e2a44fd66d7c49a4b98923bd918e4b"
+    },
+    "ml4phy-paper/reports/phase3_protocol.md": {
+      "bytes": 2825,
+      "sha256": "e070b67e0617c5e488d0bb66deebdaad14872faf2541a9e27a0b35a7e90ab5fb"
+    }
+  },
+  "historical_data_exposure": "Prospectively specified follow-up analysis on historically exposed data; not an untouched test."
+}

@@ -1,0 +1,6 @@
+stage,seed,steps_or_epochs,eligible_unique_events,repeated_event_draws,context_uses,target_label_uses,mc_nll_terms,sampling
+classifier_training,0,50,18866,943300,,943300,,weighted replacement; class and 10-keV energy weights multiplied
+classifier_monitoring,0,50,7074,353700,,353700,,weighted replacement per epoch; monitoring only
+acceptance_model_training,0,3000,18836,40056128,15301808,24754320,99017280,flat 10-keV-bin stratified replacement; variable N=640..1024
+acceptance_model_training,1,3000,18836,40041120,15344784,24696336,98785344,flat 10-keV-bin stratified replacement; variable N=640..1024
+acceptance_model_training,2,3000,18836,39875408,15458896,24416512,97666048,flat 10-keV-bin stratified replacement; variable N=640..1024

@@ -1,0 +1,19 @@
+# Server-only artifacts and machine-specific configuration.
+/runs/
+/artifacts/
+/data/
+/local/
+/logs/
+/tmp/
+/.cache/
+/.venv/
+__pycache__/
+*.pyc
+*.ckpt
+*.pt
+*.pth
+*.h5
+*.hdf5
+
+# Reports, manifests, tables, and selected compact figures are versioned.
+# Export any reviewed compact prediction arrays explicitly under exports/.

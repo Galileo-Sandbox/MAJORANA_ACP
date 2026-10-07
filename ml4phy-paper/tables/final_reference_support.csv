@@ -1,0 +1,9 @@
+region_id,region,status,target_event_count,minimum_supported_event_count
+full,Full 500-3000 keV,supported,114400,20
+DEP,Tl-208 DEP 1592 keV,supported,1292,20
+Bi-214,Bi-212 1620.74-keV feature,supported,1331,20
+continuum_1700_2000,Continuum 1700-2000 keV,supported,8230,20
+SE,Tl-208 SE 2103 keV,supported,2013,20
+continuum_2200_2400,Continuum 2200-2400 keV,supported,9093,20
+FE,Tl-208 FE 2614 keV,supported,8724,20
+sparse_tail,Sparse tail 2700-3000 keV,supported,150,20

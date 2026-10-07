@@ -1,0 +1,4 @@
+run_id,phase,family,context_size,context_seed,category,message
+20260909-phase3-gp-development-matern32-ctx-s102-n500,development,matern32,500,102,ConvergenceWarning,The optimal value found for dimension 0 of parameter k2__length_scale is close to the specified upper bound 0.4. Increasing the bound and calling fit again may find a better value.
+20260909-phase3-gp-final-matern32-ctx-s107-n1000,final,matern32,1000,107,ConvergenceWarning,The optimal value found for dimension 0 of parameter k2__length_scale is close to the specified upper bound 0.4. Increasing the bound and calling fit again may find a better value.
+20260909-phase3-gp-final-matern32-ctx-s107-n2000,final,matern32,2000,107,ConvergenceWarning,The optimal value found for dimension 0 of parameter k2__length_scale is close to the specified upper bound 0.4. Increasing the bound and calling fit again may find a better value.

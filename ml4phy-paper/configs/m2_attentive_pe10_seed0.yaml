@@ -1,0 +1,63 @@
+# Controlled M2 pilot: attentive CNP with ten Fourier bands and no density guidance.
+# All data, sampler, optimizer, capacity, and dropout settings match Cell 17.
+
+name: ml4ps_m2_attentive_pe10_seed0
+out_dir: null  # Injected by the paper training runner into an ignored unique run directory.
+
+train_predictions_path: runs/small_data_configs/simple_cnn_small/eval_train/predictions.h5
+validation_predictions_path: runs/small_data_configs/simple_cnn_small/eval/predictions.h5
+upstream_classifier_config: configs/small_data_configs/simple_cnn_small.yaml
+
+target_class: "all"
+energy_range: [500.0, 3000.0]
+energy_bin_width: 10.0
+threshold_range: [0.0, 1.0]
+min_events_per_bin: 4
+
+sampling_pattern: flat_stratified
+trial_size_strategy: variable_uniform
+n_trial_events_min: 640
+n_trial_events_max: 1024
+density_sampling: bin_stratified
+
+encoder:
+  type: mlp
+  latent_dim: 64
+  hidden_dims: [128, 128]
+  dropout: 0.2
+
+cnp:
+  n_context_min: 128
+  n_context_max: 512
+  output_activation: sigmoid
+  mixup_alpha: 0.01
+
+training:
+  n_steps: 3000
+  learning_rate: 1.0e-3
+  batch_size: 16
+  n_events_per_trial: 512
+  n_mc_samples: 4
+  grad_clip: 1.0
+  eval_every: 0
+  eval_batch_size: 32
+  eval_n_events: 64
+  seed: 0
+
+decoder_hidden_dims: [128, 128, 128]
+
+positional_encoding:
+  enabled: true
+  num_bands: 10
+  min_energy_kev: 500.0
+  max_energy_kev: 3000.0
+
+device: cuda
+
+aggregator:
+  type: cross_attention
+  num_heads: 1
+  attention_dim: 128
+  decoder_coordinate_gating: false
+  gaussian_attention_bias: false
+  pe_detach_qk: false

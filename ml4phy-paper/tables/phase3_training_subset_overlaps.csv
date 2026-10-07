@@ -1,0 +1,11 @@
+left_subset,right_subset,intersection_unique_events,union_unique_events,left_fraction_in_intersection,right_fraction_in_intersection
+original_n10000,original_n10000,10000,10000,1.0,1.0
+original_n10000,original_n5000,5000,10000,0.5,1.0
+original_n10000,seed20260910_n5000,2630,12370,0.263,0.526
+original_n10000,seed20260911_n5000,2667,12333,0.2667,0.5334
+original_n5000,original_n5000,5000,5000,1.0,1.0
+original_n5000,seed20260910_n5000,1334,8666,0.2668,0.2668
+original_n5000,seed20260911_n5000,1304,8696,0.2608,0.2608
+seed20260910_n5000,seed20260910_n5000,5000,5000,1.0,1.0
+seed20260910_n5000,seed20260911_n5000,1348,8652,0.2696,0.2696
+seed20260911_n5000,seed20260911_n5000,5000,5000,1.0,1.0

@@ -1,0 +1,15 @@
+training_budget,region,nominal_events,sampling_eligible_events,region_definition_kev,target_region_removed
+2000,DEP,21,20,"[1577.0, 1606.0)",False
+2000,Bi-212 1620.74 keV,12,8,"[1606.0, 1635.0)",False
+2000,continuum 1700-2000 keV,147,127,"[1700.0, 2000.0)",False
+2000,SE,36,36,"[2088.0, 2118.0)",False
+2000,continuum 2200-2400 keV,141,134,"[2200.0, 2400.0)",False
+2000,FE,139,139,"[2599.0, 2629.0)",False
+2000,sparse tail,2,0,"[2700.0, 3000.0)",False
+5000,DEP,50,50,"[1577.0, 1606.0)",False
+5000,Bi-212 1620.74 keV,44,44,"[1606.0, 1635.0)",False
+5000,continuum 1700-2000 keV,362,362,"[1700.0, 2000.0)",False
+5000,SE,75,75,"[2088.0, 2118.0)",False
+5000,continuum 2200-2400 keV,378,378,"[2200.0, 2400.0)",False
+5000,FE,362,362,"[2599.0, 2629.0)",False
+5000,sparse tail,3,0,"[2700.0, 3000.0)",False

@@ -1,0 +1,8 @@
+method,reader_facing_name,configuration_status,checkpoint_status,training_jobs_required,parameter_count,phase1_total_cells,phase1_reusable_cells,phase1_new_cells,notes
+m0,CNP,matched prospective,missing,3,116482,120,0,120,"Mean pooling; no positional encoding"
+m1,Attentive CNP,matched prospective,missing,3,149250,120,0,120,"Deterministic cross-attention; no positional encoding; not a latent ANP"
+m2,Attentive CNP + PE,matched frozen,available seeds 0-2,0,151682,120,30,90,"Reuses ten original 2000-event contexts for each seed"
+ours,Density-guided CNP (ours),matched frozen,available seeds 0-2,0,130693,120,30,90,"Reuses ten original 2000-event contexts for each seed"
+kernel_context,Gaussian kernel regression / KDE-ratio acceptance estimator,development-selected by context size,no checkpoint,0,,40,10,30,"Context-only; KDE-ratio interpretation includes context pass fraction"
+kernel_pooled,Pooled-data Gaussian kernel control,development-selected by context size,no checkpoint,0,,40,0,40,"Acceptance-training pool plus context; distinct information budget"
+gp,Gaussian-process probability estimator,development family selection,pilot required,0,,40,0,40,"Event-level Bernoulli GPC; campaign gated by two-hour projection"

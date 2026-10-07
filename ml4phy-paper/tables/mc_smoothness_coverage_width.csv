@@ -1,0 +1,21 @@
+model_id,method,stream_seed,passes,region,valid_bin_count,empirical_bin_coverage,mean_interval_width_percentage_points,interval_definition,coverage_target
+m2_seed0,Attentive CNP + PE,10100,50,continuum_1700_2000,60,0.03333333333333333,1.0825270632902784,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+m2_seed0,Attentive CNP + PE,10100,50,continuum_2200_2400,40,0.025,0.7517852514982224,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+m2_seed0,Attentive CNP + PE,10100,200,continuum_1700_2000,60,0.03333333333333333,1.1288541694482168,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+m2_seed0,Attentive CNP + PE,10100,200,continuum_2200_2400,40,0.0,0.801914754509926,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+m2_seed0,Attentive CNP + PE,30100,50,continuum_1700_2000,60,0.03333333333333333,1.0531045595804844,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+m2_seed0,Attentive CNP + PE,30100,50,continuum_2200_2400,40,0.0,0.7673674136400226,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+m2_seed0,Attentive CNP + PE,30100,200,continuum_1700_2000,60,0.03333333333333333,1.1148414472738895,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+m2_seed0,Attentive CNP + PE,30100,200,continuum_2200_2400,40,0.0,0.7943779736757284,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+m2_seed0,Attentive CNP + PE,10100,800,continuum_1700_2000,60,0.03333333333333333,1.1261361440022783,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+m2_seed0,Attentive CNP + PE,10100,800,continuum_2200_2400,40,0.0,0.7889282435178762,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+m2_seed0,Attentive CNP + PE,30100,800,continuum_1700_2000,60,0.03333333333333333,1.1328726887702942,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+m2_seed0,Attentive CNP + PE,30100,800,continuum_2200_2400,40,0.0,0.7988813489675515,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+ours_seed0,Density-guided CNP (ours),10100,50,continuum_1700_2000,60,0.03333333333333333,0.30551627675692333,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+ours_seed0,Density-guided CNP (ours),10100,50,continuum_2200_2400,40,0.025,0.26423368155956223,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+ours_seed0,Density-guided CNP (ours),10100,200,continuum_1700_2000,60,0.03333333333333333,0.31242943207422896,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+ours_seed0,Density-guided CNP (ours),10100,200,continuum_2200_2400,40,0.025,0.27360756695270483,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+ours_seed0,Density-guided CNP (ours),30100,50,continuum_1700_2000,60,0.03333333333333333,0.31016722122828144,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+ours_seed0,Density-guided CNP (ours),30100,50,continuum_2200_2400,40,0.05,0.27018242180347496,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+ours_seed0,Density-guided CNP (ours),30100,200,continuum_1700_2000,60,0.03333333333333333,0.31358255147933817,central 68% dropout function-draw bin interval,finite empirical bin acceptance
+ours_seed0,Density-guided CNP (ours),30100,200,continuum_2200_2400,40,0.05,0.2735553234815595,central 68% dropout function-draw bin interval,finite empirical bin acceptance

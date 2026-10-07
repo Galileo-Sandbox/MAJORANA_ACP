@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "training": {
+    "model": "m2_seed0_pilot",
+    "steps": 3000,
+    "seed": 0,
+    "final_loss": 0.4155219495296478,
+    "wall_seconds": 84.93971165642142,
+    "checkpoint_sha256": "2295bdc7e8015ec6387e13f8777c6c293ebe916a7cbb986ef9f21aaaf2d2dba8",
+    "source_commit": "e8beb0a2ea44e0f05a2c4a8bda7f7bfb66a67c58",
+    "dependency_commit": "edba6a294581fde6f905b330d477f2c1b42d6adb"
+  },
+  "parameter_counts": {
+    "m2_seed0_pilot": 151682,
+    "cell17_seed0_recovered": 130693
+  },
+  "configuration_parity": {
+    "unexpected_non_architecture_differences": {},
+    "intentional_top_level_differences": [
+      "aggregator",
+      "device",
+      "name",
+      "out_dir"
+    ]
+  },
+  "primary_paired_results": {
+    "full": {
+      "region": "full",
+      "paired_context_draws": 10,
+      "cell17_brier_mean": 0.22562063293627652,
+      "m2_brier_mean": 0.23175503348692023,
+      "mean_brier_difference_cell17_minus_m2": -0.006134400550643787,
+      "std_difference_across_context": 0.00041917572815781474,
+      "cell17_better_draws": 10,
+      "ties": 0,
+      "m2_better_draws": 0
+    },
+    "equal_region_mean": {
+      "region": "equal_region_mean",
+      "paired_context_draws": 10,
+      "cell17_brier_mean": 0.2341854978884285,
+      "m2_brier_mean": 0.23700654631598667,
+      "mean_brier_difference_cell17_minus_m2": -0.0028210484275581873,
+      "std_difference_across_context": 0.0002803610972551532,
+      "cell17_better_draws": 10,
+      "ties": 0,
+      "m2_better_draws": 0
+    }
+  },
+  "training_seed_count_per_model": 1,
+  "context_seeds": [
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109
+  ],
+  "fixed_dropout_seed": 10100,
+  "decision": "expand only M2 and Cell 17 to training seeds 1 and 2",
+  "limitations": [
+    "The seed-0 result does not establish training-seed stability.",
+    "M2 and Cell 17 differ as complete architecture packages and in parameter count.",
+    "Regional results remain mixed; Cell 17 is worse in continuum_2200_2400 for every draw."
+  ]
+}

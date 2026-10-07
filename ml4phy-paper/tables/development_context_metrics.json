@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "candidate": "cell17",
+  "candidate_display_name": "Cell 17",
+  "selection_rule": "Lowest mean development Brier on both global and equal-supported-region summaries, with favorable paired differences on all ten fixed-dropout context draws.",
+  "primary_means": {
+    "v9": {
+      "full": 0.22595523780229673,
+      "equal_region_mean": 0.23485741555446063
+    },
+    "v5": {
+      "full": 0.22581047921017294,
+      "equal_region_mean": 0.23464958079406043
+    },
+    "cell17": {
+      "full": 0.22562063293627652,
+      "equal_region_mean": 0.2341854978884285
+    }
+  },
+  "winner_by_metric": {
+    "full": "cell17",
+    "equal_region_mean": "cell17"
+  },
+  "training_seed_count": 1,
+  "context_seeds": [
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109
+  ],
+  "fixed_dropout_seed": 10100,
+  "mc_passes": 50,
+  "target_identity_sha256": "fbbaefc5ab880c8837ce8582c21bac0f5286dafc67775726edbbe3ea8bb3c6f3",
+  "context_identity_sha256_by_seed": {
+    "100": "7cc331ae6892f5741152c50adfd764d5bfc9d4e361b96c9aad82677d22900d3b",
+    "101": "c2d39a0545a153a6d2c0e7b03706bab9996f0794e5b7a910fffff0a9904cd684",
+    "102": "840542f054f04a50ec2145d2d7fcb76b8fa42d79d75c07a364abf2054ceefe0e",
+    "103": "f6776cd7d108599c6388ecf0a941ffd2cb54ba8b337607aef5e5262ba2ed889a",
+    "104": "428fd7c5c3626002a28c5c73ce7812e507b8ac9c90bf4661e02b4fd2174de80d",
+    "105": "f5b0441f1598a8dfe459878342ae025e0ec31b4cb6a6cb139d8052ddc6b5d7ff",
+    "106": "44a6b11c2ab91e7ef4123d4f8ff4217994b98977eb48330e2609bbfc0306ff09",
+    "107": "c401a1e043da877afbecd71412b46202fa867fd7ff60dafb25d490b6e9a54ac0",
+    "108": "b3cb6699577a0b072e7e11a11b0051f1293c506565c5c196f8663e20855d8ba7",
+    "109": "ff64c6387e21bc1d30041586c8e1c9957b2454e3a297576ab4ddd09819e34e4d"
+  },
+  "checkpoint_sha256": {
+    "v9": "1d20c0563b842c3a49ed78abbf74d204e93719e094859aa631d7d8627914f35a",
+    "v5": "f32ba045d449d5002c694156b525ffb7052532ac929b4ebc77726fd2976f3d25",
+    "cell17": "e21af9988a220aa4b203e54d63f59f37778a41570cd283591f27b7a29af38867"
+  },
+  "source_commit": "1760df366d2b95546c700a7b49f6a6698004ba76",
+  "caveats": [
+    "All three recovered models have only training seed 0.",
+    "Context draws overlap and share one development target; they are paired sensitivity checks, not independent datasets.",
+    "The fixed dropout seed isolates context selection but does not quantify dropout-estimator variation.",
+    "DEP has 17 events and the sparse tail has zero events in the development target; both are inconclusive."
+  ]
+}
