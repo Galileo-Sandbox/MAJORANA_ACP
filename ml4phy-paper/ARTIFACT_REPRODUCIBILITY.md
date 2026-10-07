@@ -1,5 +1,8 @@
 # Artifact reproducibility guide
 
+This guide accompanies
+[Density-Guided Conditional Neural Processes for Detector Efficiency Estimation](https://arxiv.org/abs/2609.13593).
+
 This guide separates claims that can be checked from a Git clone from work that
 requires large external data or historical third-party source. It avoids
 calling a result reproducible when a required input is absent.
@@ -14,7 +17,7 @@ manifests, the expected experiment inventories, and the independently
 recomputed mechanism summaries.
 
 ```bash
-git switch ml4phy-paper
+git switch main
 uv sync --frozen --dev
 .venv/bin/python ml4phy-paper/artifact/verify_artifact.py
 PYTHONPATH=ml4phy-paper/scripts:ml4phy-paper/review_followup_20260910:. \
@@ -33,9 +36,10 @@ trusting the summary CSVs.
 
 ### Level 2: regenerate portable exports from saved predictions
 
-This level additionally requires the server artifact bundle: frozen role
-archives, training subsets, checkpoints, and event-level predictions at the
-logical paths recorded in the manifests. After restoring that bundle, run:
+This optional author-side audit requires the frozen role archives, training
+subsets, and event-level predictions at the logical paths recorded in the
+manifests. Checkpoints are not required to regenerate exports from saved
+predictions. After restoring the local files, run:
 
 ```bash
 .venv/bin/python ml4phy-paper/artifact/verify_artifact.py --server
@@ -51,18 +55,19 @@ new Monte Carlo predictions. The source registries identify interrupted or
 invalid duplicate attempts so that only the prespecified successful cells are
 used.
 
-The bundle is not committed to Git. On the execution server it occupies about
-4.3 GiB under `ml4phy-paper/runs/`, with additional role and subset archives
-under the ignored `ml4phy-paper/local/` tree. A public release should deposit
-this bundle in an archival object store and add its download URL to
-`manifests/artifact_release_v1.json`; no public bundle URL was available when
-this Git release was prepared.
+These local files are not committed because the public artifact already
+contains the derived bin-level evidence needed to check the paper's numerical
+claims. Their hashes remain available for author-side provenance verification.
+Publishing checkpoints or event-level predictions is not a requirement of this
+artifact.
 
 ### Level 3: rerun training and inference
 
-This level requires all Level 2 inputs, a CUDA-capable environment for the
-recorded GPU campaigns, and the exact historical RESUM_FLEX snapshot. Restore
-that snapshot from a lawfully obtained archive with:
+This level starts from the public waveform data rather than historical
+checkpoints. It requires a CUDA-capable environment for the recorded GPU
+campaigns, deterministic reconstruction of the frozen roles and subsets, and
+the exact historical RESUM_FLEX snapshot. Restore that snapshot from a
+lawfully obtained archive with:
 
 ```bash
 .venv/bin/python ml4phy-paper/artifact/restore_resum_flex.py \
@@ -112,9 +117,10 @@ events. The fixed final reference contains 114,400 events. Exact role counts,
 overlaps, preprocessing, labels, repeated exposure, and identity hashes are in
 `reports/data_budget_ledger.md` and `manifests/data_budget_ledger.json`.
 
-The raw-data DOI alone is insufficient to recreate historical checkpoints:
-the fixed classifier checkpoint or its exact retraining workflow, frozen role
-archives, and the RESUM_FLEX snapshot are also required.
+The raw-data DOI alone is insufficient for a matched rerun: the recorded
+classifier workflow, deterministic role and subset construction, and the
+RESUM_FLEX snapshot are also required. Historical checkpoints are not required
+when rerunning the complete pipeline from scratch.
 
 ## Environment
 
@@ -155,14 +161,15 @@ successful portable verification as a bitwise training reproduction.
 - The 1620-keV structure is named by energy in new outputs because historical
   isotope labels conflict.
 
-## Release gaps requiring repository-owner action
+## Remaining repository-owner actions
 
-The code and lightweight evidence are now reviewable and internally verified,
-but two policy decisions cannot be made by an automated artifact build:
+The code and lightweight evidence are reviewable and internally verified. Two
+repository policy decisions remain outside the artifact build:
 
-1. Publish the large server bundle at a stable URL and record its archive hash.
-2. Confirm redistribution terms or a public source for the historical
+1. Confirm redistribution terms or a public source for the historical
    RESUM_FLEX revision.
+2. Select a repository license before inviting code reuse.
 
-The repository also has no project license at the time of this release. The
-owner should select one before inviting reuse; no license is inferred here.
+The raw Majorana data remain available from their public DOI. Checkpoints and
+event-level predictions intentionally remain server-side and do not need to be
+published for the portable numerical verification or a from-scratch rerun.
