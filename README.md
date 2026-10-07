@@ -15,7 +15,11 @@ finite-sample fluctuations. We introduce a density-guided conditional neural
 process (CNP) that allocates high-frequency flexibility near spectral
 concentrations and restricts it in broad continuum regions.
 
-![Efficiency curves for the four neural architectures](ml4phy-paper/figures/paper_figure1_efficiency_curves.png)
+![Figure 1 from the paper: efficiency curves for the four neural architectures](ml4phy-paper/figures/paper_figure1_manuscript.png)
+
+*Figure 1 from the paper. All models use 5k efficiency-training events and 500
+context events; curves average three initialization seeds, ten contexts, and 50
+dropout passes per run.*
 
 The repository contains the waveform-classifier pipeline, all four neural
 architectures, kernel and Bernoulli-GP comparators, frozen paper protocols,
