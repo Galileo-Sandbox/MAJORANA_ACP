@@ -1,13 +1,25 @@
 cff-version: 1.2.0
-message: "If you use this artifact, please cite the associated ML4PS 2026 paper and the Majorana Demonstrator AI/ML data release."
-title: "ML4PS 2026 artifact for density-guided efficiency estimation"
+message: "If you use this artifact, please cite the paper and the Majorana Demonstrator AI/ML data release."
+title: "Density-Guided Conditional Neural Processes for Detector Efficiency Estimation"
 type: software
 authors:
   - family-names: "Ma"
     given-names: "Yue"
+  - family-names: "Li"
+    given-names: "Aobo"
 repository-code: "https://github.com/Galileo-Sandbox/MAJORANA_ACP"
-date-released: 2026-10-07
+date-released: 2026-09-11
 version: "ml4phy-paper-artifact-v1"
+preferred-citation:
+  type: article
+  title: "Density-Guided Conditional Neural Processes for Detector Efficiency Estimation"
+  authors:
+    - family-names: "Ma"
+      given-names: "Yue"
+    - family-names: "Li"
+      given-names: "Aobo"
+  year: 2026
+  url: "https://arxiv.org/abs/2609.13593"
 references:
   - type: dataset
     title: "Majorana Demonstrator AI/ML data release"

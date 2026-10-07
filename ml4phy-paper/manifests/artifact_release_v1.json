@@ -1,12 +1,13 @@
 {
   "schema_version": 1,
   "release_date": "2026-10-07",
-  "branch": "ml4phy-paper",
+  "branch": "main",
+  "development_branch": "ml4phy-paper",
   "evidence_base_commit": "40d3ba4d1a14e6f13e2e226de46b3af800a3bbbe",
   "status": {
     "portable_result_verification": "complete",
-    "saved_prediction_regeneration": "requires external server bundle",
-    "full_training_rerun": "requires public raw data, external server bundle, and licensed RESUM_FLEX snapshot"
+    "saved_prediction_regeneration": "optional author-side audit requiring saved event-level predictions",
+    "full_training_rerun": "requires public raw data, deterministic protocol reconstruction, and a licensed RESUM_FLEX snapshot"
   },
   "public_data": {
     "name": "Majorana Demonstrator AI/ML data release",
@@ -16,7 +17,8 @@
   },
   "external_server_bundle": {
     "public_url": null,
-    "publication_status": "not deposited at release time",
+    "publication_status": "intentionally retained server-side",
+    "required_for_public_artifact": false,
     "server_runs_bytes_at_release": 4551220305,
     "git_policy": "checkpoints, role identities, raw waveforms, and event-level predictions are not committed",
     "verification": "run ml4phy-paper/artifact/verify_artifact.py --server after restoring logical paths"
@@ -82,16 +84,16 @@
       "bytes": 316116
     },
     "ml4phy-paper/README.md": {
-      "sha256": "e3c6e95c3526783617e19c3a6c4f28edff34177639f65eb18af76b17593fd9db",
-      "bytes": 4355
+      "sha256": "e2bb6d2aaf1849e5ce4a489b54478cdd511387b6991550fcc8bc3a8da658b450",
+      "bytes": 12437
     },
     "ml4phy-paper/ARTIFACT_REPRODUCIBILITY.md": {
-      "sha256": "a2871417df7a41f73837fef7ecbfc4088ac5bf0c7df611f243ea39bd688e279f",
-      "bytes": 8113
+      "sha256": "03eedb2343b90c95774edd604d1cadbc36a306c1e19d89d0666aaf94624fb642",
+      "bytes": 8425
     },
     "ml4phy-paper/CITATION.cff": {
-      "sha256": "fa7b21eb631ed3ad659e8ad6cd920278e52ccc4715ba196ead43e89c727e39bf",
-      "bytes": 537
+      "sha256": "ffbb361a7dae9af009371dee027a5476038e63cecf6f89fc2b31f72d45d3e404",
+      "bytes": 873
     },
     "ml4phy-paper/manifests/data_budget_ledger.json": {
       "sha256": "6a0e84cd826c45478fe36ec3589f1679709625f1eeada6d44cd764cacb48e103",
@@ -110,8 +112,8 @@
       "bytes": 28011
     },
     "ml4phy-paper/reports/artifact_release_v1.md": {
-      "sha256": "850a4d5abf3d1d69843f335f7e4e37da5aaf41edaf034087532576d916a6920c",
-      "bytes": 3340
+      "sha256": "cf7d7c2161d4869e652425734709bf51f8089e37a712b60333cb830fd9be8ad2",
+      "bytes": 3116
     },
     "ml4phy-paper/artifact/verify_artifact.py": {
       "sha256": "22c4a9c6a37b1d241e3afb462a768e7d9fa23816c525a98b9de8feab876b80aa",

@@ -14,16 +14,15 @@ for this release task. Existing scientific results were not changed.
 
 The portable artifact is complete for independent verification of the
 committed paper tables, figures, and mechanism-control regional scores. A
-fully independent training rerun remains conditional on publication of the
-large server bundle and a licensed source for the historical RESUM_FLEX
-revision. This distinction is explicit in the landing page and release
-manifest.
+fully matched training rerun starts from the public waveform data and remains
+conditional on a licensed source for the historical RESUM_FLEX revision. It
+does not require publication of historical checkpoints.
 
 ## Validation record
 
 | Check | Result |
 | --- | ---: |
-| Portable release anchors | 11/11 passed before this report was added |
+| Portable release anchors | 12/12 passed |
 | Manifest-recorded portable outputs | 67/67 passed |
 | Mechanism per-cell bin rows | 75,000/75,000 passed |
 | Server-only prediction, curve, checkpoint, role, subset, and classifier-input files | 1,486/1,486 passed |
@@ -44,24 +43,21 @@ warning. No test failed.
 | Inspect protocols, code, tables, reports, and figures | Yes | None |
 | Verify portable file hashes and experiment inventories | Yes | Python 3.12+ standard library |
 | Recompute mechanism regional summaries from committed per-bin predictions | Yes | Locked project environment |
-| Regenerate exports from event-level predictions | No | External server bundle at recorded logical paths |
-| Rerun training and stochastic inference | No | Public raw data, external bundle, CUDA environment, and pinned RESUM_FLEX source |
+| Regenerate exports from event-level predictions | No | Author-side saved predictions at recorded logical paths |
+| Rerun training and stochastic inference | No | Public raw data, deterministic protocol reconstruction, CUDA environment, and pinned RESUM_FLEX source |
 
-The server retains about 4.3 GiB under `ml4phy-paper/runs/`; it is not added to
-Git. The release manifest records exact source hashes, and the optional server
-mode of the verifier checks all files selected by the paper exporters and the
-mechanism registry.
+The server retains about 4.3 GiB under `ml4phy-paper/runs/`; it is intentionally
+not added to Git. The release manifest records exact source hashes, and the
+optional server mode of the verifier checks all files selected by the paper
+exporters and the mechanism registry.
 
-## Required owner actions before a public archival claim
+## Remaining owner actions
 
-1. Deposit the server artifact bundle in a stable archive and add its URL and
-   archive SHA-256 to `manifests/artifact_release_v1.json`.
-2. Publish or identify a licensed source for RESUM_FLEX revision
+1. Publish or identify a licensed source for RESUM_FLEX revision
    `edba6a294581fde6f905b330d477f2c1b42d6adb`.
-3. Select a repository license. This audit does not infer or grant one.
-4. Replace the provisional artifact citation with the final paper title,
-   author list, and DOI when available.
+2. Select a repository license. This audit does not infer or grant one.
+3. Update citation metadata if the paper receives a publication DOI.
 
-Until those actions are complete, the repository supports transparent review
-and numerical result verification, but it must not be advertised as a fully
-self-contained training artifact.
+The paper title, author list, and arXiv identifier are now recorded in
+`CITATION.cff`. Checkpoints and event-level predictions are not publication
+requirements for this artifact.
